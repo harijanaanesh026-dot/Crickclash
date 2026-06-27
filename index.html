@@ -547,7 +547,7 @@ const sv=(k,v)=>{const s=sk(k);if(s)localStorage.setItem(s,JSON.stringify(v));};
 const ld=(k,d)=>{const s=sk(k);if(!s)return d;const v=localStorage.getItem(s);return v?JSON.parse(v):d;};
 
 function initStats(){
-  const seeds={virat:[142,38],sachin:[158,22],rohit:[98,62],ganguly:[88,52],dravid:[102,28],sehwag:[72,58],pujara:[58,62],iyer:[42,38],rahul:[48,42],bumrah:[118,32],shami:[82,48],zaheer:[68,52],kumble:[92,38],ashwin:[88,44],siraj:[54,46],kuldeep:[48,52],jadeja:[72,48],hardik:[68,52],kapil:[112,28],dhoni:[168,12],pant:[74,46],karthik:[42,58]};
+  //const seeds={virat:[142,38],sachin:[158,22],rohit:[98,62],ganguly:[88,52],dravid:[102,28],sehwag:[72,58],pujara:[58,62],iyer:[42,38],rahul:[48,42],bumrah:[118,32],shami:[82,48],zaheer:[68,52],kumble:[92,38],ashwin:[88,44],siraj:[54,46],kuldeep:[48,52],jadeja:[72,48],hardik:[68,52],kapil:[112,28],dhoni:[168,12],pant:[74,46],karthik:[42,58]};
   stats=ld('stats',{});
   PLAYERS.forEach(p=>{if(!stats[p.id]){const s=seeds[p.id]||[10,10];stats[p.id]={wins:s[0],losses:s[1],votes:s[0]+s[1],userVotes:0};}});
   userHistory=ld('history',[]);
@@ -617,7 +617,9 @@ function loadBattle(){
 
 function fmtV(n){if(n>=1e6)return(n/1e6).toFixed(1)+'M';if(n>=1000)return(n/1000).toFixed(1)+'k';return n;}
 function fmtTime(ts){const d=Date.now()-ts;if(d<60000)return'just now';if(d<3600000)return Math.floor(d/60000)+'m ago';if(d<86400000)return Math.floor(d/3600000)+'h ago';return Math.floor(d/86400000)+'d ago';}
-
+  
+  
+  if(userHistory.length){userHistory.unshift({
 function vote(side){
   if(hasVoted)return; hasVoted=true;
   const[a,b]=currentPair, winner=side==='a'?a:b, loser=side==='a'?b:a;
@@ -629,6 +631,7 @@ function vote(side){
   const tot=cW+cL+1, pctW=Math.round((cW+1)/tot*100), pctL=100-pctW;
   const pctA=side==='a'?pctW:pctL, pctB=100-pctA;
   const vbw=document.getElementById('voteBarWrap'); vbw.style.display='block';
+  const cW=40+Math.floor(Math.random()*80), cL=200-cW;
   setTimeout(()=>{document.getElementById('vba').style.width=pctA+'%';document.getElementById('vba').textContent=pctA+'%';document.getElementById('vbb').textContent=pctB+'%';},50);
   document.getElementById('votes'+(side==='a'?'A':'B')).innerHTML=fmtV(stats[winner.id].votes)+' <span>total</span>';
   document.getElementById('votes'+(side==='a'?'B':'A')).innerHTML=fmtV(stats[loser.id].votes)+' <span>total</span>';
