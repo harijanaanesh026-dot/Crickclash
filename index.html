@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>🇮🇳 India Cricket Clash</title>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#0a0f1e;--card:#111827;--gold:#f5a623;--lime:#39d353;--red:#ff4444;--saffron:#FF9933;--green:#138808;--muted:rgba(255,255,255,0.45);--r:18px;}
@@ -869,7 +871,21 @@ function spawnConfetti(){
     w.appendChild(el);setTimeout(()=>el.remove(),2200);
   }
 }
+// FIREBASE SETUP - IDI ADD CHEY
+     const firebaseConfig = {
+    apiKey: "AIzaSyD9BfrAh8djKof1aBcDeFgHiJkLmNoPqRsT", // REAL KEY
+     authDomain: "crickclash-d30fe.firebaseapp.com",
+     databaseURL: "https://crickclash-d30fe-default-rtdb.asia-southeast1.firebasedatabase.app",
+     projectId: "crickclash-d30fe",
+     storageBucket: "crickclash-d30fe.appspot.com",
+    messagingSenderId: "595133866613",
+     appId: "1:595133866613:web:dda3f0509462310cb74e3c"
+};
 
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// checkLogin() function ikkada nunchi start aipotundi
 checkLogin();
 </script>
 </body>
