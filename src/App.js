@@ -37,9 +37,6 @@ export default function App() {
         <h1>CrickClash 🇮🇳</h1>
         <h2>INDIA'S Fantasy Game</h2>
         <p>Sign in to create your dream team</p>
-        
-
-// NEW:
 <button type="button" onClick={signInWithGoogle}>
           Continue with Google
         </button>
