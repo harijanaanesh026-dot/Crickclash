@@ -1,56 +1,70 @@
-import React, { useState, useEffect } from "react";
-import { signOut, onAuthStateChanged } from "firebase/auth";
-import { doc, setDoc, getDoc, collection, addDoc, onSnapshot, query, orderBy } from "firebase/firestore";
-import { auth, db, signInWithGoogle, handleRedirectResult } from "./firebase";
+import React, { useState, useEffect } from "react"
+import { onAuthStateChanged, signOut } from "firebase/auth"
+import { auth, signInWithGoogle, handleRedirectResult } from "./firebase"
 
-export default function App() {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+function App() {
+  const [user, setUser] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState("")
 
   useEffect(() => {
+    // 1. FIRST: Check if we came back from Google
     handleRedirectResult()
       .then((result) => {
         if (result) {
-          console.log("Welcome:", result.user.displayName)
+          console.log("Login success:", result.user.displayName)
         }
       })
-      .catch((error) => {
-        console.log("Error:", error)
+      .catch((err) => {
+        console.error("Redirect Error:", err)
+        setError(err.message)
       })
+      .finally(() => {
+        // 2. THEN: Start listening for login state
+        const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+          setUser(currentUser)
+          setLoading(false) // IMPORTANT: Stop loading here
+        })
+        return unsubscribe
+      })
+  }, [])
 
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      setLoading(false);
-    });
-    return () => unsubscribe();
-  }, []);
-
-  const handleSignOut = () => signOut(auth);
-
-  if (loading) {
-    return <div className="container"><h1>Loading CrickClash...</h1></div>
+  const handleLogout = () => {
+    signOut(auth)
   }
 
-  if (!user) {
-    return (
-      <div className="container">
-        <h1>CrickClash 🇮🇳</h1>
-        <h2>INDIA'S Fantasy Game!</h2>
-        <p>Sign in to create your dream team</p>
-<button type="button" onClick={signInWithGoogle}>
-          Continue with Google
-        </button>
-      </div>
-    )
+  if (loading) {
+    return <div style={{ padding: 20, fontSize: 20 }}>Loading CrickClash...</div>
+  }
+
+  if (error) {
+    return <div style={{ padding: 20, color: 'red' }}>Error: {error}</div>
   }
 
   return (
-    <div className="container">
-      <h1>Welcome {user.displayName}! 🎉</h1>
-      <img src={user.photoURL} alt="profile" width="50" style={{borderRadius: "50%"}} />
-      <p>{user.email}</p>
-      <button onClick={handleSignOut}>Sign Out</button>
-      <h2>Dashboard Coming Soon...</h2>
+    <div style={{ padding: 20, textAlign: 'center' }}>
+      <h1>CrickClash🇮🇳</h1>
+      {user ? (
+        <div>
+          <h2>Welcometo INDIA'S Fantasy Game!{user.displayName}! 🏆</h2>
+          <p>Email: {user.email}</p>
+          <button onClick={handleLogout} style={{ padding: 10 }}>
+            Logout
+          </button>
+        </div>
+      ) : (
+        <div>
+          <h3>Login to Start Playing</h3>
+          <button 
+            onClick={signInWithGoogle}
+            style={{ padding: 15, fontSize: 16, cursor: 'pointer' }}
+          >
+            Continue with Google
+          </button>
+        </div>
+      )}
     </div>
-  );
-    }
+  )
+}
+
+export default App
