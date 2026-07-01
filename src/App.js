@@ -46,7 +46,7 @@ function App() {
       <h1>CrickClash🇮🇳</h1>
       {user ? (
         <div>
-          <h2>Welcometo INDIA'S Fantasy Game!{user.displayName}! 🏆</h2>
+          <h2>Welcome {user.displayName}! 🏆</h2>
           <p>Email: {user.email}</p>
           <button onClick={handleLogout} style={{ padding: 10 }}>
             Logout
@@ -54,7 +54,7 @@ function App() {
         </div>
       ) : (
         <div>
-          <h3>Login to Start Playing</h3>
+          <h3>INDIA'S Fantasy Game!</h3>
           <button 
             onClick={signInWithGoogle}
             style={{ padding: 15, fontSize: 16, cursor: 'pointer' }}
