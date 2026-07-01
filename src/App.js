@@ -54,7 +54,7 @@ function App() {
         </div>
       ) : (
         <div>
-          <h3>INDIA'S Fantasy Game!</h3>
+          <h3>INDIA'S Fantasy Sport!</h3>
           <button 
             onClick={signInWithGoogle}
             style={{ padding: 15, fontSize: 16, cursor: 'pointer' }}
