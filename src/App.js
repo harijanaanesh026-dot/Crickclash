@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { signOut, onAuthStateChanged } from "firebase/auth";
 import { doc, setDoc, getDoc, collection, addDoc, onSnapshot, query, orderBy } from "firebase/firestore";
 import { auth, db, signInWithGoogle, handleRedirectResult } from "./firebase";
-import "./style.css";
 
 export default function App() {
   const [user, setUser] = useState(null);
