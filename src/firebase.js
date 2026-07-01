@@ -25,7 +25,6 @@ export const googleProvider = new GoogleAuthProvider()
 
 // LOGIN FUNCTION - IDHI BUTTON KI VADU
 export const signInWithGoogle = () => {
-  alert("HARIJANAA! Button Click Ayyindhi!"); 
   signInWithRedirect(auth, googleProvider)
 }
 // RESULT CHECK FUNCTION - APP.JS LO VADU
