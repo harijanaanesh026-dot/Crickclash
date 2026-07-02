@@ -54,7 +54,7 @@ const INDIAN_PLAYERS = {
   agarkar: { name: "Ajit Agarkar", role: "BOWLER", icon: "🎯", category: "bowlers", country: "IN" },
   nehra: { name: "Ashish Nehra", role: "BOWLER", icon: "💨", category: "bowlers", country: "IN" },
   sreesanth: { name: "S Sreesanth", role: "BOWLER", icon: "🌀", category: "bowlers", country: "IN" },
-  shreyas: { name: "Shreyas Iyer", role: "BATTER", icon: "🎭", category: "batters", country: "IN" },
+    shreyas: { name: "Shreyas Iyer", role: "BATTER", icon: "🎭", category: "batters", country: "IN" },
   shardul: { name: "Shardul Thakur", role: "ALL-ROUNDER", icon: "🦁", category: "all-rounders", country: "IN" }
 }
 
@@ -110,8 +110,7 @@ const FOREIGN_PLAYERS = {
   mustafizur: { name: "Mustafizur Rahman", role: "BOWLER", icon: "🇧🇩", category: "bowlers", country: "BD" },
   hasaranga: { name: "Wanindu Hasaranga", role: "ALL-ROUNDER", icon: "🇱🇰", category: "all-rounders", country: "LK" },
   pathirana: { name: "Matheesha Pathirana", role: "BOWLER", icon: "🇱🇰", category: "bowlers", country: "LK" }
-}
-
+           }
 const db = getDatabase()
 
 function App() {
@@ -308,9 +307,22 @@ function App() {
       <div className="login-screen">
         <h1>⚡ CrickClash 🌍</h1>
         <h2>WORLD'S Biggest Cricket Battles!</h2>
-        <p style={{ marginBottom: 20, color: '#aaa' }}>
+        <p style={{ marginBottom: 10, color: '#aaa' }}>
           50 Indian + 50 Global Cricket Stars
         </p>
+
+        {/* ZUCKERBERG STYLE NAME TAG - ANESH */}
+        <p style={{
+          marginBottom: 20,
+          color: '#FFD700',
+          fontSize: '0.85rem',
+          fontWeight: 'bold',
+          letterSpacing: '2px',
+          textTransform: 'uppercase'
+        }}>
+          a ANESH production
+        </p>
+
         <button onClick={handleLogin} className="google-btn">
           Continue with Google
         </button>
@@ -319,8 +331,7 @@ function App() {
         </p>
       </div>
     )
-  }
-
+                                                                     }
   const userBattles = Object.keys(userVotes).length
 
   return (
@@ -328,6 +339,16 @@ function App() {
       <header className="header">
         <div className="logo">
           <span className="bolt">⚡</span> Cricket Clash
+          <span style={{
+            fontSize: '0.55rem',
+            color: '#FFD700',
+            marginLeft: '6px',
+            opacity: 0.7,
+            fontWeight: 'normal',
+            verticalAlign: 'super'
+          }}>
+            by ANESH
+          </span>
         </div>
         <div className="user-info">
           <button onClick={handleNativeShare} className="share-btn" style={{ padding: '6px 12px', background: '#2196F3', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', marginRight: '8px', fontSize: '0.85rem' }}>
@@ -347,4 +368,195 @@ function App() {
               <button onClick={() => handleShare('twitter')} style={{ padding: '12px', background: '#1DA1F2', border: 'none', borderRadius: '8px', color: 'white', cursor: 'pointer' }}>🐦 Twitter</button>
               <button onClick={() => handleShare('facebook')} style={{ padding: '12px', background: '#4267B2', border: 'none', borderRadius: '8px', color: 'white', cursor: 'pointer' }}>📘 Facebook</button>
               <button onClick={() => handleShare('linkedin')} style={{ padding: '12px', background: '#0077B5', border: 'none', borderRadius: '8px', color: 'white', cursor: 'pointer' }}>💼 LinkedIn</button>
-              <button onClick={() => handleShare('telegram')} style={{ padding: '12px', background: '#0088cc', border: 'none', borderRadius: '8px', color: 'white', cursor: 'pointer' }}>
+              <button onClick={() => handleShare('telegram')} style={{ padding: '12px', background: '#0088cc', border: 'none', borderRadius: '8px', color: 'white', cursor: 'pointer' }}>✈️ Telegram</button>
+              <button onClick={() => handleShare('instagram')} style={{ padding: '12px', background: 'linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%)', border: 'none', borderRadius: '8px', color: 'white', cursor: 'pointer' }}>📸 Instagram</button>
+            </div>
+            <button onClick={() => setShowShareModal(false)} style={{ width: '100%', marginTop: '15px', padding: '10px', background: '#333', border: 'none', borderRadius: '8px', color: 'white', cursor: 'pointer' }}>Close</button>
+          </div>
+        </div>
+      )}
+
+      <div className="stats-bar">
+        <div className="stat">
+          <span className="num">{totalVotes > 1000? (totalVotes/1000).toFixed(1) + 'k' : totalVotes}</span>
+          <span className="label">TOTAL VOTES</span>
+        </div>
+        <div className="stat">
+          <span className="num">{userBattles}</span>
+          <span className="label">BATTLES</span>
+        </div>
+        <div className="stat">
+          <span className="num">{rankings[0]?.name.split(' ')[0] || '-'}</span>
+          <span className="label">TOP CHAMP</span>
+        </div>
+        <div className="stat">
+          <span className="num">100</span>
+          <span className="label">PLAYERS</span>
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', margin: '15px 0' }}>
+        <button
+          onClick={() => {setGameMode("india"); setBattleNumber(battleNumber + 1)}}
+          style={{ padding: '8px 20px', background: gameMode === "india"? '#FF671F' : '#333', color: 'white', border: 'none', borderRadius: '20px', cursor: 'pointer', fontWeight: 'bold' }}
+        >
+          🇮🇳 INDIA MODE (50)
+        </button>
+        <button
+          onClick={() => {setGameMode("global"); setBattleNumber(battleNumber + 1)}}
+          style={{ padding: '8px 20px', background: gameMode === "global"? '#138808' : '#333', color: 'white', border: 'none', borderRadius: '20px', cursor: 'pointer', fontWeight: 'bold' }}
+        >
+          🌍 GLOBAL MODE (100)
+        </button>
+      </div>
+
+      <div className="tabs">
+        <button
+          className={activeTab === "battle"? "tab active" : "tab"}
+          onClick={() => setActiveTab("battle")}
+        >
+          ⚔️ Battle
+        </button>
+        <button
+          className={activeTab === "rankings"? "tab active" : "tab"}
+          onClick={() => setActiveTab("rankings")}
+        >
+          🏆 Rankings
+        </button>
+        <button
+          className={activeTab === "history"? "tab active" : "tab"}
+          onClick={() => setActiveTab("history")}
+        >
+          📜 History
+        </button>
+      </div>
+
+      {activeTab === "battle" && (
+        <div className="battle-screen">
+          <h2>WHO DO YOU LIKE?</h2>
+          <h3>Battle {battleNumber} • {gameMode === "global"? "🌍 Global 100" : "🇮🇳 India 50"}</h3>
+
+          <div className="categories">
+            {["any", "batters", "bowlers", "all-rounders", "keepers", "captain"].map(cat => (
+              <button
+                key={cat}
+                className={selectedCategory === cat? "cat-btn active" : "cat-btn"}
+                onClick={() => handleCategoryChange(cat)}
+              >
+                {cat === "any"? "Any" : cat === "all-rounders"? "AR" : cat.charAt(0).toUpperCase() + cat.slice(1)}
+              </button>
+            ))}
+          </div>
+
+          <div className="battle-cards">
+            <div className="player-card">
+              <div className="player-icon">{currentBattle.player1.icon}</div>
+              <h3>{currentBattle.player1.name}</h3>
+              <div className="role">{currentBattle.player1.role}</div>
+              <button
+                className="vote-btn"
+                onClick={() => handleVote(currentBattle.player1.id)}
+                disabled={userVotes[`battle_${battleNumber}_${gameMode}`]}
+              >
+                VOTE
+              </button>
+              <div className="vote-percent">
+                {currentBattle.player1.votes} votes
+              </div>
+            </div>
+
+            <div className="vs">VS</div>
+
+            <div className="player-card">
+              <div className="player-icon">{currentBattle.player2.icon}</div>
+              <h3>{currentBattle.player2.name}</h3>
+              <div className="role">{currentBattle.player2.role}</div>
+              <button
+                className="vote-btn"
+                onClick={() => handleVote(currentBattle.player2.id)}
+                disabled={userVotes[`battle_${battleNumber}_${gameMode}`]}
+              >
+                VOTE
+              </button>
+              <div className="vote-percent">
+                {currentBattle.player2.votes} votes
+              </div>
+            </div>
+          </div>
+
+          <button className="skip-btn" onClick={handleSkip}>
+            Skip Battle →
+          </button>
+        </div>
+      )}
+
+      {activeTab === "rankings" && (
+        <div className="rankings-screen">
+          <h2>🏆 TOP 20 RANKINGS</h2>
+          <p style={{ textAlign: 'center', color: '#aaa', marginBottom: 20 }}>
+            {gameMode === "global"? "🌍 Global 100 Players" : "🇮🇳 India 50 Players"}
+          </p>
+          <div className="rankings-list">
+            {rankings.map((player, index) => (
+              <div key={player.id} className="ranking-item">
+                <div className="rank">#{index + 1}</div>
+                <div className="player-info">
+                  <span className="icon">{player.icon}</span>
+                  <div>
+                    <div className="name">{player.name}</div>
+                    <div className="role-small">{player.role}</div>
+                  </div>
+                </div>
+                <div className="votes">
+                  <div className="percent">{player.percent}%</div>
+                  <div className="count">{player.votes} votes</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {activeTab === "history" && (
+        <div className="history-screen">
+          <h2>📜 YOUR BATTLE HISTORY</h2>
+          <p style={{ textAlign: 'center', color: '#aaa', marginBottom: 20 }}>
+            Total Battles: {userBattles}
+          </p>
+          <div className="history-list">
+            {Object.entries(userVotes).length === 0? (
+              <p style={{ textAlign: 'center', color: '#666', marginTop: 40 }}>
+                No battles yet. Start voting! ⚔️
+              </p>
+            ) : (
+              Object.entries(userVotes).reverse().slice(0, 20).map(([battleKey, playerId]) => {
+                const player = ALL_PLAYERS[playerId]
+                if (!player) return null
+                return (
+                  <div key={battleKey} className="history-item">
+                    <span className="icon">{player.icon}</span>
+                    <span className="name">You voted for {player.name}</span>
+                    <span className="role-small">{player.role}</span>
+                  </div>
+                )
+              })
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ZUCKERBERG STYLE FOOTER - ANESH */}
+      <div className="version">
+        <span style={{ color: '#888' }}>
+          Version 21 - Global Edition | {totalUsers}+ Fans Worldwide
+        </span>
+        <br/>
+        <span style={{ fontSize: '0.7rem', color: '#FFD700', fontWeight: '600' }}>
+          © 2026 CrickClash — a ANESH production
+        </span>
+      </div>
+    </div>
+  )
+}
+
+export default App
