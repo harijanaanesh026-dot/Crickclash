@@ -6,7 +6,6 @@ import "./App.css"
 
 // 50 INDIAN PLAYERS 🇮🇳
 const INDIAN_PLAYERS = {
-  const INDIAN_PLAYERS = {
   "kohli": { name: "Virat Kohli", role: "BATTER", icon: "👑", category: "batters", country: "India", photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/Virat_Kohli_in_PMO_New_Delhi.jpg/240px-Virat_Kohli_in_PMO_New_Delhi.jpg" },
   "rohit": { name: "Rohit Sharma", role: "BATTER", icon: "🎯", category: "batters", country: "India", photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Prime_Minister_Of_Bharat_Shri_Narendra_Damodardas_Modi_with_Shri_Rohit_Gurunath_Sharma_%28Cropped%29.jpg/240px-Prime_Minister_Of_Bharat_Shri_Narendra_Damodardas_Modi_with_Shri_Rohit_Gurunath_Sharma_%28Cropped%29.jpg" },
   "dhoni": { name: "MS Dhoni", role: "WK BAT", icon: "🦁", category: "keepers", country: "India", photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d9/MS_Dhoni_%28P.B._K._Kadam_Award%29.jpg/240px-MS_Dhoni_%28P.B._K._Kadam_Award%29.jpg" },
@@ -58,7 +57,7 @@ const INDIAN_PLAYERS = {
   "vvs": { name: "VVS Laxman", role: "BATTER", icon: "🎨", category: "batters", country: "India", photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/VVS_Laxman_ICC.jpg/240px-VVS_Laxman_ICC.jpg" },
   "irfan": { name: "Irfan Pathan", role: "ALL-ROUNDER", icon: "⚡", category: "all-rounders", country: "India", photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Irfan_Pathan_ICC.jpg/240px-Irfan_Pathan_ICC.jpg" },
   "vaibhav": { name: "Vaibhav Suryavanshi", role: "BATTER", icon: "🌟", category: "batters", country: "India", photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Vaibhav_Suryavanshi_2024.jpg/240px-Vaibhav_Suryavanshi_2024.jpg" }
-    }
+  } 
 
 // 50 FOREIGN LEGENDS 🌍
 const FOREIGN_PLAYERS = {
