@@ -7,18 +7,18 @@ import "./App.css"
 const INDIAN_PLAYERS = {
   // LEGENDS
   sachin: { name: "Sachin Tendulkar", role: "BATTER", icon: "👑", category: "batters" },
-  dhoni: { name: "MS Dhoni", role: "WK BAT", icon: "🏆", category: "keepers" },
-  kohli: { name: "Virat Kohli", role: "BATTER", icon: "🦁", category: "batters" },
+  dhoni: { name: "MS Dhoni", role: "WK BAT", icon: "🏆", category: "keepers", isCaptain: true },
+  kohli: { name: "Virat Kohli", role: "BATTER", icon: "🦁", category: "batters", isCaptain: true },
   yuvraj: { name: "Yuvraj Singh", role: "ALL-ROUNDER", icon: "☀️", category: "all-rounders" },
   dravid: { name: "Rahul Dravid", role: "BATTER", icon: "🧱", category: "batters" },
-  ganguly: { name: "Sourav Ganguly", role: "BATTER", icon: "🐯", category: "batters" },
+  ganguly: { name: "Sourav Ganguly", role: "BATTER", icon: "🐯", category: "batters", isCaptain: true },
   sehwag: { name: "Virender Sehwag", role: "BATTER", icon: "💥", category: "batters" },
   zaheer: { name: "Zaheer Khan", role: "BOWLER", icon: "🎯", category: "bowlers" },
   harbhajan: { name: "Harbhajan Singh", role: "BOWLER", icon: "🌀", category: "bowlers" },
   kumble: { name: "Anil Kumble", role: "BOWLER", icon: "⚡", category: "bowlers" },
   
   // CURRENT STARS
-  rohit: { name: "Rohit Sharma", role: "BATTER", icon: "🎩", category: "batters" },
+  rohit: { name: "Rohit Sharma", role: "BATTER", icon: "🎩", category: "batters", isCaptain: true },
   bumrah: { name: "Jasprit Bumrah", role: "BOWLER", icon: "🐍", category: "bowlers" },
   rahul: { name: "KL Rahul", role: "WK BAT", icon: "⚔️", category: "keepers" },
   pant: { name: "Rishabh Pant", role: "WK BAT", icon: "🧤", category: "keepers" },
@@ -52,9 +52,9 @@ const INDIAN_PLAYERS = {
   dhruv: { name: "Dhruv Jurel", role: "WK BAT", icon: "🥊", category: "keepers" },
   
   // MORE LEGENDS
-  kapil: { name: "Kapil Dev", role: "ALL-ROUNDER", icon: "🏅", category: "all-rounders" },
+  kapil: { name: "Kapil Dev", role: "ALL-ROUNDER", icon: "🏅", category: "all-rounders", isCaptain: true },
   laxman: { name: "VVS Laxman", role: "BATTER", icon: "🎨", category: "batters" },
-  gambhir: { name: "Gautam Gambhir", role: "BATTER", icon: "🛡️", category: "batters" },
+  gambhir: { name: "Gautam Gambhir", role: "BATTER", icon: "🛡️", category: "batters", isCaptain: true },
   raina: { name: "Suresh Raina", role: "BATTER", icon: "⚡", category: "batters" },
   irfan: { name: "Irfan Pathan", role: "ALL-ROUNDER", icon: "🦅", category: "all-rounders" },
   agarkar: { name: "Ajit Agarkar", role: "BOWLER", icon: "🎯", category: "bowlers" },
@@ -78,12 +78,27 @@ function App() {
   const [selectedCategory, setSelectedCategory] = useState("any")
   const [userVotes, setUserVotes] = useState({})
 
-  // Generate random battle
-  const generateBattle = (battleNum) => {
-    const playerKeys = Object.keys(INDIAN_PLAYERS)
+  // Generate battle based on category
+  const generateBattle = (battleNum, category = selectedCategory) => {
+    let playerKeys = Object.keys(INDIAN_PLAYERS)
+    
+    // CATEGORY FILTER
+    if (category!== "any") {
+      if (category === "captain") {
+        playerKeys = playerKeys.filter(key => INDIAN_PLAYERS[key].isCaptain === true)
+      } else {
+        playerKeys = playerKeys.filter(key => INDIAN_PLAYERS[key].category === category)
+      }
+    }
+    
+    // If no players in category, fallback to all
+    if (playerKeys.length < 2) {
+      playerKeys = Object.keys(INDIAN_PLAYERS)
+    }
+    
     const p1Key = playerKeys[Math.floor(Math.random() * playerKeys.length)]
     let p2Key = playerKeys[Math.floor(Math.random() * playerKeys.length)]
-    while(p2Key === p1Key) {
+    while(p2Key === p1Key && playerKeys.length > 1) {
       p2Key = playerKeys[Math.floor(Math.random() * playerKeys.length)]
     }
     
@@ -95,11 +110,11 @@ function App() {
 
   const [currentBattle, setCurrentBattle] = useState(generateBattle(1))
 
-  // Calculate rankings based on vote percentage
+  // Calculate rankings
   const calculateRankings = () => {
     const players = Object.entries(INDIAN_PLAYERS).map(([id, player]) => ({
       id,
-    ...player,
+     ...player,
       percent: Math.floor(Math.random() * 30) + 60,
       votes: Math.floor(Math.random() * 500) + 100
     }))
@@ -136,7 +151,6 @@ function App() {
     setUserVotes({...userVotes, [battleNumber]: playerId })
     alert(`Vote registered for ${INDIAN_PLAYERS[playerId].name}! 🇮🇳`)
     
-    // Next battle
     setTimeout(() => {
       setBattleNumber(battleNumber + 1)
       setCurrentBattle(generateBattle(battleNumber + 1))
@@ -148,11 +162,17 @@ function App() {
     setCurrentBattle(generateBattle(battleNumber + 1))
   }
 
+  const handleCategoryChange = (cat) => {
+    setSelectedCategory(cat)
+    setBattleNumber(battleNumber + 1)
+    setCurrentBattle(generateBattle(battleNumber + 1, cat))
+  }
+
   if (loading) {
     return (
       <div className="loading">
         <h1>CrickClash 🇮🇳</h1>
-        <p>Loading Team India...</p>
+        <p>Who Rules Cricket? You Decide.</p>
       </div>
     )
   }
@@ -230,13 +250,13 @@ function App() {
           <h3>Battle {battleNumber}</h3>
           
           <div className="categories">
-            {["any", "batters", "bowlers", "all-rounders", "keepers"].map(cat => (
+            {["any", "batters", "bowlers", "all-rounders", "keepers", "captain"].map(cat => (
               <button 
                 key={cat}
                 className={selectedCategory === cat? "cat-btn active" : "cat-btn"}
-                onClick={() => setSelectedCategory(cat)}
+                onClick={() => handleCategoryChange(cat)}
               >
-                {cat === "any"? "Any" : cat}
+                {cat === "any"? "Any" : cat === "all-rounders"? "AR" : cat.charAt(0).toUpperCase() + cat.slice(1)}
               </button>
             ))}
           </div>
@@ -263,7 +283,6 @@ function App() {
             </div>
           </div>
 
-          {/* SKIP BUTTON ADDED */}
           <button className="skip-btn" onClick={handleSkip}>
             Skip →
           </button>
@@ -322,7 +341,7 @@ function App() {
         </div>
       )}
 
-      <div className="version">Version 14 of 15</div>
+      <div className="version">Version 15 of 15</div>
     </div>
   )
 }
