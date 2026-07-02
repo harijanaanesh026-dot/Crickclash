@@ -4,52 +4,62 @@ import { getDatabase, ref, onValue, set, increment, update } from "firebase/data
 import { auth, signInWithGoogle } from "./firebase"
 import "./App.css"
 
-// INDIAN PLAYERS
+// INDIAN PLAYERS DATABASE
 const INDIAN_PLAYERS = {
-  sachin: { name: "Sachin Tendulkar", role: "BATTER", icon: "👑", category: "batters", country: "IN" },
-  dhoni: { name: "MS Dhoni", role: "WK BAT", icon: "🏆", category: "keepers", isCaptain: true, country: "IN" },
-  kohli: { name: "Virat Kohli", role: "BATTER", icon: "🦁", category: "batters", isCaptain: true, country: "IN" },
-  rohit: { name: "Rohit Sharma", role: "BATTER", icon: "🎩", category: "batters", isCaptain: true, country: "IN" },
-  bumrah: { name: "Jasprit Bumrah", role: "BOWLER", icon: "🐍", category: "bowlers", country: "IN" },
-  hardik: { name: "Hardik Pandya", role: "ALL-ROUNDER", icon: "⚡", category: "all-rounders", country: "IN" },
-  jadeja: { name: "Ravindra Jadeja", role: "ALL-ROUNDER", icon: "🗡️", category: "all-rounders", country: "IN" },
-  shami: { name: "Mohammed Shami", role: "BOWLER", icon: "🏹", category: "bowlers", country: "IN" },
-  gill: { name: "Shubman Gill", role: "BATTER", icon: "💎", category: "batters", country: "IN" },
-  surya: { name: "Suryakumar Yadav", role: "BATTER", icon: "🎪", category: "batters", country: "IN" },
-  pant: { name: "Rishabh Pant", role: "WK BAT", icon: "🧤", category: "keepers", country: "IN" },
-  rahul: { name: "KL Rahul", role: "WK BAT", icon: "⚔️", category: "keepers", country: "IN" },
-  siraj: { name: "Mohammed Siraj", role: "BOWLER", icon: "💨", category: "bowlers", country: "IN" },
-  kuldeep: { name: "Kuldeep Yadav", role: "BOWLER", icon: "🌀", category: "bowlers", country: "IN" },
-  ashwin: { name: "R Ashwin", role: "ALL-ROUNDER", icon: "🧠", category: "all-rounders", country: "IN" },
-  kapil: { name: "Kapil Dev", role: "ALL-ROUNDER", icon: "🏅", category: "all-rounders", isCaptain: true, country: "IN" },
-  yuvraj: { name: "Yuvraj Singh", role: "ALL-ROUNDER", icon: "☀️", category: "all-rounders", country: "IN" },
-  sehwag: { name: "Virender Sehwag", role: "BATTER", icon: "💥", category: "batters", country: "IN" },
-  dravid: { name: "Rahul Dravid", role: "BATTER", icon: "🧱", category: "batters", country: "IN" },
-  ganguly: { name: "Sourav Ganguly", role: "BATTER", icon: "🐯", category: "batters", isCaptain: true, country: "IN" },
-}
-
-// FOREIGN LEGENDS
-const FOREIGN_PLAYERS = {
-  babar: { name: "Babar Azam", role: "BATTER", icon: "🇵🇰", category: "batters", country: "PK" },
-  shaheen: { name: "Shaheen Afridi", role: "BOWLER", icon: "🇵🇰", category: "bowlers", country: "PK" },
-  rizwan: { name: "M Rizwan", role: "WK BAT", icon: "🇵🇰", category: "keepers", country: "PK" },
-  smith: { name: "Steve Smith", role: "BATTER", icon: "🇦🇺", category: "batters", country: "AU" },
-  cummins: { name: "Pat Cummins", role: "BOWLER", icon: "🇦🇺", category: "bowlers", isCaptain: true, country: "AU" },
-  maxwell: { name: "Glenn Maxwell", role: "ALL-ROUNDER", icon: "🇦🇺", category: "all-rounders", country: "AU" },
-  warner: { name: "David Warner", role: "BATTER", icon: "🇦🇺", category: "batters", country: "AU" },
-  root: { name: "Joe Root", role: "BATTER", icon: "🇬🇧", category: "batters", country: "GB" },
-  stokes: { name: "Ben Stokes", role: "ALL-ROUNDER", icon: "🇬🇧", category: "all-rounders", isCaptain: true, country: "GB" },
-  buttler: { name: "Jos Buttler", role: "WK BAT", icon: "🇬🇧", category: "keepers", isCaptain: true, country: "GB" },
-  archer: { name: "Jofra Archer", role: "BOWLER", icon: "🇬🇧", category: "bowlers", country: "GB" },
-  kane: { name: "Kane Williamson", role: "BATTER", icon: "🇳🇿", category: "batters", isCaptain: true, country: "NZ" },
-  boult: { name: "Trent Boult", role: "BOWLER", icon: "🇳🇿", category: "bowlers", country: "NZ" },
-  dekock: { name: "Quinton de Kock", role: "WK BAT", icon: "🇿🇦", category: "keepers", country: "ZA" },
-  rabada: { name: "Kagiso Rabada", role: "BOWLER", icon: "🇿🇦", category: "bowlers", country: "ZA" },
-  klaasen: { name: "Heinrich Klaasen", role: "WK BAT", icon: "🇿🇦", category: "keepers", country: "ZA" },
-  rashid: { name: "Rashid Khan", role: "BOWLER", icon: "🇦🇫", category: "bowlers", country: "AF" },
-  nabi: { name: "Mohammad Nabi", role: "ALL-ROUNDER", icon: "🇦🇫", category: "all-rounders", country: "AF" },
-  pollard: { name: "Kieron Pollard", role: "ALL-ROUNDER", icon: "🇹🇹", category: "all-rounders", country: "WI" },
-  russell: { name: "Andre Russell", role: "ALL-ROUNDER", icon: "🇯🇲", category: "all-rounders", country: "WI" },
+  sachin: { name: "Sachin Tendulkar", role: "BATTER", icon: "👑", category: "batters" },
+  dhoni: { name: "MS Dhoni", role: "WK BAT", icon: "🏆", category: "keepers", isCaptain: true },
+  kohli: { name: "Virat Kohli", role: "BATTER", icon: "🦁", category: "batters", isCaptain: true },
+  yuvraj: { name: "Yuvraj Singh", role: "ALL-ROUNDER", icon: "☀️", category: "all-rounders" },
+  dravid: { name: "Rahul Dravid", role: "BATTER", icon: "🧱", category: "batters" },
+  ganguly: { name: "Sourav Ganguly", role: "BATTER", icon: "🐯", category: "batters", isCaptain: true },
+  sehwag: { name: "Virender Sehwag", role: "BATTER", icon: "💥", category: "batters" },
+  zaheer: { name: "Zaheer Khan", role: "BOWLER", icon: "🎯", category: "bowlers" },
+  harbhajan: { name: "Harbhajan Singh", role: "BOWLER", icon: "🌀", category: "bowlers" },
+  kumble: { name: "Anil Kumble", role: "BOWLER", icon: "⚡", category: "bowlers" },
+  rohit: { name: "Rohit Sharma", role: "BATTER", icon: "🎩", category: "batters", isCaptain: true },
+  bumrah: { name: "Jasprit Bumrah", role: "BOWLER", icon: "🐍", category: "bowlers" },
+  rahul: { name: "KL Rahul", role: "WK BAT", icon: "⚔️", category: "keepers" },
+  pant: { name: "Rishabh Pant", role: "WK BAT", icon: "🧤", category: "keepers" },
+  hardik: { name: "Hardik Pandya", role: "ALL-ROUNDER", icon: "⚡", category: "all-rounders" },
+  jadeja: { name: "Ravindra Jadeja", role: "ALL-ROUNDER", icon: "🗡️", category: "all-rounders" },
+  shami: { name: "Mohammed Shami", role: "BOWLER", icon: "🏹", category: "bowlers" },
+  siraj: { name: "Mohammed Siraj", role: "BOWLER", icon: "💨", category: "bowlers" },
+  gill: { name: "Shubman Gill", role: "BATTER", icon: "💎", category: "batters" },
+  surya: { name: "Suryakumar Yadav", role: "BATTER", icon: "🎪", category: "batters" },
+  kuldeep: { name: "Kuldeep Yadav", role: "BOWLER", icon: "🌀", category: "bowlers" },
+  chahal: { name: "Yuzvendra Chahal", role: "BOWLER", icon: "🎲", category: "bowlers" },
+  axar: { name: "Axar Patel", role: "ALL-ROUNDER", icon: "🛡️", category: "all-rounders" },
+  ashwin: { name: "R Ashwin", role: "ALL-ROUNDER", icon: "🧠", category: "all-rounders" },
+  ishan: { name: "Ishan Kishan", role: "WK BAT", icon: "💣", category: "keepers" },
+  samson: { name: "Sanju Samson", role: "WK BAT", icon: "🔥", category: "keepers" },
+  jaiswal: { name: "Yashasvi Jaiswal", role: "BATTER", icon: "🌟", category: "batters" },
+  gaikwad: { name: "Ruturaj Gaikwad", role: "BATTER", icon: "⭐", category: "batters" },
+  tilak: { name: "Tilak Varma", role: "BATTER", icon: "✨", category: "batters" },
+  rinku: { name: "Rinku Singh", role: "BATTER", icon: "💪", category: "batters" },
+  abhishek: { name: "Abhishek Sharma", role: "ALL-ROUNDER", icon: "🎯", category: "all-rounders" },
+  sundar: { name: "Washington Sundar", role: "ALL-ROUNDER", icon: "🎩", category: "all-rounders" },
+  arshdeep: { name: "Arshdeep Singh", role: "BOWLER", icon: "🦅", category: "bowlers" },
+  mukesh: { name: "Mukesh Kumar", role: "BOWLER", icon: "🚀", category: "bowlers" },
+  prasidh: { name: "Prasidh Krishna", role: "BOWLER", icon: "🎯", category: "bowlers" },
+  umran: { name: "Umran Malik", role: "BOWLER", icon: "⚡", category: "bowlers" },
+  vaibhav: { name: "Vaibhav Suryavanshi", role: "BATTER", icon: "👶", category: "batters" },
+  nitish: { name: "Nitish Kumar Reddy", role: "ALL-ROUNDER", icon: "🦚", category: "all-rounders" },
+  riyan: { name: "Riyan Parag", role: "ALL-ROUNDER", icon: "🦋", category: "all-rounders" },
+  dhruv: { name: "Dhruv Jurel", role: "WK BAT", icon: "🥊", category: "keepers" },
+  kapil: { name: "Kapil Dev", role: "ALL-ROUNDER", icon: "🏅", category: "all-rounders", isCaptain: true },
+  laxman: { name: "VVS Laxman", role: "BATTER", icon: "🎨", category: "batters" },
+  gambhir: { name: "Gautam Gambhir", role: "BATTER", icon: "🛡️", category: "batters", isCaptain: true },
+  raina: { name: "Suresh Raina", role: "BATTER", icon: "⚡", category: "batters" },
+  irfan: { name: "Irfan Pathan", role: "ALL-ROUNDER", icon: "🦅", category: "all-rounders" },
+  agarkar: { name: "Ajit Agarkar", role: "BOWLER", icon: "🎯", category: "bowlers" },
+  nehra: { name: "Ashish Nehra", role: "BOWLER", icon: "💨", category: "bowlers" },
+  sreesanth: { name: "S Sreesanth", role: "BOWLER", icon: "🌀", category: "bowlers" },
+  shreyas: { name: "Shreyas Iyer", role: "BATTER", icon: "🎭", category: "batters" },
+  venkatesh: { name: "Venkatesh Iyer", role: "ALL-ROUNDER", icon: "🦚", category: "all-rounders" },
+  deepak: { name: "Deepak Chahar", role: "BOWLER", icon: "⚡", category: "bowlers" },
+  shardul: { name: "Shardul Thakur", role: "ALL-ROUNDER", icon: "🦁", category: "all-rounders" },
+  umesh: { name: "Umesh Yadav", role: "BOWLER", icon: "💨", category: "bowlers" },
+  karthik: { name: "Dinesh Karthik", role: "WK BAT", icon: "⭐", category: "keepers" }
 }
 
 const db = getDatabase()
@@ -60,21 +70,24 @@ function App() {
   const [activeTab, setActiveTab] = useState("battle")
   const [battleNumber, setBattleNumber] = useState(1)
   const [selectedCategory, setSelectedCategory] = useState("any")
-  const [gameMode, setGameMode] = useState("india") // "india" or "global"
   const [userVotes, setUserVotes] = useState({})
   const [showShareModal, setShowShareModal] = useState(false)
   const [playerVotes, setPlayerVotes] = useState({})
   const [totalVotes, setTotalVotes] = useState(0)
   const [totalUsers, setTotalUsers] = useState(0)
 
-  const ALL_PLAYERS = gameMode === "global"? {...INDIAN_PLAYERS,...FOREIGN_PLAYERS } : INDIAN_PLAYERS
-
+  // Load real votes from Firebase
   useEffect(() => {
     const votesRef = ref(db, 'playerVotes')
-    const unsubscribe = onValue(votesRef, (snapshot) => setPlayerVotes(snapshot.val() || {}))
+    const unsubscribe = onValue(votesRef, (snapshot) => {
+      const data = snapshot.val() || {}
+      setPlayerVotes(data)
+    })
     
     const totalRef = ref(db, 'totalVotes')
-    const unsubTotal = onValue(totalRef, (snapshot) => setTotalVotes(snapshot.val() || 0))
+    const unsubTotal = onValue(totalRef, (snapshot) => {
+      setTotalVotes(snapshot.val() || 0)
+    })
 
     const usersRef = ref(db, 'users')
     const unsubUsers = onValue(usersRef, (snapshot) => {
@@ -89,6 +102,7 @@ function App() {
     }
   }, [])
 
+  // Load user votes + Track user in backend
   useEffect(() => {
     if (user) {
       const userRef = ref(db, `users/${user.uid}`)
@@ -96,28 +110,31 @@ function App() {
         name: user.displayName,
         email: user.email,
         photoURL: user.photoURL,
-        lastLogin: Date.now(),
-        country: "IN"
+        lastLogin: Date.now()
       })
 
       const userVotesRef = ref(db, `userVotes/${user.uid}`)
-      const unsubscribe = onValue(userVotesRef, (snapshot) => setUserVotes(snapshot.val() || {}))
+      const unsubscribe = onValue(userVotesRef, (snapshot) => {
+        setUserVotes(snapshot.val() || {})
+      })
       return unsubscribe
     }
-  }, )
+  }, [user])
 
   const generateBattle = (battleNum, category = selectedCategory) => {
-    let playerKeys = Object.keys(ALL_PLAYERS)
+    let playerKeys = Object.keys(INDIAN_PLAYERS)
     
     if (category!== "any") {
       if (category === "captain") {
-        playerKeys = playerKeys.filter(key => ALL_PLAYERS[key].isCaptain === true)
+        playerKeys = playerKeys.filter(key => INDIAN_PLAYERS[key].isCaptain === true)
       } else {
-        playerKeys = playerKeys.filter(key => ALL_PLAYERS[key].category === category)
+        playerKeys = playerKeys.filter(key => INDIAN_PLAYERS[key].category === category)
       }
     }
     
-    if (playerKeys.length < 2) playerKeys = Object.keys(ALL_PLAYERS)
+    if (playerKeys.length < 2) {
+      playerKeys = Object.keys(INDIAN_PLAYERS)
+    }
     
     const p1Key = playerKeys[Math.floor(Math.random() * playerKeys.length)]
     let p2Key = playerKeys[Math.floor(Math.random() * playerKeys.length)]
@@ -126,8 +143,8 @@ function App() {
     }
     
     return {
-      player1: {...ALL_PLAYERS[p1Key], id: p1Key, votes: playerVotes[p1Key] || 0 },
-      player2: {...ALL_PLAYERS[p2Key], id: p2Key, votes: playerVotes[p2Key] || 0 }
+      player1: {...INDIAN_PLAYERS[p1Key], id: p1Key, votes: playerVotes[p1Key] || 0 },
+      player2: {...INDIAN_PLAYERS[p2Key], id: p2Key, votes: playerVotes[p2Key] || 0 }
     }
   }
 
@@ -135,10 +152,10 @@ function App() {
 
   useEffect(() => {
     setCurrentBattle(generateBattle(battleNumber, selectedCategory))
-  }, [playerVotes, battleNumber, selectedCategory, gameMode])
+  }, [playerVotes, battleNumber, selectedCategory])
 
   const calculateRankings = () => {
-    const players = Object.entries(ALL_PLAYERS).map(([id, player]) => {
+    const players = Object.entries(INDIAN_PLAYERS).map(([id, player]) => {
       const votes = playerVotes[id] || 0
       const total = totalVotes || 1
       const percent = Math.round((votes / total) * 100)
@@ -151,7 +168,7 @@ function App() {
 
   useEffect(() => {
     setRankings(calculateRankings())
-  }, [playerVotes, totalVotes, gameMode])
+  }, [playerVotes, totalVotes])
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -168,12 +185,14 @@ function App() {
     })
   }
 
-  const handleLogout = () => signOut(auth)
+  const handleLogout = () => {
+    signOut(auth)
+  }
 
   const handleVote = async (playerId) => {
     if (!user) return
     
-    const battleKey = `battle_${battleNumber}_${gameMode}`
+    const battleKey = `battle_${battleNumber}`
     if (userVotes[battleKey]) {
       alert("Ee battle lo already vote chesav!")
       return
@@ -185,10 +204,15 @@ function App() {
     updates[`totalVotes`] = increment(1)
     
     await update(ref(db), updates)
-    setTimeout(() => setBattleNumber(battleNumber + 1), 500)
+    
+    setTimeout(() => {
+      setBattleNumber(battleNumber + 1)
+    }, 500)
   }
 
-  const handleSkip = () => setBattleNumber(battleNumber + 1)
+  const handleSkip = () => {
+    setBattleNumber(battleNumber + 1)
+  }
 
   const handleCategoryChange = (cat) => {
     setSelectedCategory(cat)
@@ -197,7 +221,7 @@ function App() {
 
   const handleShare = (platform) => {
     const shareUrl = window.location.href
-    const shareText = `⚡ CrickClash ${gameMode === "global"? "Global" : "India"} Battle: ${currentBattle.player1.name} vs ${currentBattle.player2.name}! Vote now: ${shareUrl}`
+    const shareText = `⚡ CrickClash lo ${currentBattle.player1.name} vs ${currentBattle.player2.name} battle! Nuvvu evariki vote vestav? 🇮🇳 Vote chey: ${shareUrl}`
     
     const urls = {
       whatsapp: `https://wa.me/?text=${encodeURIComponent(shareText)}`,
@@ -218,8 +242,8 @@ function App() {
 
   const handleNativeShare = async () => {
     const shareData = {
-      title: `CrickClash ${gameMode === "global"? "Global" : "India"}`,
-      text: `⚡ ${currentBattle.player1.name} vs ${currentBattle.player2.name}!`,
+      title: 'CrickClash - Team India Battles',
+      text: `⚡ ${currentBattle.player1.name} vs ${currentBattle.player2.name}! Nuvvu evariki vote vestav?`,
       url: window.location.href
     }
     
@@ -237,8 +261,8 @@ function App() {
   if (loading) {
     return (
       <div className="loading">
-        <h1>⚡ CrickClash 🌍</h1>
-        <p>Loading World Cricket...</p>
+        <h1>⚡ CrickClash 🇮🇳</h1>
+        <p>Loading Team India...</p>
       </div>
     )
   }
@@ -246,16 +270,16 @@ function App() {
   if (!user) {
     return (
       <div className="login-screen">
-        <h1>⚡ CrickClash 🌍</h1>
-        <h2>WORLD'S Cricket Battles!</h2>
+        <h1>⚡ CrickClash 🇮🇳</h1>
+        <h2>INDIA'S Fantasy Sport!</h2>
         <p style={{ marginBottom: 20, color: '#aaa' }}>
-          Vote for Indian & Global Cricket Stars
+          Vote for your favorite Indian Cricketers
         </p>
         <button onClick={handleLogin} className="google-btn">
           Continue with Google
         </button>
         <p style={{ marginTop: 30, fontSize: '0.85rem', color: '#666' }}>
-          Join {totalUsers > 0? totalUsers + '+' : 'thousands of'} fans worldwide 🔥
+          Join {totalUsers > 0? totalUsers + '+' : 'hundreds of'} cricket fans 🔥
         </p>
       </div>
     )
@@ -314,21 +338,6 @@ function App() {
         </div>
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', margin: '15px 0' }}>
-        <button 
-          onClick={() => {setGameMode("india"); setBattleNumber(battleNumber + 1)}}
-          style={{ padding: '8px 20px', background: gameMode === "india"? '#FF671F' : '#333', color: 'white', border: 'none', borderRadius: '20px', cursor: 'pointer', fontWeight: 'bold' }}
-        >
-          🇮🇳 INDIA MODE
-        </button>
-        <button 
-          onClick={() => {setGameMode("global"); setBattleNumber(battleNumber + 1)}}
-          style={{ padding: '8px 20px', background: gameMode === "global"? '#138808' : '#333', color: 'white', border: 'none', borderRadius: '20px', cursor: 'pointer', fontWeight: 'bold' }}
-        >
-          🌍 GLOBAL MODE
-        </button>
-      </div>
-
       <div className="tabs">
         <button 
           className={activeTab === "battle"? "tab active" : "tab"}
@@ -353,7 +362,7 @@ function App() {
       {activeTab === "battle" && (
         <div className="battle-screen">
           <h2>WHO DO YOU LIKE?</h2>
-          <h3>Battle {battleNumber} • {gameMode === "global"? "🌍 Global" : "🇮🇳 India"}</h3>
+          <h3>Battle {battleNumber}</h3>
           
           <div className="categories">
             {["any", "batters", "bowlers", "all-rounders", "keepers", "captain"].map(cat => (
@@ -393,9 +402,9 @@ function App() {
             Skip →
           </button>
           
-          {userVotes[`battle_${battleNumber}_${gameMode}`] && (
+          {userVotes[`battle_${battleNumber}`] && (
             <p style={{ textAlign: 'center', marginTop: 20, color: '#4caf50' }}>
-              ✓ You voted for {ALL_PLAYERS[userVotes[`battle_${battleNumber}_${gameMode}`]].name}
+              ✓ You voted for {INDIAN_PLAYERS[userVotes[`battle_${battleNumber}`]].name}
             </p>
           )}
         </div>
@@ -403,7 +412,7 @@ function App() {
 
       {activeTab === "rankings" && (
         <div className="rankings-screen">
-          <h2>{gameMode === "global"? "World" : "India"}'s Kings 👑</h2>
+          <h2>India's Kings 👑</h2>
           <p className="subtitle">Ranked by real fan votes • Updated live</p>
           
           <div className="rankings-list">
@@ -431,4 +440,17 @@ function App() {
             <div style={{ textAlign: 'left', padding: 20 }}>
               {Object.entries(userVotes).map(([battle, playerId]) => (
                 <p key={battle} style={{ marginBottom: 10 }}>
-                  {battle.replace(/battle_|_india|_global/g
+                  {battle.replace('battle_', 'Battle ')}: Voted for {INDIAN_PLAYERS[playerId]?.name} {INDIAN_PLAYERS[playerId]?.icon}
+                </p>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      <div className="version">Version 20 of 20 - Pro Edition | {totalUsers}+ Fans</div>
+    </div>
+  )
+}
+
+export default App
