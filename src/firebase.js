@@ -2,20 +2,20 @@ import { initializeApp } from "firebase/app"
 import {
   getAuth,
   GoogleAuthProvider,
-  signInWithRedirect,
+  signInWithPopup,  // <-- REDIRECT KADU, POPUP
   getRedirectResult
 } from "firebase/auth"
 import { getFirestore } from "firebase/firestore"
 
-// NEE CORRECT FIREBASE CONFIG - d30fc
+// FIREBASE CONFIG - MALLI COPY CHEY
 const firebaseConfig = {
-  apiKey: "AIzaSyD9BfRh8djKqf1bu6FLq0Fx7k1KWCm6g",
-  authDomain: "crickclash-d30fc.firebaseapp.com",
-  databaseURL: "https://crickclash-d30fc-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "crickclash-d30fc",
-  storageBucket: "crickclash-d30fc.firebasestorage.app",
+  apiKey: "AIzaSyD9BfrAh8djKof1Bu6FLG0Fz7X10NCdm6g",
+  authDomain: "crickclash-d30fe.firebaseapp.com",
+  databaseURL: "https://crickclash-d30fe-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "crickclash-d30fe",
+  storageBucket: "crickclash-d30fe.firebasestorage.app",
   messagingSenderId: "595133866613",
-  appId: "1:595133866613:web:d0a509462310bb74e3c"
+  appId: "1:595133866613:web:dda3f0509462310cb74e3c"
 };
 
 const app = initializeApp(firebaseConfig)
@@ -24,12 +24,11 @@ export const auth = getAuth(app)
 export const db = getFirestore(app)
 export const googleProvider = new GoogleAuthProvider()
 
-// LOGIN FUNCTION - IDHI BUTTON KI VADU
+// POPUP METHOD - MOBILE LO 100% PANI CHESTADI
 export const signInWithGoogle = () => {
-  return signInWithRedirect(auth, googleProvider)
+  return signInWithPopup(auth, googleProvider)
 }
 
-// RESULT CHECK FUNCTION - APP.JS LO VADU
 export const handleRedirectResult = () => {
   return getRedirectResult(auth)
 }
