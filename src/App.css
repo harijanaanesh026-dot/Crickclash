@@ -179,7 +179,7 @@ body {
   margin-bottom: 4px;
 }
 
-.player-role {
+  .player-role {
   font-size: 11px;
   color: #fbbf24;
   text-transform: uppercase;
@@ -398,3 +398,4 @@ body {
     font-size: 22px;
   }
   }
+  
