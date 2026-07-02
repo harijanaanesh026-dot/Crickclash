@@ -1,33 +1,31 @@
 import React, { useState, useEffect } from "react"
 import { onAuthStateChanged, signOut } from "firebase/auth"
-import { auth, signInWithGoogle, handleRedirectResult } from "./firebase"
+import { auth, signInWithGoogle } from "./firebase"
 
 function App() {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState("")
 
   useEffect(() => {
-    // 1. FIRST: Check if we came back from Google
-    handleRedirectResult()
-      .then((result) => {
-        if (result) {
-          console.log("Login success:", result.user.displayName)
-        }
-      })
-      .catch((err) => {
-        console.error("Redirect Error:", err)
-        setError(err.message)
-      })
-      .finally(() => {
-        // 2. THEN: Start listening for login state
-        const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-          setUser(currentUser)
-          setLoading(false) // IMPORTANT: Stop loading here
-        })
-        return unsubscribe
-      })
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser)
+      setLoading(false)
+    })
+    return unsubscribe
   }, [])
+
+  const handleLogin = () => {
+    alert("1. Button click ayyindi") // Idi vastunda check chey
+    
+    signInWithGoogle()
+      .then((result) => {
+        alert("2. Google popup success: " + result.user.displayName)
+      })
+      .catch((error) => {
+        alert("3. ERROR: " + error.code + " | " + error.message) // Asal error idi
+        console.error("Firebase Error:", error)
+      })
+  }
 
   const handleLogout = () => {
     signOut(auth)
@@ -37,31 +35,25 @@ function App() {
     return <div style={{ padding: 20, fontSize: 20 }}>Loading CrickClash...</div>
   }
 
-  if (error) {
-    return <div style={{ padding: 20, color: 'red' }}>Error: {error}</div>
-  }
-
   return (
     <div style={{ padding: 20, textAlign: 'center' }}>
       <h1>CrickClash🇮🇳</h1>
+      <h2>INDIA'S Fantasy Sport!</h2>
       {user ? (
         <div>
-          <h2>Welcome {user.displayName}! 🏆</h2>
+          <h3>Welcome {user.displayName}! 🏆</h3>
           <p>Email: {user.email}</p>
           <button onClick={handleLogout} style={{ padding: 10 }}>
             Logout
           </button>
         </div>
       ) : (
-        <div>
-          <h3>INDIA'S Fantasy Sport!</h3>
-          <button 
-            onClick={signInWithGoogle}
-            style={{ padding: 15, fontSize: 16, cursor: 'pointer' }}
-          >
-            Continue with Google
-          </button>
-        </div>
+        <button 
+          onClick={handleLogin}
+          style={{ padding: 15, fontSize: 16, cursor: 'pointer' }}
+        >
+          Continue with Google
+        </button>
       )}
     </div>
   )
