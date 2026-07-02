@@ -297,8 +297,8 @@ function App() {
   if (loading) {
     return (
       <div className="loading">
-        <h1>CrickClash 🌍</h1>
-        <p>WORLD'S Fantasy Sport!</p>
+        <h1>⚡ CrickClash 🌍</h1>
+        <p>Loading 100 World Cricketers...</p>
       </div>
     )
   }
@@ -306,7 +306,7 @@ function App() {
   if (!user) {
     return (
       <div className="login-screen">
-        <h1>CrickClash 🌍</h1>
+        <h1>⚡ CrickClash 🌍</h1>
         <h2>WORLD'S Biggest Cricket Battles!</h2>
         <p style={{ marginBottom: 20, color: '#aaa' }}>
           50 Indian + 50 Global Cricket Stars
