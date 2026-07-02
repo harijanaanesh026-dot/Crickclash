@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react"
 import { onAuthStateChanged, signOut } from "firebase/auth"
+import { getDatabase, ref, onValue, set, increment, update } from "firebase/database"
 import { auth, signInWithGoogle } from "./firebase"
 import "./App.css"
 
@@ -61,6 +62,8 @@ const INDIAN_PLAYERS = {
   karthik: { name: "Dinesh Karthik", role: "WK BAT", icon: "⭐", category: "keepers" }
 }
 
+const db = getDatabase()
+
 function App() {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -69,6 +72,38 @@ function App() {
   const [selectedCategory, setSelectedCategory] = useState("any")
   const [userVotes, setUserVotes] = useState({})
   const [showShareModal, setShowShareModal] = useState(false)
+  const [playerVotes, setPlayerVotes] = useState({})
+  const [totalVotes, setTotalVotes] = useState(0)
+
+  // Load real votes from Firebase
+  useEffect(() => {
+    const votesRef = ref(db, 'playerVotes')
+    const unsubscribe = onValue(votesRef, (snapshot) => {
+      const data = snapshot.val() || {}
+      setPlayerVotes(data)
+    })
+    
+    const totalRef = ref(db, 'totalVotes')
+    const unsubTotal = onValue(totalRef, (snapshot) => {
+      setTotalVotes(snapshot.val() || 0)
+    })
+    
+    return () => {
+      unsubscribe()
+      unsubTotal()
+    }
+  }, [])
+
+  // Load user votes
+  useEffect(() => {
+    if (user) {
+      const userVotesRef = ref(db, `userVotes/${user.uid}`)
+      const unsubscribe = onValue(userVotesRef, (snapshot) => {
+        setUserVotes(snapshot.val() || {})
+      })
+      return unsubscribe
+    }
+  }, [user])
 
   const generateBattle = (battleNum, category = selectedCategory) => {
     let playerKeys = Object.keys(INDIAN_PLAYERS)
@@ -92,24 +127,33 @@ function App() {
     }
     
     return {
-      player1: {...INDIAN_PLAYERS[p1Key], id: p1Key, votes: Math.floor(Math.random() * 50) + 10 },
-      player2: {...INDIAN_PLAYERS[p2Key], id: p2Key, votes: Math.floor(Math.random() * 50) + 10 }
+      player1: {...INDIAN_PLAYERS[p1Key], id: p1Key, votes: playerVotes[p1Key] || 0 },
+      player2: {...INDIAN_PLAYERS[p2Key], id: p2Key, votes: playerVotes[p2Key] || 0 }
     }
   }
 
   const [currentBattle, setCurrentBattle] = useState(generateBattle(1))
 
+  // Update battle when votes change
+  useEffect(() => {
+    setCurrentBattle(generateBattle(battleNumber, selectedCategory))
+  }, [playerVotes, battleNumber, selectedCategory])
+
   const calculateRankings = () => {
-    const players = Object.entries(INDIAN_PLAYERS).map(([id, player]) => ({
-      id,
-    ...player,
-      percent: Math.floor(Math.random() * 30) + 60,
-      votes: Math.floor(Math.random() * 500) + 100
-    }))
-    return players.sort((a, b) => b.percent - a.percent).slice(0, 20)
+    const players = Object.entries(INDIAN_PLAYERS).map(([id, player]) => {
+      const votes = playerVotes[id] || 0
+      const total = totalVotes || 1
+      const percent = Math.round((votes / total) * 100)
+      return { id,...player, votes, percent }
+    })
+    return players.sort((a, b) => b.votes - a.votes).slice(0, 20)
   }
 
   const [rankings, setRankings] = useState(calculateRankings())
+
+  useEffect(() => {
+    setRankings(calculateRankings())
+  }, [playerVotes, totalVotes])
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -130,32 +174,37 @@ function App() {
     signOut(auth)
   }
 
-  const handleVote = (playerId) => {
-    if (userVotes[battleNumber]) {
+  const handleVote = async (playerId) => {
+    if (!user) return
+    
+    const battleKey = `battle_${battleNumber}`
+    if (userVotes[battleKey]) {
       alert("Ee battle lo already vote chesav!")
       return
     }
     
-    setUserVotes({...userVotes, [battleNumber]: playerId })
+    // Update Firebase - REAL VOTES
+    const updates = {}
+    updates[`playerVotes/${playerId}`] = increment(1)
+    updates[`userVotes/${user.uid}/${battleKey}`] = playerId
+    updates[`totalVotes`] = increment(1)
+    
+    await update(ref(db), updates)
     
     setTimeout(() => {
       setBattleNumber(battleNumber + 1)
-      setCurrentBattle(generateBattle(battleNumber + 1))
     }, 500)
   }
 
   const handleSkip = () => {
     setBattleNumber(battleNumber + 1)
-    setCurrentBattle(generateBattle(battleNumber + 1))
   }
 
   const handleCategoryChange = (cat) => {
     setSelectedCategory(cat)
     setBattleNumber(battleNumber + 1)
-    setCurrentBattle(generateBattle(battleNumber + 1, cat))
   }
 
-  // SOCIAL SHARE FUNCTION
   const handleShare = (platform) => {
     const shareUrl = window.location.href
     const shareText = `⚡ CrickClash lo ${currentBattle.player1.name} vs ${currentBattle.player2.name} battle! Nuvvu evariki vote vestav? 🇮🇳 Vote chey: ${shareUrl}`
@@ -219,6 +268,8 @@ function App() {
     )
   }
 
+  const userBattles = Object.keys(userVotes).length
+
   return (
     <div className="app">
       <header className="header">
@@ -253,19 +304,19 @@ function App() {
 
       <div className="stats-bar">
         <div className="stat">
-          <span className="num">1.2k</span>
+          <span className="num">{totalVotes}</span>
           <span className="label">TOTAL VOTES</span>
         </div>
         <div className="stat">
-          <span className="num">{Object.keys(userVotes).length}</span>
+          <span className="num">{userBattles}</span>
           <span className="label">BATTLES</span>
         </div>
         <div className="stat">
-          <span className="num">{rankings[0]?.name.split(' ')[0]}</span>
+          <span className="num">{rankings[0]?.name.split(' ')[0] || '-'}</span>
           <span className="label">TOP CHAMP</span>
         </div>
         <div className="stat">
-          <span className="num">{Object.keys(userVotes).length}</span>
+          <span className="num">{userBattles}</span>
           <span className="label">STREAK</span>
         </div>
       </div>
@@ -334,9 +385,9 @@ function App() {
             Skip →
           </button>
           
-          {userVotes[battleNumber] && (
+          {userVotes[`battle_${battleNumber}`] && (
             <p style={{ textAlign: 'center', marginTop: 20, color: '#4caf50' }}>
-              ✓ You voted for {INDIAN_PLAYERS[userVotes[battleNumber]].name}
+              ✓ You voted for {INDIAN_PLAYERS[userVotes[`battle_${battleNumber}`]].name}
             </p>
           )}
         </div>
@@ -345,16 +396,8 @@ function App() {
       {activeTab === "rankings" && (
         <div className="rankings-screen">
           <h2>India's Kings 👑</h2>
-          <p className="subtitle">Ranked by fan votes • Updated live</p>
+          <p className="subtitle">Ranked by real fan votes • Updated live</p>
           
-          <div className="categories">
-            {["all", "batters", "bowlers", "all-rounders", "keepers"].map(cat => (
-              <button key={cat} className="cat-btn">
-                {cat}
-              </button>
-            ))}
-          </div>
-
           <div className="rankings-list">
             {rankings.map((player, idx) => (
               <div key={player.id} className="ranking-item">
@@ -362,7 +405,7 @@ function App() {
                 <span className="player-icon-small">{player.icon}</span>
                 <div className="player-details">
                   <span className="player-name">{player.name}</span>
-                  <span className="player-role">{player.role}</span>
+                  <span className="player-role">{player.role} • {player.votes} votes</span>
                 </div>
                 <span className="percent">{player.percent}%</span>
               </div>
@@ -380,7 +423,7 @@ function App() {
             <div style={{ textAlign: 'left', padding: 20 }}>
               {Object.entries(userVotes).map(([battle, playerId]) => (
                 <p key={battle} style={{ marginBottom: 10 }}>
-                  Battle {battle}: Voted for {INDIAN_PLAYERS[playerId].name} {INDIAN_PLAYERS[playerId].icon}
+                  {battle.replace('battle_', 'Battle ')}: Voted for {INDIAN_PLAYERS[playerId]?.name} {INDIAN_PLAYERS[playerId]?.icon}
                 </p>
               ))}
             </div>
@@ -388,7 +431,7 @@ function App() {
         </div>
       )}
 
-      <div className="version">Version 16 of 16</div>
+      <div className="version">Version 18 of 18 - Real Votes</div>
     </div>
   )
 }
