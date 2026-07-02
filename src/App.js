@@ -1,563 +1,346 @@
-import React, { useState, useEffect } from "react"
-import { onAuthStateChanged, signOut } from "firebase/auth"
-import { getDatabase, ref, onValue, set, increment, update } from "firebase/database"
-import { auth, signInWithGoogle } from "./firebase"
-import "./App.css"
-
-// 50 INDIAN PLAYERS 🇮🇳
-const INDIAN_PLAYERS = {
-  "kohli": { name: "Virat Kohli", role: "BATTER", icon: "👑", category: "batters", country: "India", photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/Virat_Kohli_in_PMO_New_Delhi.jpg/240px-Virat_Kohli_in_PMO_New_Delhi.jpg" },
-  "rohit": { name: "Rohit Sharma", role: "BATTER", icon: "🎯", category: "batters", country: "India", photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Prime_Minister_Of_Bharat_Shri_Narendra_Damodardas_Modi_with_Shri_Rohit_Gurunath_Sharma_%28Cropped%29.jpg/240px-Prime_Minister_Of_Bharat_Shri_Narendra_Damodardas_Modi_with_Shri_Rohit_Gurunath_Sharma_%28Cropped%29.jpg" },
-  "dhoni": { name: "MS Dhoni", role: "WK BAT", icon: "🦁", category: "keepers", country: "India", photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d9/MS_Dhoni_%28P.B._K._Kadam_Award%29.jpg/240px-MS_Dhoni_%28P.B._K._Kadam_Award%29.jpg" },
-  "bumrah": { name: "Jasprit Bumrah", role: "BOWLER", icon: "💥", category: "bowlers", country: "India", photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Jasprit_Bumrah_in_PMO_New_Delhi.jpg/240px-Jasprit_Bumrah_in_PMO_New_Delhi.jpg" },
-  "shami": { name: "Mohammed Shami", role: "BOWLER", icon: "🔥", category: "bowlers", country: "India", photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/Mohammed_Shami_in_PMO_New_Delhi.jpg/240px-Mohammed_Shami_in_PMO_New_Delhi.jpg" },
-  "siraj": { name: "Mohammed Siraj", role: "BOWLER", icon: "⚡", category: "bowlers", country: "India", photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Mohammed_Siraj_in_PMO_New_Delhi.jpg/240px-Mohammed_Siraj_in_PMO_New_Delhi.jpg" },
-  "jadeja": { name: "Ravindra Jadeja", role: "ALL-ROUNDER", icon: "🗡️", category: "all-rounders", country: "India", photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Ravindra_Jadeja_in_PMO_New_Delhi.jpg/240px-Ravindra_Jadeja_in_PMO_New_Delhi.jpg" },
-  "hardik": { name: "Hardik Pandya", role: "ALL-ROUNDER", icon: "⚡", category: "all-rounders", country: "India", photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c4/Hardik_Pandya_in_PMO_New_Delhi.jpg/240px-Hardik_Pandya_in_PMO_New_Delhi.jpg" },
-  "rahul": { name: "KL Rahul", role: "WK BAT", icon: "🎯", category: "keepers", country: "India", photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/KL_Rahul_in_PMO_New_Delhi.jpg/240px-KL_Rahul_in_PMO_New_Delhi.jpg" },
-  "pant": { name: "Rishabh Pant", role: "WK BAT", icon: "💪", category: "keepers", country: "India", photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c4/Rishabh_Pant_in_PMO_New_Delhi.jpg/240px-Rishabh_Pant_in_PMO_New_Delhi.jpg" },
-  "gill": { name: "Shubman Gill", role: "BATTER", icon: "⭐", category: "batters", country: "India", photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/59/Shubman_Gill_in_PMO_New_Delhi.jpg/240px-Shubman_Gill_in_PMO_New_Delhi.jpg" },
-  "ashwin": { name: "R Ashwin", role: "ALL-ROUNDER", icon: "🎓", category: "all-rounders", country: "India", photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/R_Ashwin_in_PMO_New_Delhi.jpg/240px-R_Ashwin_in_PMO_New_Delhi.jpg" },
-  "surya": { name: "Suryakumar Yadav", role: "BATTER", icon: "💫", category: "batters", country: "India", photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/Suryakumar_Yadav_in_PMO_New_Delhi.jpg/240px-Suryakumar_Yadav_in_PMO_New_Delhi.jpg" },
-  "kuldeep": { name: "Kuldeep Yadav", role: "BOWLER", icon: "🌀", category: "bowlers", country: "India", photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a3/Kuldeep_Yadav_in_PMO_New_Delhi.jpg/240px-Kuldeep_Yadav_in_PMO_New_Delhi.jpg" },
-  "axar": { name: "Axar Patel", role: "ALL-ROUNDER", icon: "🛡️", category: "all-rounders", country: "India", photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Axar_Patel_in_PMO_New_Delhi.jpg/240px-Axar_Patel_in_PMO_New_Delhi.jpg" },
-  "sehwag": { name: "Virender Sehwag", role: "BATTER", icon: "💥", category: "batters", country: "India", photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c6/Virender_Sehwag.jpg/240px-Virender_Sehwag.jpg" },
-  "ganguly": { name: "Sourav Ganguly", role: "BATTER", icon: "🐅", category: "batters", country: "India", photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/Sourav_Ganguly_ICC.jpg/240px-Sourav_Ganguly_ICC.jpg" },
-  "dravid": { name: "Rahul Dravid", role: "BATTER", icon: "🧱", category: "batters", country: "India", photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Rahul_Dravid_in_PMO_New_Delhi.jpg/240px-Rahul_Dravid_in_PMO_New_Delhi.jpg" },
-  "sachin": { name: "Sachin Tendulkar", role: "BATTER", icon: "🐐", category: "batters", country: "India", photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Sachin_Tendulkar_at_MRF_Promotion_Event.jpg/240px-Sachin_Tendulkar_at_MRF_Promotion_Event.jpg" },
-  "zaheer": { name: "Zaheer Khan", role: "BOWLER", icon: "🔥", category: "bowlers", country: "India", photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Zaheer_Khan_ICC.jpg/240px-Zaheer_Khan_ICC.jpg" },
-  "yuvraj": { name: "Yuvraj Singh", role: "ALL-ROUNDER", icon: "💪", category: "all-rounders", country: "India", photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f8/Yuvraj_Singh_in_PMO_New_Delhi.jpg/240px-Yuvraj_Singh_in_PMO_New_Delhi.jpg" },
-  "harbhajan": { name: "Harbhajan Singh", role: "BOWLER", icon: "🌀", category: "bowlers", country: "India", photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Harbhajan_Singh_ICC.jpg/240px-Harbhajan_Singh_ICC.jpg" },
-  "kaif": { name: "Mohammad Kaif", role: "BATTER", icon: "⚡", category: "batters", country: "India", photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Mohammad_Kaif.jpg/240px-Mohammad_Kaif.jpg" },
-  "nehra": { name: "Ashish Nehra", role: "BOWLER", icon: "🔥", category: "bowlers", country: "India", photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b0/Ashish_Nehra.jpg/240px-Ashish_Nehra.jpg" },
-  "iyer": { name: "Shreyas Iyer", role: "BATTER", icon: "🎯", category: "batters", country: "India", photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Shreyas_Iyer_in_PMO_New_Delhi.jpg/240px-Shreyas_Iyer_in_PMO_New_Delhi.jpg" },
-  "jaiswal": { name: "Yashasvi Jaiswal", role: "BATTER", icon: "🌟", category: "batters", country: "India", photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/Yashasvi_Jaiswal_in_PMO_New_Delhi.jpg/240px-Yashasvi_Jaiswal_in_PMO_New_Delhi.jpg" },
-  "arshdeep": { name: "Arshdeep Singh", role: "BOWLER", icon: "⚡", category: "bowlers", country: "India", photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Arshdeep_Singh_in_PMO_New_Delhi.jpg/240px-Arshdeep_Singh_in_PMO_New_Delhi.jpg" },
-  "sundar": { name: "Washington Sundar", role: "ALL-ROUNDER", icon: "🎯", category: "all-rounders", country: "India", photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1c/Washington_Sundar_in_PMO_New_Delhi.jpg/240px-Washington_Sundar_in_PMO_New_Delhi.jpg" },
-  "tilak": { name: "Tilak Varma", role: "BATTER", icon: "💫", category: "batters", country: "India", photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/Tilak_Varma.jpg/240px-Tilak_Varma.jpg" },
-  "rinku": { name: "Rinku Singh", role: "BATTER", icon: "💥", category: "batters", country: "India", photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Rinku_Singh_in_PMO_New_Delhi.jpg/240px-Rinku_Singh_in_PMO_New_Delhi.jpg" },
-  "ishan": { name: "Ishan Kishan", role: "WK BAT", icon: "⚡", category: "keepers", country: "India", photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Ishan_Kishan_in_PMO_New_Delhi.jpg/240px-Ishan_Kishan_in_PMO_New_Delhi.jpg" },
-  "chahal": { name: "Yuzvendra Chahal", role: "BOWLER", icon: "🌀", category: "bowlers", country: "India", photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Yuzvendra_Chahal_in_PMO_New_Delhi.jpg/240px-Yuzvendra_Chahal_in_PMO_New_Delhi.jpg" },
-  "mukesh": { name: "Mukesh Kumar", role: "BOWLER", icon: "🎯", category: "bowlers", country: "India", photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Mukesh_Kumar_cricketer.jpg/240px-Mukesh_Kumar_cricketer.jpg" },
-  "deepak": { name: "Deepak Chahar", role: "BOWLER", icon: "🔥", category: "bowlers", country: "India", photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/Deepak_Chahar.jpg/240px-Deepak_Chahar.jpg" },
-  "prasidh": { name: "Prasidh Krishna", role: "BOWLER", icon: "⚡", category: "bowlers", country: "India", photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Prasidh_Krishna.jpg/240px-Prasidh_Krishna.jpg" },
-  "bhuvi": { name: "Bhuvneshwar Kumar", role: "BOWLER", icon: "🎯", category: "bowlers", country: "India", photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Bhuvneshwar_Kumar_in_PMO_New_Delhi.jpg/240px-Bhuvneshwar_Kumar_in_PMO_New_Delhi.jpg" },
-  "dube": { name: "Shivam Dube", role: "ALL-ROUNDER", icon: "💪", category: "all-rounders", country: "India", photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Shivam_Dube_in_PMO_New_Delhi.jpg/240px-Shivam_Dube_in_PMO_New_Delhi.jpg" },
-  "gaikwad": { name: "Ruturaj Gaikwad", role: "BATTER", icon: "⭐", category: "batters", country: "India", photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Ruturaj_Gaikwad.jpg/240px-Ruturaj_Gaikwad.jpg" },
-  "paddikal": { name: "Devdutt Padikkal", role: "BATTER", icon: "🎯", category: "batters", country: "India", photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Devdutt_Padikkal.jpg/240px-Devdutt_Padikkal.jpg" },
-  "jurel": { name: "Dhruv Jurel", role: "WK BAT", icon: "⚡", category: "keepers", country: "India", photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/Dhruv_Jurel.jpg/240px-Dhruv_Jurel.jpg" },
-  "bishnoi": { name: "Ravi Bishnoi", role: "BOWLER", icon: "🌀", category: "bowlers", country: "India", photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Ravi_Bishnoi.jpg/240px-Ravi_Bishnoi.jpg" },
-  "umran": { name: "Umran Malik", role: "BOWLER", icon: "🚀", category: "bowlers", country: "India", photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Umran_Malik.jpg/240px-Umran_Malik.jpg" },
-  "riyan": { name: "Riyan Parag", role: "ALL-ROUNDER", icon: "💫", category: "all-rounders", country: "India", photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Riyan_Parag.jpg/240px-Riyan_Parag.jpg" },
-  "samson": { name: "Sanju Samson", role: "WK BAT", icon: "⚡", category: "keepers", country: "India", photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Sanju_Samson_in_PMO_New_Delhi.jpg/240px-Sanju_Samson_in_PMO_New_Delhi.jpg" },
-  "shardul": { name: "Shardul Thakur", role: "ALL-ROUNDER", icon: "💪", category: "all-rounders", country: "India", photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7f/Shardul_Thakur_in_PMO_New_Delhi.jpg/240px-Shardul_Thakur_in_PMO_New_Delhi.jpg" },
-  "gavaskar": { name: "Sunil Gavaskar", role: "BATTER", icon: "🧱", category: "batters", country: "India", photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Sunil_Gavaskar.jpg/240px-Sunil_Gavaskar.jpg" },
-  "kapil": { name: "Kapil Dev", role: "ALL-ROUNDER", icon: "🏆", category: "all-rounders", country: "India", photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Kapil_Dev.jpg/240px-Kapil_Dev.jpg" },
-  "kumble": { name: "Anil Kumble", role: "BOWLER", icon: "🌀", category: "bowlers", country: "India", photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a8/Anil_Kumble_ICC.jpg/240px-Anil_Kumble_ICC.jpg" },
-  "vvs": { name: "VVS Laxman", role: "BATTER", icon: "🎨", category: "batters", country: "India", photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/VVS_Laxman_ICC.jpg/240px-VVS_Laxman_ICC.jpg" },
-  "irfan": { name: "Irfan Pathan", role: "ALL-ROUNDER", icon: "⚡", category: "all-rounders", country: "India", photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Irfan_Pathan_ICC.jpg/240px-Irfan_Pathan_ICC.jpg" },
-  "vaibhav": { name: "Vaibhav Suryavanshi", role: "BATTER", icon: "🌟", category: "batters", country: "India", photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Vaibhav_Suryavanshi_2024.jpg/240px-Vaibhav_Suryavanshi_2024.jpg" }
-  } 
-
-// 50 FOREIGN LEGENDS 🌍
-const FOREIGN_PLAYERS = {
-  babar: { name: "Babar Azam", role: "BATTER", icon: "🇵🇰", category: "batters", country: "PK" },
-  shaheen: { name: "Shaheen Afridi", role: "BOWLER", icon: "🇵🇰", category: "bowlers", country: "PK" },
-  rizwan: { name: "M Rizwan", role: "WK BAT", icon: "🇵🇰", category: "keepers", country: "PK" },
-  fakhar: { name: "Fakhar Zaman", role: "BATTER", icon: "🇵🇰", category: "batters", country: "PK" },
-  shadab: { name: "Shadab Khan", role: "ALL-ROUNDER", icon: "🇵🇰", category: "all-rounders", country: "PK" },
-  naseem: { name: "Naseem Shah", role: "BOWLER", icon: "🇵🇰", category: "bowlers", country: "PK" },
-  smith: { name: "Steve Smith", role: "BATTER", icon: "🇦🇺", category: "batters", country: "AU" },
-  cummins: { name: "Pat Cummins", role: "BOWLER", icon: "🇦🇺", category: "bowlers", isCaptain: true, country: "AU" },
-  maxwell: { name: "Glenn Maxwell", role: "ALL-ROUNDER", icon: "🇦🇺", category: "all-rounders", country: "AU" },
-  warner: { name: "David Warner", role: "BATTER", icon: "🇦🇺", category: "batters", country: "AU" },
-  starc: { name: "Mitchell Starc", role: "BOWLER", icon: "🇦🇺", category: "bowlers", country: "AU" },
-  hazlewood: { name: "Josh Hazlewood", role: "BOWLER", icon: "🇦🇺", category: "bowlers", country: "AU" },
-  marsh: { name: "Mitchell Marsh", role: "ALL-ROUNDER", icon: "🇦🇺", category: "all-rounders", country: "AU" },
-  head: { name: "Travis Head", role: "BATTER", icon: "🇦🇺", category: "batters", country: "AU" },
-  zampa: { name: "Adam Zampa", role: "BOWLER", icon: "🇦🇺", category: "bowlers", country: "AU" },
-  carey: { name: "Alex Carey", role: "WK BAT", icon: "🇦🇺", category: "keepers", country: "AU" },
-  root: { name: "Joe Root", role: "BATTER", icon: "🇬🇧", category: "batters", country: "GB" },
-  stokes: { name: "Ben Stokes", role: "ALL-ROUNDER", icon: "🇬🇧", category: "all-rounders", isCaptain: true, country: "GB" },
-  buttler: { name: "Jos Buttler", role: "WK BAT", icon: "🇬🇧", category: "keepers", isCaptain: true, country: "GB" },
-  archer: { name: "Jofra Archer", role: "BOWLER", icon: "🇬🇧", category: "bowlers", country: "GB" },
-  wood: { name: "Mark Wood", role: "BOWLER", icon: "🇬🇧", category: "bowlers", country: "GB" },
-  bairstow: { name: "Jonny Bairstow", role: "WK BAT", icon: "🇬🇧", category: "keepers", country: "GB" },
-  brook: { name: "Harry Brook", role: "BATTER", icon: "🇬🇧", category: "batters", country: "GB" },
-  livingstone: { name: "Liam Livingstone", role: "ALL-ROUNDER", icon: "🇬🇧", category: "all-rounders", country: "GB" },
-  rashid: { name: "Adil Rashid", role: "BOWLER", icon: "🇬🇧", category: "bowlers", country: "GB" },
-  kane: { name: "Kane Williamson", role: "BATTER", icon: "🇳🇿", category: "batters", isCaptain: true, country: "NZ" },
-  boult: { name: "Trent Boult", role: "BOWLER", icon: "🇳🇿", category: "bowlers", country: "NZ" },
-  conway: { name: "Devon Conway", role: "WK BAT", icon: "🇳🇿", category: "keepers", country: "NZ" },
-  santner: { name: "Mitchell Santner", role: "ALL-ROUNDER", icon: "🇳🇿", category: "all-rounders", country: "NZ" },
-  ferguson: { name: "Lockie Ferguson", role: "BOWLER", icon: "🇳🇿", category: "bowlers", country: "NZ" },
-  dekock: { name: "Quinton de Kock", role: "WK BAT", icon: "🇿🇦", category: "keepers", country: "ZA" },
-  rabada: { name: "Kagiso Rabada", role: "BOWLER", icon: "🇿🇦", category: "bowlers", country: "ZA" },
-  klaasen: { name: "Heinrich Klaasen", role: "WK BAT", icon: "🇿🇦", category: "keepers", country: "ZA" },
-  miller: { name: "David Miller", role: "BATTER", icon: "🇿🇦", category: "batters", country: "ZA" },
-  nortje: { name: "Anrich Nortje", role: "BOWLER", icon: "🇿🇦", category: "bowlers", country: "ZA" },
-  markram: { name: "Aiden Markram", role: "BATTER", icon: "🇿🇦", category: "batters", isCaptain: true, country: "ZA" },
-  rashidk: { name: "Rashid Khan", role: "BOWLER", icon: "🇦🇫", category: "bowlers", country: "AF" },
-  nabi: { name: "Mohammad Nabi", role: "ALL-ROUNDER", icon: "🇦🇫", category: "all-rounders", country: "AF" },
-  gurbaz: { name: "Rahmanullah Gurbaz", role: "WK BAT", icon: "🇦🇫", category: "keepers", country: "AF" },
-  farooqi: { name: "Fazalhaq Farooqi", role: "BOWLER", icon: "🇦🇫", category: "bowlers", country: "AF" },
-  pollard: { name: "Kieron Pollard", role: "ALL-ROUNDER", icon: "🇹🇹", category: "all-rounders", country: "WI" },
-  russell: { name: "Andre Russell", role: "ALL-ROUNDER", icon: "🇯🇲", category: "all-rounders", country: "WI" },
-  pooran: { name: "Nicholas Pooran", role: "WK BAT", icon: "🇹🇹", category: "keepers", country: "WI" },
-  hetmyer: { name: "Shimron Hetmyer", role: "BATTER", icon: "🇬🇾", category: "batters", country: "WI" },
-  holder: { name: "Jason Holder", role: "ALL-ROUNDER", icon: "🇧🇧", category: "all-rounders", country: "WI" },
-  joseph: { name: "Alzarri Joseph", role: "BOWLER", icon: "🇦🇬", category: "bowlers", country: "WI" },
-  shakib: { name: "Shakib Al Hasan", role: "ALL-ROUNDER", icon: "🇧🇩", category: "all-rounders", country: "BD" },
-  mustafizur: { name: "Mustafizur Rahman", role: "BOWLER", icon: "🇧🇩", category: "bowlers", country: "BD" },
-  hasaranga: { name: "Wanindu Hasaranga", role: "ALL-ROUNDER", icon: "🇱🇰", category: "all-rounders", country: "LK" },
-  pathirana: { name: "Matheesha Pathirana", role: "BOWLER", icon: "🇱🇰", category: "bowlers", country: "LK" }
-           }
-const db = getDatabase()
+import { useState, useEffect } from 'react';
+import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
+import { ref, update, increment, onValue } from 'firebase/database';
+import { auth, db } from './firebase';
+import './App.css';
 
 function App() {
-  const [user, setUser] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState("battle")
-  const [battleNumber, setBattleNumber] = useState(1)
-  const [selectedCategory, setSelectedCategory] = useState("any")
-  const [gameMode, setGameMode] = useState("india")
-  const [userVotes, setUserVotes] = useState({})
-  const [showShareModal, setShowShareModal] = useState(false)
-  const [playerVotes, setPlayerVotes] = useState({})
-  const [totalVotes, setTotalVotes] = useState(0)
-  const [totalUsers, setTotalUsers] = useState(0)
+  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
+  const [gameMode, setGameMode] = useState('india');
+  const [battleNumber, setBattleNumber] = useState(1);
+  const [userVotes, setUserVotes] = useState({});
+  const [playerVotes, setPlayerVotes] = useState({});
+  const [totalVotes, setTotalVotes] = useState(0);
+  const [showChampion, setShowChampion] = useState(false);
+  const [championData, setChampionData] = useState({ name: '', icon: '', percent: 0 });
+  const [voteAnimation, setVoteAnimation] = useState('');
+  const [filter, setFilter] = useState('Any');
 
-  const ALL_PLAYERS = gameMode === "global"? {...INDIAN_PLAYERS,...FOREIGN_PLAYERS } : INDIAN_PLAYERS
+  const INDIAN_PLAYERS = [
+    { id: 1, name: 'Virat Kohli', icon: '👑', role: 'Batter', photo: 'https://resources.pulse.icc-cricket.com/players/284/164.png' },
+    { id: 2, name: 'MS Dhoni', icon: '🦁', role: 'Keeper', photo: 'https://resources.pulse.icc-cricket.com/players/284/11.png' },
+    { id: 3, name: 'Rohit Sharma', icon: '💙', role: 'Batter', photo: 'https://resources.pulse.icc-cricket.com/players/284/107.png' },
+    { id: 4, name: 'Sachin Tendulkar', icon: '🏏', role: 'Batter', photo: 'https://resources.pulse.icc-cricket.com/players/284/6.png' },
+    { id: 5, name: 'Jasprit Bumrah', icon: '🔥', role: 'Bowler', photo: 'https://resources.pulse.icc-cricket.com/players/284/1124.png' },
+    { id: 6, name: 'Hardik Pandya', icon: '⚡', role: 'AR', photo: 'https://resources.pulse.icc-cricket.com/players/284/2740.png' },
+    { id: 7, name: 'KL Rahul', icon: '🎯', role: 'Batter', photo: 'https://resources.pulse.icc-cricket.com/players/284/1125.png' },
+    { id: 8, name: 'Rishabh Pant', icon: '💥', role: 'Keeper', photo: 'https://resources.pulse.icc-cricket.com/players/284/2972.png' },
+    { id: 9, name: 'Shubman Gill', icon: '🌟', role: 'Batter', photo: 'https://resources.pulse.icc-cricket.com/players/284/9170.png' },
+    { id: 10, name: 'Yuvraj Singh', icon: '🚀', role: 'AR', photo: 'https://resources.pulse.icc-cricket.com/players/284/25.png' },
+    { id: 11, name: 'Ravindra Jadeja', icon: '⚔️', role: 'AR', photo: 'https://resources.pulse.icc-cricket.com/players/284/587.png' },
+    { id: 12, name: 'Mohammed Shami', icon: '💨', role: 'Bowler', photo: 'https://resources.pulse.icc-cricket.com/players/284/94.png' },
+    { id: 13, name: 'R Ashwin', icon: '🌀', role: 'Bowler', photo: 'https://resources.pulse.icc-cricket.com/players/284/8.png' },
+    { id: 14, name: 'Suryakumar Yadav', icon: '☄️', role: 'Batter', photo: 'https://resources.pulse.icc-cricket.com/players/284/108.png' },
+    { id: 15, name: 'Mohammed Siraj', icon: '🎯', role: 'Bowler', photo: 'https://resources.pulse.icc-cricket.com/players/284/3840.png' },
+    { id: 16, name: 'Shikhar Dhawan', icon: '💫', role: 'Batter', photo: 'https://resources.pulse.icc-cricket.com/players/284/95.png' },
+    { id: 17, name: 'Axar Patel', icon: '🎪', role: 'AR', photo: 'https://resources.pulse.icc-cricket.com/players/284/1113.png' },
+    { id: 18, name: 'Kuldeep Yadav', icon: '🎭', role: 'Bowler', photo: 'https://resources.pulse.icc-cricket.com/players/284/1842.png' },
+    { id: 19, name: 'Bhuvneshwar Kumar', icon: '🌊', role: 'Bowler', photo: 'https://resources.pulse.icc-cricket.com/players/284/796.png' },
+    { id: 20, name: 'Dinesh Karthik', icon: '🎨', role: 'Keeper', photo: 'https://resources.pulse.icc-cricket.com/players/284/10.png' },
+    { id: 21, name: 'Rahul Dravid', icon: '🧱', role: 'Batter', photo: 'https://resources.pulse.icc-cricket.com/players/284/1.png' },
+    { id: 22, name: 'Sourav Ganguly', icon: '👑', role: 'Batter', photo: 'https://resources.pulse.icc-cricket.com/players/284/5.png' },
+    { id: 23, name: 'VVS Laxman', icon: '🎯', role: 'Batter', photo: 'https://resources.pulse.icc-cricket.com/players/284/2.png' },
+    { id: 24, name: 'Anil Kumble', icon: '🌀', role: 'Bowler', photo: 'https://resources.pulse.icc-cricket.com/players/284/4.png' },
+    { id: 25, name: 'Kapil Dev', icon: '🏆', role: 'AR', photo: 'https://resources.pulse.icc-cricket.com/players/284/12.png' },
+    { id: 26, name: 'Sunil Gavaskar', icon: '☀️', role: 'Batter', photo: 'https://resources.pulse.icc-cricket.com/players/284/13.png' },
+    { id: 27, name: 'Zaheer Khan', icon: '⚡', role: 'Bowler', photo: 'https://resources.pulse.icc-cricket.com/players/284/3.png' },
+    { id: 28, name: 'Harbhajan Singh', icon: '🌀', role: 'Bowler', photo: 'https://resources.pulse.icc-cricket.com/players/284/7.png' },
+    { id: 29, name: 'Virender Sehwag', icon: '💣', role: 'Batter', photo: 'https://resources.pulse.icc-cricket.com/players/284/24.png' },
+    { id: 30, name: 'Gautam Gambhir', icon: '🗡️', role: 'Batter', photo: 'https://resources.pulse.icc-cricket.com/players/284/90.png' },
+    { id: 31, name: 'Ishant Sharma', icon: '🗼', role: 'Bowler', photo: 'https://resources.pulse.icc-cricket.com/players/284/89.png' },
+    { id: 32, name: 'Cheteshwar Pujara', icon: '🛡️', role: 'Batter', photo: 'https://resources.pulse.icc-cricket.com/players/284/91.png' },
+    { id: 33, name: 'Ajinkya Rahane', icon: '🎓', role: 'Batter', photo: 'https://resources.pulse.icc-cricket.com/players/284/201.png' },
+    { id: 34, name: 'Umesh Yadav', icon: '🚂', role: 'Bowler', photo: 'https://resources.pulse.icc-cricket.com/players/284/93.png' },
+    { id: 35, name: 'Wriddhiman Saha', icon: '🧤', role: 'Keeper', photo: 'https://resources.pulse.icc-cricket.com/players/284/588.png' },
+    { id: 36, name: 'Shardul Thakur', icon: '🦁', role: 'AR', photo: 'https://resources.pulse.icc-cricket.com/players/284/1567.png' },
+    { id: 37, name: 'Washington Sundar', icon: '🔱', role: 'AR', photo: 'https://resources.pulse.icc-cricket.com/players/284/3793.png' },
+    { id: 38, name: 'Prasidh Krishna', icon: '🎯', role: 'Bowler', photo: 'https://resources.pulse.icc-cricket.com/players/284/6853.png' },
+    { id: 39, name: 'Deepak Chahar', icon: '🌪️', role: 'Bowler', photo: 'https://resources.pulse.icc-cricket.com/players/284/2045.png' },
+    { id: 40, name: 'Yuzvendra Chahal', icon: '♟️', role: 'Bowler', photo: 'https://resources.pulse.icc-cricket.com/players/284/1118.png' },
+    { id: 41, name: 'Ruturaj Gaikwad', icon: '⚡', role: 'Batter', photo: 'https://resources.pulse.icc-cricket.com/players/284/6893.png' },
+    { id: 42, name: 'Ishan Kishan', icon: '💥', role: 'Keeper', photo: 'https://resources.pulse.icc-cricket.com/players/284/3792.png' },
+    { id: 43, name: 'Sanju Samson', icon: '🌊', role: 'Keeper', photo: 'https://resources.pulse.icc-cricket.com/players/284/1117.png' },
+    { id: 44, name: 'Shreyas Iyer', icon: '🎭', role: 'Batter', photo: 'https://resources.pulse.icc-cricket.com/players/284/3042.png' },
+    { id: 45, name: 'Arshdeep Singh', icon: '🏹', role: 'Bowler', photo: 'https://resources.pulse.icc-cricket.com/players/284/9012.png' },
+    { id: 46, name: 'Ravi Bishnoi', icon: '🕸️', role: 'Bowler', photo: 'https://resources.pulse.icc-cricket.com/players/284/8203.png' },
+    { id: 47, name: 'Tilak Varma', icon: '🌟', role: 'Batter', photo: 'https://resources.pulse.icc-cricket.com/players/284/10792.png' },
+    { id: 48, name: 'Mukesh Kumar', icon: '🎯', role: 'Bowler', photo: 'https://resources.pulse.icc-cricket.com/players/284/11412.png' },
+    { id: 49, name: 'Rinku Singh', icon: '💫', role: 'Batter', photo: 'https://resources.pulse.icc-cricket.com/players/284/6850.png' },
+    { id: 50, name: 'Jitesh Sharma', icon: '⚡', role: 'Keeper', photo: 'https://resources.pulse.icc-cricket.com/players/284/8229.png' },
+  ];
 
-  useEffect(() => {
-    const votesRef = ref(db, 'playerVotes')
-    const unsubscribe = onValue(votesRef, (snapshot) => setPlayerVotes(snapshot.val() || {}))
+  const FOREIGN_PLAYERS = [
+    { id: 51, name: 'AB de Villiers', icon: '🦸', role: 'Batter', photo: 'https://resources.pulse.icc-cricket.com/players/284/310.png' },
+    { id: 52, name: 'Chris Gayle', icon: '💀', role: 'Batter', photo: 'https://resources.pulse.icc-cricket.com/players/284/236.png' },
+    { id: 53, name: 'Steve Smith', icon: '🎩', role: 'Batter', photo: 'https://resources.pulse.icc-cricket.com/players/284/271.png' },
+    { id: 54, name: 'Kane Williamson', icon: '😇', role: 'Batter', photo: 'https://resources.pulse.icc-cricket.com/players/284/440.png' },
+    { id: 55, name: 'Pat Cummins', icon: '🏹', role: 'Bowler', photo: 'https://resources.pulse.icc-cricket.com/players/284/488.png' },
+    { id: 56, name: 'Ben Stokes', icon: '💪', role: 'AR', photo: 'https://resources.pulse.icc-cricket.com/players/284/611.png' },
+    { id: 57, name: 'Jos Buttler', icon: '⚡', role: 'Keeper', photo: 'https://resources.pulse.icc-cricket.com/players/284/275.png' },
+    { id: 58, name: 'Rashid Khan', icon: '🕷️', role: 'Bowler', photo: 'https://resources.pulse.icc-cricket.com/players/284/2885.png' },
+    { id: 59, name: 'Babar Azam', icon: '👑', role: 'Batter', photo: 'https://resources.pulse.icc-cricket.com/players/284/2751.png' },
+    { id: 60, name: 'Shaheen Afridi', icon: '🦅', role: 'Bowler', photo: 'https://resources.pulse.icc-cricket.com/players/284/4530.png' },
+    { id: 61, name: 'David Warner', icon: '💣', role: 'Batter', photo: 'https://resources.pulse.icc-cricket.com/players/284/170.png' },
+    { id: 62, name: 'Mitchell Starc', icon: '🚀', role: 'Bowler', photo: 'https://resources.pulse.icc-cricket.com/players/284/276.png' },
+    { id: 63, name: 'Glenn Maxwell', icon: '🎪', role: 'AR', photo: 'https://resources.pulse.icc-cricket.com/players/284/282.png' },
+    { id: 64, name: 'Joe Root', icon: '🎓', role: 'Batter', photo: 'https://resources.pulse.icc-cricket.com/players/284/309.png' },
+    { id: 65, name: 'Jofra Archer', icon: '🎯', role: 'Bowler', photo: 'https://resources.pulse.icc-cricket.com/players/284/3607.png' },
+    { id: 66, name: 'Quinton de Kock', icon: '🧤', role: 'Keeper', photo: 'https://resources.pulse.icc-cricket.com/players/284/834.png' },
+    { id: 67, name: 'Kagiso Rabada', icon: '💨', role: 'Bowler', photo: 'https://resources.pulse.icc-cricket.com/players/284/1520.png' },
+    { id: 68, name: 'Trent Boult', icon: '🌪️', role: 'Bowler', photo: 'https://resources.pulse.icc-cricket.com/players/284/969.png' },
+    { id: 69, name: 'Jonny Bairstow', icon: '⚡', role: 'Keeper', photo: 'https://resources.pulse.icc-cricket.com/players/284/506.png' },
+    { id: 70, name: 'Andre Russell', icon: '💥', role: 'AR', photo: 'https://resources.pulse.icc-cricket.com/players/284/273.png' },
+    { id: 71, name: 'Kieron Pollard', icon: '🎆', role: 'AR', photo: 'https://resources.pulse.icc-cricket.com/players/284/229.png' },
+    { id: 72, name: 'Dwayne Bravo', icon: '💃', role: 'AR', photo: 'https://resources.pulse.icc-cricket.com/players/284/64.png' },
+    { id: 73, name: 'Shakib Al Hasan', icon: '🎭', role: 'AR', photo: 'https://resources.pulse.icc-cricket.com/players/284/75.png' },
+    { id: 74, name: 'Mohammad Rizwan', icon: '🧱', role: 'Keeper', photo: 'https://resources.pulse.icc-cricket.com/players/284/1879.png' },
+    { id: 75, name: 'Faf du Plessis', icon: '🎩', role: 'Batter', photo: 'https://resources.pulse.icc-cricket.com/players/284/337.png' },
+    { id: 76, name: 'Josh Hazlewood', icon: '🎯', role: 'Bowler', photo: 'https://resources.pulse.icc-cricket.com/players/284/857.png' },
+    { id: 77, name: 'Marnus Labuschagne', icon: '🧠', role: 'Batter', photo: 'https://resources.pulse.icc-cricket.com/players/284/3798.png' },
+    { id: 78, name: 'Travis Head', icon: '🔥', role: 'Batter', photo: 'https://resources.pulse.icc-cricket.com/players/284/3799.png' },
+    { id: 79, name: 'Adam Zampa', icon: '🌀', role: 'Bowler', photo: 'https://resources.pulse.icc-cricket.com/players/284/1842.png' },
+    { id: 80, name: 'Lockie Ferguson', icon: '⚡', role: 'Bowler', photo: 'https://resources.pulse.icc-cricket.com/players/284/2557.png' },
+    { id: 81, name: 'Devon Conway', icon: '🎯', role: 'Batter', photo: 'https://resources.pulse.icc-cricket.com/players/284/8206.png' },
+    { id: 82, name: 'Heinrich Klaasen', icon: '💥', role: 'Keeper', photo: 'https://resources.pulse.icc-cricket.com/players/284/3787.png' },
+    { id: 83, name: 'Aiden Markram', icon: '🎓', role: 'Batter', photo: 'https://resources.pulse.icc-cricket.com/players/284/3828.png' },
+    { id: 84, name: 'Anrich Nortje', icon: '🚀', role: 'Bowler', photo: 'https://resources.pulse.icc-cricket.com/players/284/5788.png' },
+    { id: 85, name: 'Liam Livingstone', icon: '💣', role: 'AR', photo: 'https://resources.pulse.icc-cricket.com/players/284/3722.png' },
+    { id: 86, name: 'Harry Brook', icon: '🌟', role: 'Batter', photo: 'https://resources.pulse.icc-cricket.com/players/284/8345.png' },
+    { id: 87, name: 'Sam Curran', icon: '⚔️', role: 'AR', photo: 'https://resources.pulse.icc-cricket.com/players/284/3911.png' },
+    { id: 88, name: 'Mark Wood', icon: '💨', role: 'Bowler', photo: 'https://resources.pulse.icc-cricket.com/players/284/1815.png' },
+    { id: 89, name: 'Mitchell Marsh', icon: '🔨', role: 'AR', photo: 'https://resources.pulse.icc-cricket.com/players/284/166.png' },
+    { id: 90, name: 'Cameron Green', icon: '🌲', role: 'AR', photo: 'https://resources.pulse.icc-cricket.com/players/284/8269.png' },
+    { id: 91, name: 'Nicholas Pooran', icon: '💫', role: 'Keeper', photo: 'https://resources.pulse.icc-cricket.com/players/284/3769.png' },
+    { id: 92, name: 'Shimron Hetmyer', icon: '🎆', role: 'Batter', photo: 'https://resources.pulse.icc-cricket.com/players/284/3796.png' },
+    { id: 93, name: 'Jason Holder', icon: '🗼', role: 'AR', photo: 'https://resources.pulse.icc-cricket.com/players/284/1135.png' },
+    { id: 94, name: 'Tim David', icon: '💥', role: 'Batter', photo: 'https://resources.pulse.icc-cricket.com/players/284/10815.png' },
+    { id: 95, name: 'Marco Jansen', icon: '🦒', role: 'AR', photo: 'https://resources.pulse.icc-cricket.com/players/284/10524.png' },
+    { id: 96, name: 'Fakhar Zaman', icon: '⚡', role: 'Batter', photo: 'https://resources.pulse.icc-cricket.com/players/284/3081.png' },
+    { id: 97, name: 'Haris Rauf', icon: '🚀', role: 'Bowler', photo: 'https://resources.pulse.icc-cricket.com/players/284/8180.png' },
+    { id: 98, name: 'Shadab Khan', icon: '🌀', role: 'AR', photo: 'https://resources.pulse.icc-cricket.com/players/284/3802.png' },
+    { id: 99, name: 'Dasun Shanaka', icon: '⚔️', role: 'AR', photo: 'https://resources.pulse.icc-cricket.com/players/284/2067.png' },
+    { id: 100, name: 'Wanindu Hasaranga', icon: '🕷️', role: 'AR', photo: 'https://resources.pulse.icc-cricket.com/players/284/7269.png' },
+  ];
 
-    const totalRef = ref(db, 'totalVotes')
-    const unsubTotal = onValue(totalRef, (snapshot) => setTotalVotes(snapshot.val() || 0))
+  const getAllPlayers = () => {
+    return gameMode === 'india'? INDIAN_PLAYERS : [...INDIAN_PLAYERS,...FOREIGN_PLAYERS];
+  };
 
-    const usersRef = ref(db, 'users')
-    const unsubUsers = onValue(usersRef, (snapshot) => {
-      const data = snapshot.val() || {}
-      setTotalUsers(Object.keys(data).length)
-    })
+  const getFilteredPlayers = () => {
+    const players = getAllPlayers();
+    if (filter === 'Any') return players;
+    return players.filter(p => p.role === filter);
+  };
 
-    return () => {
-      unsubscribe()
-      unsubTotal()
-      unsubUsers()
-    }
-  }, [])
-
-  useEffect(() => {
-    if (user) {
-      const userRef = ref(db, `users/${user.uid}`)
-      set(userRef, {
-        name: user.displayName,
-        email: user.email,
-        photoURL: user.photoURL,
-        lastLogin: Date.now(),
-        country: "IN"
-      })
-
-      const userVotesRef = ref(db, `userVotes/${user.uid}`)
-      const unsubscribe = onValue(userVotesRef, (snapshot) => setUserVotes(snapshot.val() || {}))
-      return unsubscribe
-    }
-  }, )
-
-  const generateBattle = (battleNum, category = selectedCategory) => {
-    let playerKeys = Object.keys(ALL_PLAYERS)
-
-    if (category!== "any") {
-      if (category === "captain") {
-        playerKeys = playerKeys.filter(key => ALL_PLAYERS[key].isCaptain === true)
-      } else {
-        playerKeys = playerKeys.filter(key => ALL_PLAYERS[key].category === category)
-      }
-    }
-
-    if (playerKeys.length < 2) playerKeys = Object.keys(ALL_PLAYERS)
-
-    const p1Key = playerKeys[Math.floor(Math.random() * playerKeys.length)]
-    let p2Key = playerKeys[Math.floor(Math.random() * playerKeys.length)]
-    while(p2Key === p1Key && playerKeys.length > 1) {
-      p2Key = playerKeys[Math.floor(Math.random() * playerKeys.length)]
-    }
+  const getCurrentBattle = () => {
+    const players = getFilteredPlayers();
+    const p1Index = (battleNumber - 1) % players.length;
+    const p2Index = battleNumber % players.length;
+    const player1 = players[p1Index];
+    const player2 = players[p2Index];
 
     return {
-      player1: {...ALL_PLAYERS[p1Key], id: p1Key, votes: playerVotes[p1Key] || 0 },
-      player2: {...ALL_PLAYERS[p2Key], id: p2Key, votes: playerVotes[p2Key] || 0 }
-    }
-  }
+      player1: {...player1, votes: playerVotes[player1.id] || 0 },
+      player2: {...player2, votes: playerVotes[player2.id] || 0 }
+    };
+  };
 
-  const [currentBattle, setCurrentBattle] = useState(generateBattle(1))
-
-  useEffect(() => {
-    setCurrentBattle(generateBattle(battleNumber, selectedCategory))
-  }, [playerVotes, battleNumber, selectedCategory, gameMode])
-
-  const calculateRankings = () => {
-    const players = Object.entries(ALL_PLAYERS).map(([id, player]) => {
-      const votes = playerVotes[id] || 0
-      const total = totalVotes || 1
-      const percent = Math.round((votes / total) * 100)
-      return { id,...player, votes, percent }
-    })
-    return players.sort((a, b) => b.votes - a.votes).slice(0, 20)
-  }
-
-  const [rankings, setRankings] = useState(calculateRankings())
-
-  useEffect(() => {
-    setRankings(calculateRankings())
-  }, [playerVotes, totalVotes, gameMode])
+  const currentBattle = getCurrentBattle();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser)
-      setLoading(false)
-    })
-    return unsubscribe
-  }, [])
+      setUser(currentUser);
+      setLoading(false);
+    });
+    return unsubscribe;
+  }, []);
 
-  const handleLogin = () => {
-    signInWithGoogle().catch((error) => {
-      console.error("Login Error:", error)
-      alert("Login failed: " + error.message)
-    })
-  }
+  useEffect(() => {
+    const votesRef = ref(db, 'playerVotes');
+    const unsubscribe = onValue(votesRef, (snapshot) => {
+      const data = snapshot.val() || {};
+      setPlayerVotes(data);
+    });
+    return () => unsubscribe();
+  }, []);
+    const handleLogin = () => {
+    const provider = new GoogleAuthProvider();
+    signInWithPopup(auth, provider).catch((error) => {
+      console.error("Login Error:", error);
+      alert("Login failed: " + error.message);
+    });
+  };
 
-  const handleLogout = () => signOut(auth)
+  const handleLogout = () => signOut(auth);
 
   const handleVote = async (playerId) => {
-    if (!user) return
-
-    const battleKey = `battle_${battleNumber}_${gameMode}`
+    const battleKey = `battle_${battleNumber}_${gameMode}`;
     if (userVotes[battleKey]) {
-      alert("Ee battle lo already vote chesav!")
-      return
+      alert('Ee battle lo already vote chesav! Next battle ki vellu');
+      return;
     }
 
-    const updates = {}
-    updates[`playerVotes/${playerId}`] = increment(1)
-    updates[`userVotes/${user.uid}/${battleKey}`] = playerId
-    updates[`totalVotes`] = increment(1)
+    setVoteAnimation(playerId);
+    setTimeout(() => setVoteAnimation(''), 600);
 
-    await update(ref(db), updates)
-    setTimeout(() => setBattleNumber(battleNumber + 1), 500)
-  }
-
-  const handleSkip = () => setBattleNumber(battleNumber + 1)
-
-  const handleCategoryChange = (cat) => {
-    setSelectedCategory(cat)
-    setBattleNumber(battleNumber + 1)
-  }
-
-  const handleShare = (platform) => {
-    const shareUrl = window.location.href
-    const shareText = `⚡ CrickClash ${gameMode === "global"? "Global" : "India"} Battle: ${currentBattle.player1.name} vs ${currentBattle.player2.name}! Vote now: ${shareUrl}`
-
-    const urls = {
-      whatsapp: `https://wa.me/?text=${encodeURIComponent(shareText)}`,
-      twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`,
-      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
-      linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`,
-      telegram: `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`
-    }
-
-    if (platform === 'instagram') {
-      alert("Instagram: Screenshot teesi story lo share chey! 📸")
-      return
-    }
-
-    window.open(urls[platform], '_blank', 'width=600,height=400')
-    setShowShareModal(false)
-  }
-
-  const handleNativeShare = async () => {
-    const shareData = {
-      title: `CrickClash ${gameMode === "global"? "Global" : "India"}`,
-      text: `⚡ ${currentBattle.player1.name} vs ${currentBattle.player2.name}!`,
-      url: window.location.href
-    }
-
-    if (navigator.share) {
-      try {
-        await navigator.share(shareData)
-      } catch (err) {
-        setShowShareModal(true)
-      }
+    const updatedBattle = {...currentBattle};
+    if (playerId === currentBattle.player1.id) {
+      updatedBattle.player1.votes += 1;
     } else {
-      setShowShareModal(true)
+      updatedBattle.player2.votes += 1;
     }
-  }
 
-  if (loading) {
-    return (
-      <div className="loading">
-        <h1>⚡ CrickClash 🌍</h1>
-        <p>Loading 100 World Cricketers...</p>
-      </div>
-    )
-  }
+    setUserVotes({...userVotes, [battleKey]: playerId});
 
-  if (!user) {
-    return (
-      <div className="login-screen">
-        <h1>⚡ CrickClash 🌍</h1>
-        <h2>WORLD'S Biggest Cricket Battles!</h2>
-        <p style={{ marginBottom: 10, color: '#aaa' }}>
-          50 Indian + 50 Global Cricket Stars
-        </p>
+    const totalVotes = updatedBattle.player1.votes + updatedBattle.player2.votes;
+    const winner = updatedBattle.player1.votes > updatedBattle.player2.votes
+? updatedBattle.player1
+      : updatedBattle.player2;
+    const winnerPercent = totalVotes > 0? Math.round((winner.votes / totalVotes) * 100) : 100;
 
-        {/* ZUCKERBERG STYLE NAME TAG - ANESH */}
-        <p style={{
-          marginBottom: 20,
-          color: '#FFD700',
-          fontSize: '0.85rem',
-          fontWeight: 'bold',
-          letterSpacing: '2px',
-          textTransform: 'uppercase'
-        }}>
-          a ANESH production
-        </p>
+    setTimeout(() => {
+      setChampionData({
+        name: winner.name,
+        icon: winner.icon,
+        percent: winnerPercent
+      });
+      setShowChampion(true);
+    }, 800);
 
-        <button onClick={handleLogin} className="google-btn">
-          Continue with Google
-        </button>
-        <p style={{ marginTop: 30, fontSize: '0.85rem', color: '#666' }}>
-          Join {totalUsers > 0? totalUsers + '+' : 'thousands of'} fans worldwide 🔥
-        </p>
-      </div>
-    )
-                                                                     }
-  const userBattles = Object.keys(userVotes).length
+    if (user) {
+      try {
+        const updates = {};
+        updates[`playerVotes/${playerId}`] = increment(1);
+        updates[`userVotes/${user.uid}/${battleKey}`] = playerId;
+        updates['totalVotes'] = increment(1);
+        await update(ref(db), updates);
+      } catch (error) {
+        console.error('Firebase error:', error);
+      }
+    }
+  };
+
+  const handleSkip = () => setBattleNumber(battleNumber + 1);
+
+  const handleNextBattle = () => {
+    setShowChampion(false);
+    setBattleNumber(battleNumber + 1);
+  };
+
+  if (loading) return <div className="loading">Loading...</div>;
 
   return (
     <div className="app">
-      <header className="header">
-        <div className="logo">
-          <span className="bolt">⚡</span> Cricket Clash
-          <span style={{
-            fontSize: '0.55rem',
-            color: '#FFD700',
-            marginLeft: '6px',
-            opacity: 0.7,
-            fontWeight: 'normal',
-            verticalAlign: 'super'
-          }}>
-            by ANESH
-          </span>
-        </div>
-        <div className="user-info">
-          <button onClick={handleNativeShare} className="share-btn" style={{ padding: '6px 12px', background: '#2196F3', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', marginRight: '8px', fontSize: '0.85rem' }}>
-            📤 Share
-          </button>
-          <span>Hi, {user.displayName?.split(' ')[0]}</span>
-          <button onClick={handleLogout} className="sign-out">Sign out</button>
-        </div>
-      </header>
-
-      {showShareModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }} onClick={() => setShowShareModal(false)}>
-          <div style={{ background: '#1a1f3a', padding: '30px', borderRadius: '16px', maxWidth: '320px' }} onClick={(e) => e.stopPropagation()}>
-            <h3 style={{ marginBottom: '20px', textAlign: 'center' }}>Share Battle 📤</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-              <button onClick={() => handleShare('whatsapp')} style={{ padding: '12px', background: '#25D366', border: 'none', borderRadius: '8px', color: 'white', cursor: 'pointer' }}>📱 WhatsApp</button>
-              <button onClick={() => handleShare('twitter')} style={{ padding: '12px', background: '#1DA1F2', border: 'none', borderRadius: '8px', color: 'white', cursor: 'pointer' }}>🐦 Twitter</button>
-              <button onClick={() => handleShare('facebook')} style={{ padding: '12px', background: '#4267B2', border: 'none', borderRadius: '8px', color: 'white', cursor: 'pointer' }}>📘 Facebook</button>
-              <button onClick={() => handleShare('linkedin')} style={{ padding: '12px', background: '#0077B5', border: 'none', borderRadius: '8px', color: 'white', cursor: 'pointer' }}>💼 LinkedIn</button>
-              <button onClick={() => handleShare('telegram')} style={{ padding: '12px', background: '#0088cc', border: 'none', borderRadius: '8px', color: 'white', cursor: 'pointer' }}>✈️ Telegram</button>
-              <button onClick={() => handleShare('instagram')} style={{ padding: '12px', background: 'linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%)', border: 'none', borderRadius: '8px', color: 'white', cursor: 'pointer' }}>📸 Instagram</button>
-            </div>
-            <button onClick={() => setShowShareModal(false)} style={{ width: '100%', marginTop: '15px', padding: '10px', background: '#333', border: 'none', borderRadius: '8px', color: 'white', cursor: 'pointer' }}>Close</button>
-          </div>
-        </div>
-      )}
-
-      <div className="stats-bar">
-        <div className="stat">
-          <span className="num">{totalVotes > 1000? (totalVotes/1000).toFixed(1) + 'k' : totalVotes}</span>
-          <span className="label">TOTAL VOTES</span>
-        </div>
-        <div className="stat">
-          <span className="num">{userBattles}</span>
-          <span className="label">BATTLES</span>
-        </div>
-        <div className="stat">
-          <span className="num">{rankings[0]?.name.split(' ')[0] || '-'}</span>
-          <span className="label">TOP CHAMP</span>
-        </div>
-        <div className="stat">
-          <span className="num">100</span>
-          <span className="label">PLAYERS</span>
-        </div>
+      <div className="header">
+        <h1>crickclash</h1>
+        {user? (
+          <button onClick={handleLogout}>Logout</button>
+        ) : (
+          <button onClick={handleLogin}>Sign in with Google</button>
+        )}
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', margin: '15px 0' }}>
+      <div className="mode-selector">
         <button
-          onClick={() => {setGameMode("india"); setBattleNumber(battleNumber + 1)}}
-          style={{ padding: '8px 20px', background: gameMode === "india"? '#FF671F' : '#333', color: 'white', border: 'none', borderRadius: '20px', cursor: 'pointer', fontWeight: 'bold' }}
-        >
+          className={gameMode === 'india'? 'active' : ''}
+          onClick={() => setGameMode('india')}>
           🇮🇳 INDIA MODE (50)
         </button>
         <button
-          onClick={() => {setGameMode("global"); setBattleNumber(battleNumber + 1)}}
-          style={{ padding: '8px 20px', background: gameMode === "global"? '#138808' : '#333', color: 'white', border: 'none', borderRadius: '20px', cursor: 'pointer', fontWeight: 'bold' }}
-        >
+          className={gameMode === 'global'? 'active' : ''}
+          onClick={() => setGameMode('global')}>
           🌍 GLOBAL MODE (100)
         </button>
       </div>
 
-      <div className="tabs">
-        <button
-          className={activeTab === "battle"? "tab active" : "tab"}
-          onClick={() => setActiveTab("battle")}
-        >
-          ⚔️ Battle
-        </button>
-        <button
-          className={activeTab === "rankings"? "tab active" : "tab"}
-          onClick={() => setActiveTab("rankings")}
-        >
-          🏆 Rankings
-        </button>
-        <button
-          className={activeTab === "history"? "tab active" : "tab"}
-          onClick={() => setActiveTab("history")}
-        >
-          📜 History
-        </button>
-      </div>
-
-      {activeTab === "battle" && (
-        <div className="battle-screen">
-          <h2>WHO DO YOU LIKE?</h2>
-          <h3>Battle {battleNumber} • {gameMode === "global"? "🌍 Global 100" : "🇮🇳 India 50"}</h3>
-
-          <div className="categories">
-            {["any", "batters", "bowlers", "all-rounders", "keepers", "captain"].map(cat => (
-              <button
-                key={cat}
-                className={selectedCategory === cat? "cat-btn active" : "cat-btn"}
-                onClick={() => handleCategoryChange(cat)}
-              >
-                {cat === "any"? "Any" : cat === "all-rounders"? "AR" : cat.charAt(0).toUpperCase() + cat.slice(1)}
-              </button>
-            ))}
-          </div>
-
-          <div className="battle-cards">
-            <div className="player-card">
-              <div className="player-icon">{currentBattle.player1.icon}</div>
-              <h3>{currentBattle.player1.name}</h3>
-              <div className="role">{currentBattle.player1.role}</div>
-              <button
-                className="vote-btn"
-                onClick={() => handleVote(currentBattle.player1.id)}
-                disabled={userVotes[`battle_${battleNumber}_${gameMode}`]}
-              >
-                VOTE
-              </button>
-              <div className="vote-percent">
-                {currentBattle.player1.votes} votes
-              </div>
-            </div>
-
-            <div className="vs">VS</div>
-
-            <div className="player-card">
-              <div className="player-icon">{currentBattle.player2.icon}</div>
-              <h3>{currentBattle.player2.name}</h3>
-              <div className="role">{currentBattle.player2.role}</div>
-              <button
-                className="vote-btn"
-                onClick={() => handleVote(currentBattle.player2.id)}
-                disabled={userVotes[`battle_${battleNumber}_${gameMode}`]}
-              >
-                VOTE
-              </button>
-              <div className="vote-percent">
-                {currentBattle.player2.votes} votes
-              </div>
-            </div>
-          </div>
-
-          <button className="skip-btn" onClick={handleSkip}>
-            Skip Battle →
+      <div className="filter-tabs">
+        {['Any', 'Batter', 'Bowler', 'AR', 'Keeper'].map(f => (
+          <button
+            key={f}
+            className={filter === f? 'active' : ''}
+            onClick={() => setFilter(f)}>
+            {f}
           </button>
-        </div>
-      )}
-
-      {activeTab === "rankings" && (
-        <div className="rankings-screen">
-          <h2>🏆 TOP 20 RANKINGS</h2>
-          <p style={{ textAlign: 'center', color: '#aaa', marginBottom: 20 }}>
-            {gameMode === "global"? "🌍 Global 100 Players" : "🇮🇳 India 50 Players"}
-          </p>
-          <div className="rankings-list">
-            {rankings.map((player, index) => (
-              <div key={player.id} className="ranking-item">
-                <div className="rank">#{index + 1}</div>
-                <div className="player-info">
-                  <span className="icon">{player.icon}</span>
-                  <div>
-                    <div className="name">{player.name}</div>
-                    <div className="role-small">{player.role}</div>
-                  </div>
-                </div>
-                <div className="votes">
-                  <div className="percent">{player.percent}%</div>
-                  <div className="count">{player.votes} votes</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {activeTab === "history" && (
-        <div className="history-screen">
-          <h2>📜 YOUR BATTLE HISTORY</h2>
-          <p style={{ textAlign: 'center', color: '#aaa', marginBottom: 20 }}>
-            Total Battles: {userBattles}
-          </p>
-          <div className="history-list">
-            {Object.entries(userVotes).length === 0? (
-              <p style={{ textAlign: 'center', color: '#666', marginTop: 40 }}>
-                No battles yet. Start voting! ⚔️
-              </p>
-            ) : (
-              Object.entries(userVotes).reverse().slice(0, 20).map(([battleKey, playerId]) => {
-                const player = ALL_PLAYERS[playerId]
-                if (!player) return null
-                return (
-                  <div key={battleKey} className="history-item">
-                    <span className="icon">{player.icon}</span>
-                    <span className="name">You voted for {player.name}</span>
-                    <span className="role-small">{player.role}</span>
-                  </div>
-                )
-              })
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* ZUCKERBERG STYLE FOOTER - ANESH */}
-      <div className="version">
-        <span style={{ color: '#888' }}>
-          Version 21 - Global Edition | {totalUsers}+ Fans Worldwide
-        </span>
-        <br/>
-        <span style={{ fontSize: '0.7rem', color: '#FFD700', fontWeight: '600' }}>
-          © 2026 CrickClash — a ANESH production
-        </span>
+        ))}
       </div>
+
+      <div className="battle-screen">
+        <div className="battle-number">Battle #{battleNumber}</div>
+
+        <div className="battle-cards">
+          <div className={`player-card ${voteAnimation === currentBattle.player1.id? 'vote-jump' : ''}`}>
+            <div className="player-photo-wrapper" onClick={() => handleVote(currentBattle.player1.id)}>
+              <img
+                src={currentBattle.player1.photo}
+                alt={currentBattle.player1.name}
+                onError={(e) => {e.target.src = 'https://via.placeholder.com/400x400/1e293b/94a3b8?text=' + currentBattle.player1.name.charAt(0)}}
+              />
+              <div className="player-icon-badge">{currentBattle.player1.icon}</div>
+            </div>
+            <div className="player-info">
+              <div className="player-name">{currentBattle.player1.name}</div>
+              <div className="player-role">{currentBattle.player1.role}</div>
+              <div className="vote-count-big">{currentBattle.player1.votes}</div>
+              <button
+                className="vote-btn-main"
+                onClick={() => handleVote(currentBattle.player1.id)}
+                disabled={userVotes[`battle_${battleNumber}_${gameMode}`]}>
+                {userVotes[`battle_${battleNumber}_${gameMode}`] === currentBattle.player1.id? '✓ VOTED' : 'VOTE'}
+              </button>
+            </div>
+          </div>
+
+          <div className="vs-divider">
+            <div className="vs-circle">VS</div>
+          </div>
+
+          <div className={`player-card ${voteAnimation === currentBattle.player2.id? 'vote-jump' : ''}`}>
+            <div className="player-photo-wrapper" onClick={() => handleVote(currentBattle.player2.id)}>
+              <img
+                src={currentBattle.player2.photo}
+                alt={currentBattle.player2.name}
+                onError={(e) => {e.target.src = 'https://via.placeholder.com/400x400/1e293b/94a3b8?text=' + currentBattle.player2.name.charAt(0)}}
+              />
+              <div className="player-icon-badge">{currentBattle.player2.icon}</div>
+            </div>
+            <div className="player-info">
+              <div className="player-name">{currentBattle.player2.name}</div>
+              <div className="player-role">{currentBattle.player2.role}</div>
+              <div className="vote-count-big">{currentBattle.player2.votes}</div>
+              <button
+                className="vote-btn-main"
+                onClick={() => handleVote(currentBattle.player2.id)}
+                disabled={userVotes[`battle_${battleNumber}_${gameMode}`]}>
+                {userVotes[`battle_${battleNumber}_${gameMode}`] === currentBattle.player2.id? '✓ VOTED' : 'VOTE'}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <button className="skip-btn" onClick={handleSkip}>
+          Skip Battle →
+        </button>
+      </div>
+
+      {showChampion && (
+        <div className="modal-overlay" onClick={() => setShowChampion(false)}>
+          <div className="champion-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="crown">👑</div>
+            <div className="champion-label">YOUR CHAMPION</div>
+            <div className="champion-name">{championData.name}</div>
+            <div className="champion-icon">{championData.icon}</div>
+            <div className="champion-percent">
+              {championData.percent}% of fans chose {championData.name.split(' ')[0]}
+            </div>
+            <button className="next-battle-btn" onClick={handleNextBattle}>
+              ⚡ Next Battle
+            </button>
+          </div>
+        </div>
+      )}
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
