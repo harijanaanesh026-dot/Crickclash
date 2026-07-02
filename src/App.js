@@ -11,7 +11,6 @@ function App() {
   const [battleNumber, setBattleNumber] = useState(1);
   const [userVotes, setUserVotes] = useState({});
   const [playerVotes, setPlayerVotes] = useState({});
-  const [totalVotes, setTotalVotes] = useState(0);
   const [showChampion, setShowChampion] = useState(false);
   const [championData, setChampionData] = useState({ name: '', icon: '', percent: 0 });
   const [voteAnimation, setVoteAnimation] = useState('');
@@ -67,10 +66,9 @@ function App() {
     { id: 47, name: 'Tilak Varma', icon: '🌟', role: 'Batter', photo: 'https://resources.pulse.icc-cricket.com/players/284/10792.png' },
     { id: 48, name: 'Mukesh Kumar', icon: '🎯', role: 'Bowler', photo: 'https://resources.pulse.icc-cricket.com/players/284/11412.png' },
     { id: 49, name: 'Rinku Singh', icon: '💫', role: 'Batter', photo: 'https://resources.pulse.icc-cricket.com/players/284/6850.png' },
-    { id: 50, name: 'Jitesh Sharma', icon: '⚡', role: 'Keeper', photo: 'https://resources.pulse.icc-cricket.com/players/284/8229.png' },
+    { id: 50, name: 'Vaibhav Suryavanshi', icon: '🌟', role: 'Batter', photo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Vaibhav_Suryavanshi_2024.jpg/330px-Vaibhav_Suryavanshi_2024.jpg' },
   ];
-
-  const FOREIGN_PLAYERS = [
+    const FOREIGN_PLAYERS = [
     { id: 51, name: 'AB de Villiers', icon: '🦸', role: 'Batter', photo: 'https://resources.pulse.icc-cricket.com/players/284/310.png' },
     { id: 52, name: 'Chris Gayle', icon: '💀', role: 'Batter', photo: 'https://resources.pulse.icc-cricket.com/players/284/236.png' },
     { id: 53, name: 'Steve Smith', icon: '🎩', role: 'Batter', photo: 'https://resources.pulse.icc-cricket.com/players/284/271.png' },
@@ -164,7 +162,8 @@ function App() {
     });
     return () => unsubscribe();
   }, []);
-    const handleLogin = () => {
+
+  const handleLogin = () => {
     const provider = new GoogleAuthProvider();
     signInWithPopup(auth, provider).catch((error) => {
       console.error("Login Error:", error);
@@ -184,19 +183,17 @@ function App() {
     setVoteAnimation(playerId);
     setTimeout(() => setVoteAnimation(''), 600);
 
-    const updatedBattle = {...currentBattle};
+    const updatedBattle = {...currentBattle };
     if (playerId === currentBattle.player1.id) {
       updatedBattle.player1.votes += 1;
     } else {
       updatedBattle.player2.votes += 1;
     }
 
-    setUserVotes({...userVotes, [battleKey]: playerId});
+    setUserVotes({...userVotes, [battleKey]: playerId });
 
     const totalVotes = updatedBattle.player1.votes + updatedBattle.player2.votes;
-    const winner = updatedBattle.player1.votes > updatedBattle.player2.votes
-? updatedBattle.player1
-      : updatedBattle.player2;
+    const winner = updatedBattle.player1.votes > updatedBattle.player2.votes? updatedBattle.player1 : updatedBattle.player2;
     const winnerPercent = totalVotes > 0? Math.round((winner.votes / totalVotes) * 100) : 100;
 
     setTimeout(() => {
@@ -233,7 +230,7 @@ function App() {
   return (
     <div className="app">
       <div className="header">
-        <h1>crickclash</h1>
+        <h1>CRICKET CLASH</h1>
         {user? (
           <button onClick={handleLogout}>Logout</button>
         ) : (
@@ -242,24 +239,17 @@ function App() {
       </div>
 
       <div className="mode-selector">
-        <button
-          className={gameMode === 'india'? 'active' : ''}
-          onClick={() => setGameMode('india')}>
+        <button className={gameMode === 'india'? 'active' : ''} onClick={() => setGameMode('india')}>
           🇮🇳 INDIA MODE (50)
         </button>
-        <button
-          className={gameMode === 'global'? 'active' : ''}
-          onClick={() => setGameMode('global')}>
+        <button className={gameMode === 'global'? 'active' : ''} onClick={() => setGameMode('global')}>
           🌍 GLOBAL MODE (100)
         </button>
       </div>
 
       <div className="filter-tabs">
         {['Any', 'Batter', 'Bowler', 'AR', 'Keeper'].map(f => (
-          <button
-            key={f}
-            className={filter === f? 'active' : ''}
-            onClick={() => setFilter(f)}>
+          <button key={f} className={filter === f? 'active' : ''} onClick={() => setFilter(f)}>
             {f}
           </button>
         ))}
@@ -271,21 +261,14 @@ function App() {
         <div className="battle-cards">
           <div className={`player-card ${voteAnimation === currentBattle.player1.id? 'vote-jump' : ''}`}>
             <div className="player-photo-wrapper" onClick={() => handleVote(currentBattle.player1.id)}>
-              <img
-                src={currentBattle.player1.photo}
-                alt={currentBattle.player1.name}
-                onError={(e) => {e.target.src = 'https://via.placeholder.com/400x400/1e293b/94a3b8?text=' + currentBattle.player1.name.charAt(0)}}
-              />
+              <img src={currentBattle.player1.photo} alt={currentBattle.player1.name} onError={(e) => {e.target.src = 'https://via.placeholder.com/400x400/1e293b/94a3b8?text=' + currentBattle.player1.name.charAt(0)}} />
               <div className="player-icon-badge">{currentBattle.player1.icon}</div>
             </div>
             <div className="player-info">
               <div className="player-name">{currentBattle.player1.name}</div>
               <div className="player-role">{currentBattle.player1.role}</div>
               <div className="vote-count-big">{currentBattle.player1.votes}</div>
-              <button
-                className="vote-btn-main"
-                onClick={() => handleVote(currentBattle.player1.id)}
-                disabled={userVotes[`battle_${battleNumber}_${gameMode}`]}>
+              <button className="vote-btn-main" onClick={() => handleVote(currentBattle.player1.id)} disabled={userVotes[`battle_${battleNumber}_${gameMode}`]}>
                 {userVotes[`battle_${battleNumber}_${gameMode}`] === currentBattle.player1.id? '✓ VOTED' : 'VOTE'}
               </button>
             </div>
@@ -297,21 +280,14 @@ function App() {
 
           <div className={`player-card ${voteAnimation === currentBattle.player2.id? 'vote-jump' : ''}`}>
             <div className="player-photo-wrapper" onClick={() => handleVote(currentBattle.player2.id)}>
-              <img
-                src={currentBattle.player2.photo}
-                alt={currentBattle.player2.name}
-                onError={(e) => {e.target.src = 'https://via.placeholder.com/400x400/1e293b/94a3b8?text=' + currentBattle.player2.name.charAt(0)}}
-              />
+              <img src={currentBattle.player2.photo} alt={currentBattle.player2.name} onError={(e) => {e.target.src = 'https://via.placeholder.com/400x400/1e293b/94a3b8?text=' + currentBattle.player2.name.charAt(0)}} />
               <div className="player-icon-badge">{currentBattle.player2.icon}</div>
             </div>
             <div className="player-info">
               <div className="player-name">{currentBattle.player2.name}</div>
               <div className="player-role">{currentBattle.player2.role}</div>
               <div className="vote-count-big">{currentBattle.player2.votes}</div>
-              <button
-                className="vote-btn-main"
-                onClick={() => handleVote(currentBattle.player2.id)}
-                disabled={userVotes[`battle_${battleNumber}_${gameMode}`]}>
+              <button className="vote-btn-main" onClick={() => handleVote(currentBattle.player2.id)} disabled={userVotes[`battle_${battleNumber}_${gameMode}`]}>
                 {userVotes[`battle_${battleNumber}_${gameMode}`] === currentBattle.player2.id? '✓ VOTED' : 'VOTE'}
               </button>
             </div>
@@ -344,3 +320,4 @@ function App() {
 }
 
 export default App;
+  
