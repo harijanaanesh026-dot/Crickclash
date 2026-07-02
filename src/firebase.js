@@ -2,14 +2,14 @@ import { initializeApp } from "firebase/app"
 import {
   getAuth,
   GoogleAuthProvider,
-  signInWithPopup,  // <-- REDIRECT KADU, POPUP
+  signInWithPopup,
   getRedirectResult
 } from "firebase/auth"
-import { getFirestore } from "firebase/firestore"
+import { getDatabase } from "firebase/database"  // FIRESTORE KADU, DATABASE
 
 // FIREBASE CONFIG - MALLI COPY CHEY
 const firebaseConfig = {
-  apiKey: "AIzaSyD9BfrAh8djKof1Bu6FLG0Fz7X10NCdm6g",
+  apiKey: "AIzaSyD9BfrAh8djKof1Bu6FLG0Fz7X1ONCdm6g",
   authDomain: "crickclash-d30fe.firebaseapp.com",
   databaseURL: "https://crickclash-d30fe-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "crickclash-d30fe",
@@ -21,7 +21,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig)
 
 export const auth = getAuth(app)
-export const db = getFirestore(app)
+export const db = getDatabase(app)  // REALTIME DATABASE ✅
 export const googleProvider = new GoogleAuthProvider()
 
 // POPUP METHOD - MOBILE LO 100% PANI CHESTADI
