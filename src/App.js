@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from "react"
 import { onAuthStateChanged, signOut } from "firebase/auth"
-import { getDatabase, ref, onValue, set, increment, update } from "firebase/database"
+import { getDatabase, ref, onValue, set, increment, update, get } from "firebase/database"
 import { auth, signInWithGoogle } from "./firebase"
 import "./App.css"
 
-// INDIAN PLAYERS DATABASE
 const INDIAN_PLAYERS = {
   sachin: { name: "Sachin Tendulkar", role: "BATTER", icon: "👑", category: "batters" },
   dhoni: { name: "MS Dhoni", role: "WK BAT", icon: "🏆", category: "keepers", isCaptain: true },
@@ -74,6 +73,7 @@ function App() {
   const [showShareModal, setShowShareModal] = useState(false)
   const [playerVotes, setPlayerVotes] = useState({})
   const [totalVotes, setTotalVotes] = useState(0)
+  const [totalUsers, setTotalUsers] = useState(0)
 
   // Load real votes from Firebase
   useEffect(() => {
@@ -87,23 +87,39 @@ function App() {
     const unsubTotal = onValue(totalRef, (snapshot) => {
       setTotalVotes(snapshot.val() || 0)
     })
+
+    const usersRef = ref(db, 'users')
+    const unsubUsers = onValue(usersRef, (snapshot) => {
+      const data = snapshot.val() || {}
+      setTotalUsers(Object.keys(data).length)
+    })
     
     return () => {
       unsubscribe()
       unsubTotal()
+      unsubUsers()
     }
   }, [])
 
-  // Load user votes
+  // Load user votes + Track user
   useEffect(() => {
     if (user) {
+      // Save user to database
+      const userRef = ref(db, `users/${user.uid}`)
+      set(userRef, {
+        name: user.displayName,
+        email: user.email,
+        photoURL: user.photoURL,
+        lastLogin: Date.now()
+      })
+
       const userVotesRef = ref(db, `userVotes/${user.uid}`)
       const unsubscribe = onValue(userVotesRef, (snapshot) => {
         setUserVotes(snapshot.val() || {})
       })
       return unsubscribe
     }
-  }, [user])
+  }, )
 
   const generateBattle = (battleNum, category = selectedCategory) => {
     let playerKeys = Object.keys(INDIAN_PLAYERS)
@@ -134,7 +150,6 @@ function App() {
 
   const [currentBattle, setCurrentBattle] = useState(generateBattle(1))
 
-  // Update battle when votes change
   useEffect(() => {
     setCurrentBattle(generateBattle(battleNumber, selectedCategory))
   }, [playerVotes, battleNumber, selectedCategory])
@@ -183,7 +198,6 @@ function App() {
       return
     }
     
-    // Update Firebase - REAL VOTES
     const updates = {}
     updates[`playerVotes/${playerId}`] = increment(1)
     updates[`userVotes/${user.uid}/${battleKey}`] = playerId
@@ -312,8 +326,8 @@ function App() {
           <span className="label">BATTLES</span>
         </div>
         <div className="stat">
-          <span className="num">{rankings[0]?.name.split(' ')[0] || '-'}</span>
-          <span className="label">TOP CHAMP</span>
+          <span className="num">{totalUsers}</span>
+          <span className="label">USERS</span>
         </div>
         <div className="stat">
           <span className="num">{userBattles}</span>
@@ -431,7 +445,7 @@ function App() {
         </div>
       )}
 
-      <div className="version">Version 18 of 18 - Real Votes</div>
+      <div className="version">Version 19 of 19 - Real Votes + Users Count</div>
     </div>
   )
 }
