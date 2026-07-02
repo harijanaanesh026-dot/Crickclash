@@ -3,9 +3,8 @@ import { onAuthStateChanged, signOut } from "firebase/auth"
 import { auth, signInWithGoogle } from "./firebase"
 import "./App.css"
 
-// INDIAN PLAYERS DATABASE - LEGENDS TO YOUNGSTERS
+// INDIAN PLAYERS DATABASE
 const INDIAN_PLAYERS = {
-  // LEGENDS
   sachin: { name: "Sachin Tendulkar", role: "BATTER", icon: "👑", category: "batters" },
   dhoni: { name: "MS Dhoni", role: "WK BAT", icon: "🏆", category: "keepers", isCaptain: true },
   kohli: { name: "Virat Kohli", role: "BATTER", icon: "🦁", category: "batters", isCaptain: true },
@@ -16,8 +15,6 @@ const INDIAN_PLAYERS = {
   zaheer: { name: "Zaheer Khan", role: "BOWLER", icon: "🎯", category: "bowlers" },
   harbhajan: { name: "Harbhajan Singh", role: "BOWLER", icon: "🌀", category: "bowlers" },
   kumble: { name: "Anil Kumble", role: "BOWLER", icon: "⚡", category: "bowlers" },
-  
-  // CURRENT STARS
   rohit: { name: "Rohit Sharma", role: "BATTER", icon: "🎩", category: "batters", isCaptain: true },
   bumrah: { name: "Jasprit Bumrah", role: "BOWLER", icon: "🐍", category: "bowlers" },
   rahul: { name: "KL Rahul", role: "WK BAT", icon: "⚔️", category: "keepers" },
@@ -34,8 +31,6 @@ const INDIAN_PLAYERS = {
   ashwin: { name: "R Ashwin", role: "ALL-ROUNDER", icon: "🧠", category: "all-rounders" },
   ishan: { name: "Ishan Kishan", role: "WK BAT", icon: "💣", category: "keepers" },
   samson: { name: "Sanju Samson", role: "WK BAT", icon: "🔥", category: "keepers" },
-  
-  // YOUNG GUNS & UPCOMING
   jaiswal: { name: "Yashasvi Jaiswal", role: "BATTER", icon: "🌟", category: "batters" },
   gaikwad: { name: "Ruturaj Gaikwad", role: "BATTER", icon: "⭐", category: "batters" },
   tilak: { name: "Tilak Varma", role: "BATTER", icon: "✨", category: "batters" },
@@ -50,8 +45,6 @@ const INDIAN_PLAYERS = {
   nitish: { name: "Nitish Kumar Reddy", role: "ALL-ROUNDER", icon: "🦚", category: "all-rounders" },
   riyan: { name: "Riyan Parag", role: "ALL-ROUNDER", icon: "🦋", category: "all-rounders" },
   dhruv: { name: "Dhruv Jurel", role: "WK BAT", icon: "🥊", category: "keepers" },
-  
-  // MORE LEGENDS
   kapil: { name: "Kapil Dev", role: "ALL-ROUNDER", icon: "🏅", category: "all-rounders", isCaptain: true },
   laxman: { name: "VVS Laxman", role: "BATTER", icon: "🎨", category: "batters" },
   gambhir: { name: "Gautam Gambhir", role: "BATTER", icon: "🛡️", category: "batters", isCaptain: true },
@@ -60,8 +53,6 @@ const INDIAN_PLAYERS = {
   agarkar: { name: "Ajit Agarkar", role: "BOWLER", icon: "🎯", category: "bowlers" },
   nehra: { name: "Ashish Nehra", role: "BOWLER", icon: "💨", category: "bowlers" },
   sreesanth: { name: "S Sreesanth", role: "BOWLER", icon: "🌀", category: "bowlers" },
-  
-  // CURRENT SQUAD
   shreyas: { name: "Shreyas Iyer", role: "BATTER", icon: "🎭", category: "batters" },
   venkatesh: { name: "Venkatesh Iyer", role: "ALL-ROUNDER", icon: "🦚", category: "all-rounders" },
   deepak: { name: "Deepak Chahar", role: "BOWLER", icon: "⚡", category: "bowlers" },
@@ -77,12 +68,11 @@ function App() {
   const [battleNumber, setBattleNumber] = useState(1)
   const [selectedCategory, setSelectedCategory] = useState("any")
   const [userVotes, setUserVotes] = useState({})
+  const [showShareModal, setShowShareModal] = useState(false)
 
-  // Generate battle based on category
   const generateBattle = (battleNum, category = selectedCategory) => {
     let playerKeys = Object.keys(INDIAN_PLAYERS)
     
-    // CATEGORY FILTER
     if (category!== "any") {
       if (category === "captain") {
         playerKeys = playerKeys.filter(key => INDIAN_PLAYERS[key].isCaptain === true)
@@ -91,7 +81,6 @@ function App() {
       }
     }
     
-    // If no players in category, fallback to all
     if (playerKeys.length < 2) {
       playerKeys = Object.keys(INDIAN_PLAYERS)
     }
@@ -110,11 +99,10 @@ function App() {
 
   const [currentBattle, setCurrentBattle] = useState(generateBattle(1))
 
-  // Calculate rankings
   const calculateRankings = () => {
     const players = Object.entries(INDIAN_PLAYERS).map(([id, player]) => ({
       id,
-     ...player,
+    ...player,
       percent: Math.floor(Math.random() * 30) + 60,
       votes: Math.floor(Math.random() * 500) + 100
     }))
@@ -149,7 +137,6 @@ function App() {
     }
     
     setUserVotes({...userVotes, [battleNumber]: playerId })
-    alert(`Vote registered for ${INDIAN_PLAYERS[playerId].name}! 🇮🇳`)
     
     setTimeout(() => {
       setBattleNumber(battleNumber + 1)
@@ -168,11 +155,51 @@ function App() {
     setCurrentBattle(generateBattle(battleNumber + 1, cat))
   }
 
+  // SOCIAL SHARE FUNCTION
+  const handleShare = (platform) => {
+    const shareUrl = window.location.href
+    const shareText = `⚡ CrickClash lo ${currentBattle.player1.name} vs ${currentBattle.player2.name} battle! Nuvvu evariki vote vestav? 🇮🇳 Vote chey: ${shareUrl}`
+    
+    const urls = {
+      whatsapp: `https://wa.me/?text=${encodeURIComponent(shareText)}`,
+      twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`,
+      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
+      linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`,
+      telegram: `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`
+    }
+    
+    if (platform === 'instagram') {
+      alert("Instagram: Screenshot teesi story lo share chey! 📸")
+      return
+    }
+    
+    window.open(urls[platform], '_blank', 'width=600,height=400')
+    setShowShareModal(false)
+  }
+
+  const handleNativeShare = async () => {
+    const shareData = {
+      title: 'CrickClash - Team India Battles',
+      text: `⚡ ${currentBattle.player1.name} vs ${currentBattle.player2.name}! Nuvvu evariki vote vestav?`,
+      url: window.location.href
+    }
+    
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData)
+      } catch (err) {
+        setShowShareModal(true)
+      }
+    } else {
+      setShowShareModal(true)
+    }
+  }
+
   if (loading) {
     return (
       <div className="loading">
-        <h1>CrickClash 🇮🇳</h1>
-        <p>Who Rules Cricket? You Decide.</p>
+        <h1>⚡ CrickClash 🇮🇳</h1>
+        <p>Loading Team India...</p>
       </div>
     )
   }
@@ -180,7 +207,7 @@ function App() {
   if (!user) {
     return (
       <div className="login-screen">
-        <h1>CrickClash 🇮🇳</h1>
+        <h1>⚡ CrickClash 🇮🇳</h1>
         <h2>INDIA'S Fantasy Sport!</h2>
         <p style={{ marginBottom: 20, color: '#aaa' }}>
           Vote for your favorite Indian Cricketers
@@ -199,10 +226,30 @@ function App() {
           <span className="bolt">⚡</span> Cricket Clash
         </div>
         <div className="user-info">
+          <button onClick={handleNativeShare} className="share-btn" style={{ padding: '6px 12px', background: '#2196F3', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', marginRight: '8px', fontSize: '0.85rem' }}>
+            📤 Share
+          </button>
           <span>Hi, {user.displayName?.split(' ')[0]}</span>
           <button onClick={handleLogout} className="sign-out">Sign out</button>
         </div>
       </header>
+
+      {showShareModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }} onClick={() => setShowShareModal(false)}>
+          <div style={{ background: '#1a1f3a', padding: '30px', borderRadius: '16px', maxWidth: '320px' }} onClick={(e) => e.stopPropagation()}>
+            <h3 style={{ marginBottom: '20px', textAlign: 'center' }}>Share Battle 📤</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              <button onClick={() => handleShare('whatsapp')} style={{ padding: '12px', background: '#25D366', border: 'none', borderRadius: '8px', color: 'white', cursor: 'pointer' }}>📱 WhatsApp</button>
+              <button onClick={() => handleShare('twitter')} style={{ padding: '12px', background: '#1DA1F2', border: 'none', borderRadius: '8px', color: 'white', cursor: 'pointer' }}>🐦 Twitter</button>
+              <button onClick={() => handleShare('facebook')} style={{ padding: '12px', background: '#4267B2', border: 'none', borderRadius: '8px', color: 'white', cursor: 'pointer' }}>📘 Facebook</button>
+              <button onClick={() => handleShare('linkedin')} style={{ padding: '12px', background: '#0077B5', border: 'none', borderRadius: '8px', color: 'white', cursor: 'pointer' }}>💼 LinkedIn</button>
+              <button onClick={() => handleShare('telegram')} style={{ padding: '12px', background: '#0088cc', border: 'none', borderRadius: '8px', color: 'white', cursor: 'pointer' }}>✈️ Telegram</button>
+              <button onClick={() => handleShare('instagram')} style={{ padding: '12px', background: 'linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%)', border: 'none', borderRadius: '8px', color: 'white', cursor: 'pointer' }}>📸 Instagram</button>
+            </div>
+            <button onClick={() => setShowShareModal(false)} style={{ width: '100%', marginTop: '15px', padding: '10px', background: '#333', border: 'none', borderRadius: '8px', color: 'white', cursor: 'pointer' }}>Close</button>
+          </div>
+        </div>
+      )}
 
       <div className="stats-bar">
         <div className="stat">
@@ -341,7 +388,7 @@ function App() {
         </div>
       )}
 
-      <div className="version">Version 15 of 15</div>
+      <div className="version">Version 16 of 16</div>
     </div>
   )
 }
