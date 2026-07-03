@@ -68,7 +68,8 @@ const INDIAN_PLAYERS = [
   { name: 'Cheteshwar Pujara', role: 'Wall', country: 'INDIA', flag: '🇮🇳', icon: '🏏' },
   { name: 'Umesh Yadav', role: 'Vidarbha Express', country: 'INDIA', flag: '🇮🇳', icon: '🎯' },
   { name: 'Jaydev Unadkat', role: 'Left-arm Swing', country: 'INDIA', flag: '🇮🇳', icon: '🎯' },
-  { name: 'MS Dhoni', role: 'Captain Cool', country: 'INDIA', flag: '🇮🇳', icon: '👑' }
+  { name: 'MS Dhoni', role: 'Captain Cool', country: 'INDIA', flag: '🇮🇳', icon: '👑' },
+  { name: 'Vaibhav Sooryavanshi', role: 'U19 Prodigy', country: 'INDIA', flag: '🇮🇳', icon: '⭐' }
 ];
 
 const GLOBAL_PLAYERS = [
@@ -133,7 +134,6 @@ function App() {
   const [player1, setPlayer1] = useState(null);
   const [player2, setPlayer2] = useState(null);
   const [activeTab, setActiveTab] = useState('battle');
-  const [todayVotes, setTodayVotes] = useState(0);
   const [streak, setStreak] = useState(0);
 
   useEffect(() => {
@@ -157,11 +157,6 @@ function App() {
 
   useEffect(() => {
     if (!user) return;
-    const today = new Date().toDateString();
-    onValue(ref(db, `userVotes/${user.uid}/${today}`), (snap) => {
-      const data = snap.val() || {};
-      setTodayVotes(Object.values(data).reduce((s, v) => s + v, 0));
-    });
     onValue(ref(db, `userStreak/${user.uid}`), (snap) => {
       setStreak(snap.val() || 0);
     });
@@ -194,13 +189,7 @@ function App() {
   }, [loadNewBattle]);
 
   const handleVote = (name) => {
-    if (todayVotes >= 10) {
-      alert('ANESH RULE: Roju ki 10 votes matrame! Repu malli ra');
-      return;
-    }
-    const today = new Date().toDateString();
     runTransaction(ref(db, `votes/${name}`), (v) => (v || 0) + 1);
-    runTransaction(ref(db, `userVotes/${user.uid}/${today}/${name}`), (v) => (v || 0) + 1);
     runTransaction(ref(db, `userStreak/${user.uid}`), (v) => (v || 0) + 1);
     set(ref(db, `history/${Date.now()}`), {
       winner: name,
