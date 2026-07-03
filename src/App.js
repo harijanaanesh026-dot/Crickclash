@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import './App.css';
 import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
+import { getAuth, GoogleAuthProvider, signInWithRedirect, signOut, onAuthStateChanged } from 'firebase/auth';
 import { getDatabase, ref, onValue, set, runTransaction } from 'firebase/database';
 
-// 🔥 FIREBASE CONFIG - NEE REAL KEYS
+// 🔥 FIREBASE CONFIG
 const firebaseConfig = {
   apiKey: "AIzaSyD08fB-AbbdqKoJf0Bu6FL6ofz7X1ONCd6g",
   authDomain: "crickclash-d30fe.firebaseapp.com",
@@ -21,7 +21,7 @@ const db = getDatabase(app);
 
 // 🇮🇳 INDIAN PLAYERS - 50
 const INDIAN_PLAYERS = [
-  { name: 'Virat Kohli', role: 'Batter' }, { name: 'Rohit Sharma', role: 'Batter' },
+  { name: 'Virat Kohli', role: 'Captain' }, { name: 'Rohit Sharma', role: 'Captain' },
   { name: 'Jasprit Bumrah', role: 'Bowler' }, { name: 'Hardik Pandya', role: 'AR' },
   { name: 'KL Rahul', role: 'Keeper' }, { name: 'Shubman Gill', role: 'Batter' },
   { name: 'Suryakumar Yadav', role: 'Batter' }, { name: 'Ravindra Jadeja', role: 'AR' },
@@ -82,6 +82,10 @@ const FILTER_MAP = {
   'Keepers': 'Keeper', 'Captains': 'Captain'
 };
 
+const ROLE_ICON = {
+  'Batter': '🏏', 'Bowler': '🎯', 'AR': '⚡', 'Keeper': '🧤', 'Captain': '👑'
+};
+
 function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -89,13 +93,12 @@ function App() {
   const [history, setHistory] = useState([]);
   const [battleCount, setBattleCount] = useState(0);
   const [filter, setFilter] = useState('Any');
-  const [mode, setMode] = useState('INDIA'); // V61: INDIA vs WORLD
+  const [mode, setMode] = useState('INDIA');
   const [player1, setPlayer1] = useState(null);
   const [player2, setPlayer2] = useState(null);
   const [activeTab, setActiveTab] = useState('battle');
-  const [todayVotes, setTodayVotes] = useState(0); // V61: Daily vote limit
+  const [todayVotes, setTodayVotes] = useState(0);
 
-  // AUTH LISTENER
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
@@ -104,15 +107,11 @@ function App() {
     return () => unsubscribe();
   }, []);
 
-  // VOTES LISTENER
   useEffect(() => {
     const votesRef = ref(db, 'votes');
-    onValue(votesRef, (snapshot) => {
-      setVotes(snapshot.val() || {});
-    });
+    onValue(votesRef, (snapshot) => setVotes(snapshot.val() || {}));
   }, []);
 
-  // HISTORY LISTENER
   useEffect(() => {
     const historyRef = ref(db, 'history');
     onValue(historyRef, (snapshot) => {
@@ -123,7 +122,6 @@ function App() {
     });
   }, []);
 
-  // V61: DAILY VOTE COUNT LISTENER
   useEffect(() => {
     if (!user) return;
     const today = new Date().toDateString();
@@ -138,7 +136,7 @@ function App() {
   const handleLogin = async () => {
     const provider = new GoogleAuthProvider();
     try {
-      await signInWithPopup(auth, provider);
+      await signInWithRedirect(auth, provider);
     } catch (error) {
       console.error("Login failed:", error);
     }
@@ -148,7 +146,6 @@ function App() {
     await signOut(auth);
   };
 
-  // V61: UPDATED getPlayers - INDIA vs WORLD
   const getPlayers = useCallback(() => {
     const players = mode === 'INDIA'? INDIAN_PLAYERS : GLOBAL_PLAYERS;
     if (filter === 'Any') return players;
@@ -171,7 +168,6 @@ function App() {
     loadNewBattle();
   }, [loadNewBattle]);
 
-  // V61: UPDATED handleVote - 10 VOTE LIMIT
   const handleVote = (playerName) => {
     if (todayVotes >= 10) {
       alert('ANESH RULE: Roju ki 10 votes matrame! Repu malli ra 🏏');
@@ -213,9 +209,19 @@ function App() {
 
   const getRankings = () => {
     return Object.entries(votes)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 20)
-    .map(([name, count]) => ({ name, votes: count }));
+   .sort((a, b) => b[1] - a[1])
+   .slice(0, 20)
+   .map(([name, count]) => ({ name, votes: count }));
+  };
+
+  const handleShare = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: 'CrickClash - Battle',
+        text: `Who do you like? ${player1.name} VS ${player2.name}`,
+        url: window.location.href
+      });
+    }
   };
 
   if (loading) {
@@ -237,14 +243,26 @@ function App() {
     <div className="app">
       <header>
         <div className="logo">
-          <h1>CrickClash</h1>
-          <p>THE ULTIMATE BATTLE</p>
+          <h1>⚡ Cricket Clash</h1>
+          <p>⚡ by Anesh</p>
         </div>
         <div className="user-info">
-          <img src={user.photoURL} alt="user" className="avatar" />
+          <span className="avatar">{user.displayName?.charAt(0) || 'H'}</span>
           <button onClick={handleLogout} className="logout-btn">Sign Out</button>
         </div>
       </header>
+
+      <div className="tabs">
+        <button className={activeTab === 'battle'? 'tab active' : 'tab'} onClick={() => setActiveTab('battle')}>
+          ⚔️ Battle
+        </button>
+        <button className={activeTab === 'rankings'? 'tab active' : 'tab'} onClick={() => setActiveTab('rankings')}>
+          🏆 Rankings
+        </button>
+        <button className={activeTab === 'history'? 'tab active' : 'tab'} onClick={() => setActiveTab('history')}>
+          📜 History
+        </button>
+      </div>
 
       <div className="stats-grid">
         <div className="stat-card">
@@ -261,14 +279,8 @@ function App() {
         </div>
         <div className="stat-card">
           <h3>{10 - todayVotes}</h3>
-          <p>VOTES LEFT TODAY</p>
+          <p>🔥 VOTES LEFT</p>
         </div>
-      </div>
-
-      <div className="tabs">
-        <button className={activeTab === 'battle'? 'tab active' : 'tab'} onClick={() => setActiveTab('battle')}>BATTLE</button>
-        <button className={activeTab === 'rankings'? 'tab active' : 'tab'} onClick={() => setActiveTab('rankings')}>RANKINGS</button>
-        <button className={activeTab === 'history'? 'tab active' : 'tab'} onClick={() => setActiveTab('history')}>HISTORY</button>
       </div>
 
       {activeTab === 'battle' && player1 && player2 && (
@@ -294,30 +306,30 @@ function App() {
           <div className="filters">
             {['Any', 'Batters', 'Bowlers', 'All-Rounders', 'Keepers', 'Captains'].map(f => (
               <button key={f} className={filter === f? 'filter-btn active' : 'filter-btn'} onClick={() => setFilter(f)}>
-                {f}
+                {f === 'Any'? '🎲 ' : f === 'Batters'? '🏏 ' : f === 'Bowlers'? '🎯 ' : f === 'All-Rounders'? '⚡ ' : f === 'Keepers'? '🧤 ' : '👑 '}{f}
               </button>
             ))}
           </div>
 
           <div className="battle-arena">
             <div className="player-card" onClick={() => handleVote(player1.name)}>
-              <div className="player-avatar">{player1.name.charAt(0)}</div>
+              <div className="player-avatar">{ROLE_ICON[player1.role]}</div>
+              <span className="role-badge">{player1.role}</span>
               <h3>{player1.name}</h3>
-              <p>{player1.role}</p>
               <div className="votes">{getVotes(player1.name)} votes</div>
             </div>
             <div className="vs">VS</div>
             <div className="player-card" onClick={() => handleVote(player2.name)}>
-              <div className="player-avatar">{player2.name.charAt(0)}</div>
+              <div className="player-avatar">{ROLE_ICON[player2.role]}</div>
+              <span className="role-badge">{player2.role}</span>
               <h3>{player2.name}</h3>
-              <p>{player2.role}</p>
               <div className="votes">{getVotes(player2.name)} votes</div>
             </div>
           </div>
 
           <div className="battle-actions">
-            <button className="skip-btn" onClick={loadNewBattle}>SKIP</button>
-            <button className="share-btn" onClick={() => navigator.share({ title: 'CrickClash', url: window.location.href })}>SHARE</button>
+            <button className="skip-btn" onClick={loadNewBattle}>Skip →</button>
+            <button className="share-btn" onClick={handleShare}>🏮 Share this battle</button>
           </div>
         </div>
       )}
@@ -348,7 +360,7 @@ function App() {
       )}
 
       <footer>
-        <p> © 2026 CrickClash | Founded & Built by ANESH </p>
+        <p>©️ 2026 crickclash. a production by ANESH</p>
       </footer>
     </div>
   );
