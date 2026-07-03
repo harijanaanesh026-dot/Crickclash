@@ -1,113 +1,138 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import './App.css';
+import { initializeApp } from 'firebase/app';
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
 
-// 50 INDIAN PLAYERS - ICONS ONLY
+// FIREBASE CONFIG - NUVVU FIREBASE NUNCHI REPLACE CHEY
+
+const firebaseConfig = {
+  apiKey: "AIzaSyD9BfrAh8djKof1Bu6FLG0Fz7X10NCdm6g",
+  authDomain: "crickclash-d30fe.firebaseapp.com",
+  databaseURL: "https://crickclash-d30fe-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "crickclash-d30fe",
+  storageBucket: "crickclash-d30fe.firebasestorage.app",
+  messagingSenderId: "595133866613",
+  appId: "1:595133866613:web:dda3f0509462310cb74e3c"
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
+
+// 50 INDIAN PLAYERS
 const INDIAN_PLAYERS = [
-  { name: "Abhishek Sharma", role: "Batter", icon: "🎯", votes: 0 },
-  { name: "Umesh Yadav", role: "Bowler", icon: "⚡", votes: 0 },
-  { name: "Virat Kohli", role: "Batter", icon: "🔥", votes: 0 },
-  { name: "Rohit Sharma", role: "Batter", icon: "🎯", votes: 0 },
-  { name: "MS Dhoni", role: "Keeper", icon: "🏆", votes: 0 },
-  { name: "Jasprit Bumrah", role: "Bowler", icon: "💣", votes: 0 },
-  { name: "Hardik Pandya", role: "AR", icon: "⚡", votes: 0 },
-  { name: "KL Rahul", role: "Batter", icon: "🎯", votes: 0 },
-  { name: "Ravindra Jadeja", role: "AR", icon: "⚔️", votes: 0 },
-  { name: "Shubman Gill", role: "Batter", icon: "⭐", votes: 0 },
-  { name: "Rishabh Pant", role: "Keeper", icon: "💥", votes: 0 },
-  { name: "Mohammed Shami", role: "Bowler", icon: "🚀", votes: 0 },
-  { name: "Suryakumar Yadav", role: "Batter", icon: "🎪", votes: 0 },
-  { name: "Kuldeep Yadav", role: "Bowler", icon: "🌀", votes: 0 },
-  { name: "Mohammed Siraj", role: "Bowler", icon: "💨", votes: 0 },
-  { name: "Yuzvendra Chahal", role: "Bowler", icon: "🎩", votes: 0 },
-  { name: "Axar Patel", role: "AR", icon: "🎯", votes: 0 },
-  { name: "Shreyas Iyer", role: "Batter", icon: "🦁", votes: 0 },
-  { name: "Ishan Kishan", role: "Keeper", icon: "⚡", votes: 0 },
-  { name: "Ravichandran Ashwin", role: "Bowler", icon: "🧠", votes: 0 },
-  { name: "Bhuvneshwar Kumar", role: "Bowler", icon: "🌊", votes: 0 },
-  { name: "Sanju Samson", role: "Keeper", icon: "🦅", votes: 0 },
-  { name: "Yashasvi Jaiswal", role: "Batter", icon: "🌟", votes: 0 },
-  { name: "Rinku Singh", role: "Batter", icon: "💪", votes: 0 },
-  { name: "Tilak Varma", role: "Batter", icon: "🎯", votes: 0 },
-  { name: "Arshdeep Singh", role: "Bowler", icon: "🏹", votes: 0 },
-  { name: "Mukesh Kumar", role: "Bowler", icon: "🔨", votes: 0 },
-  { name: "Washington Sundar", role: "AR", icon: "🎲", votes: 0 },
-  { name: "Deepak Chahar", role: "Bowler", icon: "💨", votes: 0 },
-  { name: "Shardul Thakur", role: "AR", icon: "⚔️", votes: 0 },
-  { name: "Prasidh Krishna", role: "Bowler", icon: "🚀", votes: 0 },
-  { name: "Avesh Khan", role: "Bowler", icon: "⚡", votes: 0 },
-  { name: "Umran Malik", role: "Bowler", icon: "🔥", votes: 0 },
-  { name: "Ruturaj Gaikwad", role: "Batter", icon: "🎯", votes: 0 },
-  { name: "Shivam Dube", role: "AR", icon: "💪", votes: 0 },
-  { name: "Rahul Chahar", role: "Bowler", icon: "🌀", votes: 0 },
-  { name: "Varun Chakravarthy", role: "Bowler", icon: "🎭", votes: 0 },
-  { name: "Ravi Bishnoi", role: "Bowler", icon: "🎯", votes: 0 },
-  { name: "Nitish Rana", role: "Batter", icon: "⚡", votes: 0 },
-  { name: "Venkatesh Iyer", role: "AR", icon: "🦅", votes: 0 },
-  { name: "Harshal Patel", role: "Bowler", icon: "🎩", votes: 0 },
-  { name: "Krunal Pandya", role: "AR", icon: "⚔️", votes: 0 },
-  { name: "Deepak Hooda", role: "AR", icon: "🎯", votes: 0 },
-  { name: "Rahul Tewatia", role: "AR", icon: "💥", votes: 0 },
-  { name: "T Natarajan", role: "Bowler", icon: "🎯", votes: 0 },
-  { name: "Navdeep Saini", role: "Bowler", icon: "🚀", votes: 0 },
-  { name: "Chetan Sakariya", role: "Bowler", icon: "⚡", votes: 0 },
-  { name: "Devdutt Padikkal", role: "Batter", icon: "🎯", votes: 0 },
-  { name: "Prithvi Shaw", role: "Batter", icon: "⚡", votes: 0 },
-  { name: "Mayank Agarwal", role: "Batter", icon: "🎯", votes: 0 }
+  { name: "Virat Kohli", role: "Batter", icon: "👑" },
+  { name: "Rohit Sharma", role: "Captain", icon: "🎯" },
+  { name: "MS Dhoni", role: "Keeper", icon: "🏆" },
+  { name: "Hardik Pandya", role: "AR", icon: "⚡" },
+  { name: "KL Rahul", role: "Keeper", icon: "🎯" },
+  { name: "Jasprit Bumrah", role: "Bowler", icon: "💣" },
+  { name: "Ravindra Jadeja", role: "AR", icon: "⚔️" },
+  { name: "Shubman Gill", role: "Batter", icon: "⭐" },
+  { name: "Rishabh Pant", role: "Keeper", icon: "💥" },
+  { name: "Mohammed Shami", role: "Bowler", icon: "🚀" },
+  { name: "Suryakumar Yadav", role: "Batter", icon: "🎪" },
+  { name: "Kuldeep Yadav", role: "Bowler", icon: "🌀" },
+  { name: "Mohammed Siraj", role: "Bowler", icon: "💨" },
+  { name: "Yuzvendra Chahal", role: "Bowler", icon: "🎩" },
+  { name: "Axar Patel", role: "AR", icon: "🎯" },
+  { name: "Shreyas Iyer", role: "Batter", icon: "🦁" },
+  { name: "Ishan Kishan", role: "Keeper", icon: "⚡" },
+  { name: "Ravichandran Ashwin", role: "AR", icon: "🧠" },
+  { name: "Bhuvneshwar Kumar", role: "Bowler", icon: "🌊" },
+  { name: "Sanju Samson", role: "Keeper", icon: "🦅" },
+  { name: "Yashasvi Jaiswal", role: "Batter", icon: "🌟" },
+  { name: "Rinku Singh", role: "Batter", icon: "💪" },
+  { name: "Tilak Varma", role: "Batter", icon: "🎯" },
+  { name: "Arshdeep Singh", role: "Bowler", icon: "🏹" },
+  { name: "Mukesh Kumar", role: "Bowler", icon: "🔨" },
+  { name: "Washington Sundar", role: "AR", icon: "🎲" },
+  { name: "Deepak Chahar", role: "Bowler", icon: "💨" },
+  { name: "Shardul Thakur", role: "AR", icon: "⚔️" },
+  { name: "Prasidh Krishna", role: "Bowler", icon: "🚀" },
+  { name: "Avesh Khan", role: "Bowler", icon: "⚡" },
+  { name: "Umran Malik", role: "Bowler", icon: "🔥" },
+  { name: "Ruturaj Gaikwad", role: "Batter", icon: "🎯" },
+  { name: "Shivam Dube", role: "AR", icon: "💪" },
+  { name: "Rahul Chahar", role: "Bowler", icon: "🌀" },
+  { name: "Varun Chakravarthy", role: "Bowler", icon: "🎭" },
+  { name: "Ravi Bishnoi", role: "Bowler", icon: "🎯" },
+  { name: "Nitish Rana", role: "Batter", icon: "⚡" },
+  { name: "Venkatesh Iyer", role: "AR", icon: "🦅" },
+  { name: "Harshal Patel", role: "Bowler", icon: "🎩" },
+  { name: "Krunal Pandya", role: "AR", icon: "⚔️" },
+  { name: "Deepak Hooda", role: "AR", icon: "🎯" },
+  { name: "Rahul Tewatia", role: "AR", icon: "💥" },
+  { name: "T Natarajan", role: "Bowler", icon: "🎯" },
+  { name: "Navdeep Saini", role: "Bowler", icon: "🚀" },
+  { name: "Chetan Sakariya", role: "Bowler", icon: "⚡" },
+  { name: "Devdutt Padikkal", role: "Batter", icon: "🎯" },
+  { name: "Prithvi Shaw", role: "Batter", icon: "⚡" },
+  { name: "Mayank Agarwal", role: "Batter", icon: "🎯" },
+  { name: "Abhishek Sharma", role: "Batter", icon: "🌟" },
+  { name: "Umesh Yadav", role: "Bowler", icon: "💪" }
 ];
 
 // 50 GLOBAL PLAYERS
 const GLOBAL_PLAYERS = [
-  { name: "Babar Azam", role: "Batter", icon: "👑", votes: 0 },
-  { name: "Pat Cummins", role: "Bowler", icon: "🔥", votes: 0 },
-  { name: "Kane Williamson", role: "Batter", icon: "🧊", votes: 0 },
-  { name: "Ben Stokes", role: "AR", icon: "⚡", votes: 0 },
-  { name: "Steve Smith", role: "Batter", icon: "🧠", votes: 0 },
-  { name: "Joe Root", role: "Batter", icon: "🎯", votes: 0 },
-  { name: "Mitchell Starc", role: "Bowler", icon: "🚀", votes: 0 },
-  { name: "Jos Buttler", role: "Keeper", icon: "💥", votes: 0 },
-  { name: "David Warner", role: "Batter", icon: "⚡", votes: 0 },
-  { name: "Kagiso Rabada", role: "Bowler", icon: "💣", votes: 0 },
-  { name: "Trent Boult", role: "Bowler", icon: "🌊", votes: 0 },
-  { name: "Shaheen Afridi", role: "Bowler", icon: "🦅", votes: 0 },
-  { name: "Rashid Khan", role: "Bowler", icon: "🌀", votes: 0 },
-  { name: "Glenn Maxwell", role: "AR", icon: "🎪", votes: 0 },
-  { name: "Quinton de Kock", role: "Keeper", icon: "🧤", votes: 0 },
-  { name: "Mohammad Rizwan", role: "Keeper", icon: "⭐", votes: 0 },
-  { name: "Shakib Al Hasan", role: "AR", icon: "⚔️", votes: 0 },
-  { name: "Andre Russell", role: "AR", icon: "💪", votes: 0 },
-  { name: "Kieron Pollard", role: "AR", icon: "🔥", votes: 0 },
-  { name: "Chris Gayle", role: "Batter", icon: "👑", votes: 0 },
-  { name: "AB de Villiers", role: "Batter", icon: "🎯", votes: 0 },
-  { name: "Faf du Plessis", role: "Batter", icon: "🦁", votes: 0 },
-  { name: "Aiden Markram", role: "Batter", icon: "⭐", votes: 0 },
-  { name: "Marnus Labuschagne", role: "Batter", icon: "🧠", votes: 0 },
-  { name: "Travis Head", role: "Batter", icon: "⚡", votes: 0 },
-  { name: "Josh Hazlewood", role: "Bowler", icon: "🎯", votes: 0 },
-  { name: "Nathan Lyon", role: "Bowler", icon: "🌀", votes: 0 },
-  { name: "Adam Zampa", role: "Bowler", icon: "🎩", votes: 0 },
-  { name: "Mitchell Marsh", role: "AR", icon: "💪", votes: 0 },
-  { name: "Marcus Stoinis", role: "AR", icon: "⚔️", votes: 0 },
-  { name: "Cameron Green", role: "AR", icon: "🌟", votes: 0 },
-  { name: "Alex Carey", role: "Keeper", icon: "🧤", votes: 0 },
-  { name: "Tim David", role: "Batter", icon: "💥", votes: 0 },
-  { name: "Liam Livingstone", role: "AR", icon: "⚡", votes: 0 },
-  { name: "Jonny Bairstow", role: "Keeper", icon: "🔥", votes: 0 },
-  { name: "Harry Brook", role: "Batter", icon: "🌟", votes: 0 },
-  { name: "Jofra Archer", role: "Bowler", icon: "🚀", votes: 0 },
-  { name: "Mark Wood", role: "Bowler", icon: "💨", votes: 0 },
-  { name: "Adil Rashid", role: "Bowler", icon: "🌀", votes: 0 },
-  { name: "Sam Curran", role: "AR", icon: "⚔️", votes: 0 },
-  { name: "Moeen Ali", role: "AR", icon: "🎯", votes: 0 },
-  { name: "Dawid Malan", role: "Batter", icon: "⭐", votes: 0 },
-  { name: "Devon Conway", role: "Batter", icon: "🎯", votes: 0 },
-  { name: "Daryl Mitchell", role: "AR", icon: "💪", votes: 0 },
-  { name: "Lockie Ferguson", role: "Bowler", icon: "🚀", votes: 0 },
-  { name: "Matt Henry", role: "Bowler", icon: "🎯", votes: 0 },
-  { name: "Ish Sodhi", role: "Bowler", icon: "🌀", votes: 0 },
-  { name: "Fakhar Zaman", role: "Batter", icon: "⚡", votes: 0 },
-  { name: "Imam-ul-Haq", role: "Batter", icon: "🎯", votes: 0 },
-  { name: "Haris Rauf", role: "Bowler", icon: "💨", votes: 0 }
+  { name: "Babar Azam", role: "Captain", icon: "👑" },
+  { name: "Pat Cummins", role: "Captain", icon: "🔥" },
+  { name: "Kane Williamson", role: "Captain", icon: "🧊" },
+  { name: "Ben Stokes", role: "AR", icon: "⚡" },
+  { name: "Steve Smith", role: "Batter", icon: "🧠" },
+  { name: "Joe Root", role: "Batter", icon: "🎯" },
+  { name: "Mitchell Starc", role: "Bowler", icon: "🚀" },
+  { name: "Jos Buttler", role: "Keeper", icon: "💥" },
+  { name: "David Warner", role: "Batter", icon: "⚡" },
+  { name: "Kagiso Rabada", role: "Bowler", icon: "💣" },
+  { name: "Trent Boult", role: "Bowler", icon: "🌊" },
+  { name: "Shaheen Afridi", role: "Bowler", icon: "🦅" },
+  { name: "Rashid Khan", role: "Bowler", icon: "🌀" },
+  { name: "Glenn Maxwell", role: "AR", icon: "🎪" },
+  { name: "Quinton de Kock", role: "Keeper", icon: "🧤" },
+  { name: "Mohammad Rizwan", role: "Keeper", icon: "⭐" },
+  { name: "Shakib Al Hasan", role: "AR", icon: "⚔️" },
+  { name: "Andre Russell", role: "AR", icon: "💪" },
+  { name: "Kieron Pollard", role: "Captain", icon: "🔥" },
+  { name: "Chris Gayle", role: "Batter", icon: "👑" },
+  { name: "AB de Villiers", role: "Batter", icon: "🎯" },
+  { name: "Faf du Plessis", role: "Captain", icon: "🦁" },
+  { name: "Aiden Markram", role: "Batter", icon: "⭐" },
+  { name: "Marnus Labuschagne", role: "Batter", icon: "🧠" },
+  { name: "Travis Head", role: "Batter", icon: "⚡" },
+  { name: "Josh Hazlewood", role: "Bowler", icon: "🎯" },
+  { name: "Nathan Lyon", role: "Bowler", icon: "🌀" },
+  { name: "Adam Zampa", role: "Bowler", icon: "🎩" },
+  { name: "Mitchell Marsh", role: "AR", icon: "💪" },
+  { name: "Marcus Stoinis", role: "AR", icon: "⚔️" },
+  { name: "Cameron Green", role: "AR", icon: "🌟" },
+  { name: "Alex Carey", role: "Keeper", icon: "🧤" },
+  { name: "Tim David", role: "Batter", icon: "💥" },
+  { name: "Liam Livingstone", role: "AR", icon: "⚡" },
+  { name: "Jonny Bairstow", role: "Keeper", icon: "🔥" },
+  { name: "Harry Brook", role: "Batter", icon: "🌟" },
+  { name: "Jofra Archer", role: "Bowler", icon: "🚀" },
+  { name: "Mark Wood", role: "Bowler", icon: "💨" },
+  { name: "Adil Rashid", role: "Bowler", icon: "🌀" },
+  { name: "Sam Curran", role: "AR", icon: "⚔️" },
+  { name: "Moeen Ali", role: "AR", icon: "🎯" },
+  { name: "Dawid Malan", role: "Batter", icon: "⭐" },
+  { name: "Devon Conway", role: "Batter", icon: "🎯" },
+  { name: "Daryl Mitchell", role: "AR", icon: "💪" },
+  { name: "Lockie Ferguson", role: "Bowler", icon: "🚀" },
+  { name: "Matt Henry", role: "Bowler", icon: "🎯" },
+  { name: "Ish Sodhi", role: "Bowler", icon: "🌀" },
+  { name: "Fakhar Zaman", role: "Batter", icon: "⚡" },
+  { name: "Imam-ul-Haq", role: "Batter", icon: "🎯" },
+  { name: "Haris Rauf", role: "Bowler", icon: "💨" }
 ];
+
+const FILTER_MAP = {
+  'Batters': 'Batter',
+  'Bowlers': 'Bowler',
+  'All-Rounders': 'AR',
+  'Keepers': 'Keeper',
+  'Captains': 'Captain'
+};
 
 function App() {
   const [mode, setMode] = useState('INDIA');
@@ -115,39 +140,128 @@ function App() {
   const [player1, setPlayer1] = useState(null);
   const [player2, setPlayer2] = useState(null);
   const [battleNum, setBattleNum] = useState(1);
-  const [totalVotes, setTotalVotes] = useState(1200);
-  const [totalBattles, setTotalBattles] = useState(1);
   const [activeTab, setActiveTab] = useState('Battle');
+  const [user, setUser] = useState(null);
+  const [showShareModal, setShowShareModal] = useState(false);
 
-  const getPlayers = () => {
+  const [votes, setVotes] = useState(() => {
+    const saved = localStorage.getItem('cricketClashVotes');
+    return saved? JSON.parse(saved) : {};
+  });
+
+  const [totalBattles, setTotalBattles] = useState(() => {
+    const saved = localStorage.getItem('cricketClashBattles');
+    return saved? parseInt(saved) : 0;
+  });
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('cricketClashVotes', JSON.stringify(votes));
+  }, [votes]);
+
+  useEffect(() => {
+    localStorage.setItem('cricketClashBattles', totalBattles.toString());
+  }, [totalBattles]);
+
+  const getPlayers = useCallback(() => {
     const players = mode === 'INDIA'? INDIAN_PLAYERS : [...INDIAN_PLAYERS,...GLOBAL_PLAYERS];
     if (filter === 'Any') return players;
-    const filterMap = { 'Batters': 'Batter', 'Bowlers': 'Bowler', 'All-Rounders': 'AR', 'Keepers': 'Keeper' };
-    return players.filter(p => p.role === filterMap[filter]);
-  };
+    return players.filter(p => p.role === FILTER_MAP[filter]);
+  }, [mode, filter]);
 
-  const loadBattle = () => {
+  const loadBattle = useCallback(() => {
     const players = getPlayers();
     if (players.length < 2) return;
-    const shuffled = [...players].sort(() => 0.5 - Math.random());
+    const shuffled = [...players].sort(() => Math.random() - 0.5);
     setPlayer1(shuffled[0]);
     setPlayer2(shuffled[1]);
-  };
+  }, [getPlayers]);
 
   useEffect(() => {
     loadBattle();
-  }, [mode, filter]);
+  }, [loadBattle]);
 
   const vote = (player) => {
-    setTotalVotes(totalVotes + 1);
-    setTotalBattles(totalBattles + 1);
-    setBattleNum(battleNum + 1);
+    if (!user) {
+      alert('Please sign in with Google to vote!');
+      return;
+    }
+    setVotes(prev => ({
+   ...prev,
+      [player.name]: (prev[player.name] || 0) + 1
+    }));
+    setTotalBattles(prev => prev + 1);
+    setBattleNum(prev => prev + 1);
     loadBattle();
   };
 
   const skip = () => {
-    setBattleNum(battleNum + 1);
+    setBattleNum(prev => prev + 1);
     loadBattle();
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+      await signInWithPopup(auth, provider);
+    } catch (error) {
+      console.error('Login failed:', error);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
+
+  const shareToSocial = (platform) => {
+    const text = `Who wins: ${player1?.name} vs ${player2?.name}? Vote on Cricket Clash!`;
+    const url = window.location.href;
+
+    const shareUrls = {
+      whatsapp: `https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`,
+      twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`,
+      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
+      linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`,
+      telegram: `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`
+    };
+
+    if (platform === 'instagram') {
+      navigator.clipboard.writeText(text + ' ' + url);
+      alert('Link copied! Paste in Instagram Story or DM 📸');
+    } else if (shareUrls[platform]) {
+      window.open(shareUrls[platform], '_blank', 'width=600,height=400');
+    }
+    setShowShareModal(false);
+  };
+
+  const share = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: 'Cricket Clash',
+        text: `Who wins: ${player1?.name} vs ${player2?.name}?`,
+        url: window.location.href
+      });
+    } else {
+      setShowShareModal(true);
+    }
+  };
+
+  const getVotes = (playerName) => votes[playerName] || 0;
+  const getTotalVotes = () => Object.values(votes).reduce((sum, v) => sum + v, 0);
+  const getTopChamp = () => {
+    const entries = Object.entries(votes);
+    if (entries.length === 0) return 'Kohli';
+    const sorted = entries.sort((a, b) => b[1] - a[1]);
+    return sorted[0][0].split(' ')[0];
   };
 
   if (!player1 ||!player2) return <div className="loading">Loading...</div>;
@@ -156,7 +270,17 @@ function App() {
     <div className="app">
       <div className="header">
         <h1><span className="logo-zap">⚡</span> Cricket <span className="clash-text">Clash</span></h1>
-        <button className="sign-in-btn">Sign In</button>
+        <div className="header-right">
+          <div className="made-by">by Anesh</div>
+          {user? (
+            <div className="user-profile">
+              <img src={user.photoURL} alt={user.displayName} className="user-avatar" />
+              <button className="sign-out-btn" onClick={handleLogout}>Sign Out</button>
+            </div>
+          ) : (
+            <button className="sign-in-btn" onClick={handleGoogleLogin}>Sign In</button>
+          )}
+        </div>
       </div>
 
       <div className="nav-tabs">
@@ -173,7 +297,7 @@ function App() {
 
       <div className="stats-bar">
         <div className="stat-item">
-          <div className="stat-value">{(totalVotes/1000).toFixed(1)}k</div>
+          <div className="stat-value">{(getTotalVotes()/1000).toFixed(1)}k</div>
           <div className="stat-label">TOTAL VOTES</div>
         </div>
         <div className="stat-item">
@@ -181,7 +305,7 @@ function App() {
           <div className="stat-label">BATTLES</div>
         </div>
         <div className="stat-item">
-          <div className="stat-value">Krishna</div>
+          <div className="stat-value">{getTopChamp()}</div>
           <div className="stat-label">TOP CHAMP</div>
         </div>
         <div className="stat-item">
@@ -195,9 +319,9 @@ function App() {
         <div className="battle-number-main">Battle {battleNum}</div>
 
         <div className="filter-tabs">
-          {['Any', 'Batters', 'Bowlers', 'All-Rounders'].map(f => (
+          {['Any', 'Batters', 'Bowlers', 'All-Rounders', 'Keepers', 'Captains'].map(f => (
             <button key={f} className={filter === f? 'active' : ''} onClick={() => setFilter(f)}>
-              {f === 'Any' && '🎲'} {f === 'Batters' && '🏏'} {f === 'Bowlers' && '🎯'} {f === 'All-Rounders' && '⚡'} {f}
+              {f === 'Any' && '🎲'} {f === 'Batters' && '🏏'} {f === 'Bowlers' && '🎯'} {f === 'All-Rounders' && '⚡'} {f === 'Keepers' && '🧤'} {f === 'Captains' && '👑'} {f}
             </button>
           ))}
         </div>
@@ -208,7 +332,7 @@ function App() {
             <div className="player-info-bottom">
               <div className="player-role-tag">{player1.role.toUpperCase()}</div>
               <div className="player-name-side">{player1.name}</div>
-              <div className="player-votes-side">{player1.votes} votes</div>
+              <div className="player-votes-side">{getVotes(player1.name)} votes</div>
             </div>
           </div>
 
@@ -219,12 +343,57 @@ function App() {
             <div className="player-info-bottom">
               <div className="player-role-tag">{player2.role.toUpperCase()}</div>
               <div className="player-name-side">{player2.name}</div>
-              <div className="player-votes-side">{player2.votes} votes</div>
+              <div className="player-votes-side">{getVotes(player2.name)} votes</div>
             </div>
           </div>
         </div>
 
         <button className="skip-btn-full" onClick={skip}>Skip →</button>
+
+        <button className="share-btn-main" onClick={share}>
+          📤 Share this battle
+        </button>
+
+        <div className="footer-copyright">
+          ©️ 2026 crickclash production by ANESH
+        </div>
+
+        {showShareModal && (
+          <div className="share-modal-overlay" onClick={() => setShowShareModal(false)}>
+            <div className="share-modal" onClick={(e) => e.stopPropagation()}>
+              <div className="share-modal-header">
+                <h3>Share to</h3>
+                <button onClick={() => setShowShareModal(false)}>✕</button>
+              </div>
+              <div className="share-buttons-grid">
+                <button className="share-social-btn whatsapp" onClick={() => shareToSocial('whatsapp')}>
+                  <span className="share-icon">💬</span>
+                  <span>WhatsApp</span>
+                </button>
+                <button className="share-social-btn instagram" onClick={() => shareToSocial('instagram')}>
+                  <span className="share-icon">📸</span>
+                  <span>Instagram</span>
+                </button>
+                <button className="share-social-btn twitter" onClick={() => shareToSocial('twitter')}>
+                  <span className="share-icon">🐦</span>
+                  <span>Twitter</span>
+                </button>
+                <button className="share-social-btn facebook" onClick={() => shareToSocial('facebook')}>
+                  <span className="share-icon">👥</span>
+                  <span>Facebook</span>
+                </button>
+                <button className="share-social-btn linkedin" onClick={() => shareToSocial('linkedin')}>
+                  <span className="share-icon">💼</span>
+                  <span>LinkedIn</span>
+                </button>
+                <button className="share-social-btn telegram" onClick={() => shareToSocial('telegram')}>
+                  <span className="share-icon">✈️</span>
+                  <span>Telegram</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
