@@ -405,69 +405,58 @@ body {
 .share-social-btn {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 8px;
+  align-items:
+      gap: 8px;
   padding: 16px 8px;
   background: #0f172a;
   border: 1px solid #334155;
   border-radius: 12px;
+  color: #fff;
   cursor: pointer;
   transition: all 0.2s;
+  font-weight: 600;
+  font-size: 12px;
 }
 
 .share-social-btn:active {
   transform: scale(0.95);
 }
 
-.share-social-btn.whatsapp:hover {
+.share-social-btn.whatsapp {
+  background: #25D366;
   border-color: #25D366;
-  background: rgba(37,211,102,0.1);
+  color: #000;
 }
 
-.share-social-btn.instagram:hover {
-  border-color: #E4405F;
-  background: rgba(228,64,95,0.1);
+.share-social-btn.instagram {
+  background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+  border-color: transparent;
 }
 
-.share-social-btn.twitter:hover {
-  border-color: #1DA1F2;
-  background: rgba(29,161,242,0.1);
+.share-social-btn.twitter {
+  background: #000;
+  border-color: #fff;
 }
 
-.share-social-btn.facebook:hover {
+.share-social-btn.facebook {
+  background: #1877F2;
   border-color: #1877F2;
-  background: rgba(24,119,242,0.1);
 }
 
-.share-social-btn.linkedin:hover {
+.share-social-btn.linkedin {
+  background: #0A66C2;
   border-color: #0A66C2;
-  background: rgba(10,102,194,0.1);
 }
 
-.share-social-btn.telegram:hover {
+.share-social-btn.telegram {
+  background: #0088cc;
   border-color: #0088cc;
-  background: rgba(0,136,204,0.1);
 }
 
 .share-icon {
-  font-size: 28px;
+  font-size: 24px;
 }
 
-.share-social-btn span:last-child {
-  font-size: 11px;
-  font-weight: 600;
-  color: #94a3b8;
-}
-
-.loading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  font-size: 18px;
-  font-weight: 600;
-  }
-/* LOGIN SCREEN */
 .login-screen {
   min-height: 100vh;
   display: flex;
@@ -545,8 +534,16 @@ body {
   font-weight: 600;
 }
 
-/* RANKINGS & HISTORY */
-.rankings-section,.history-section {
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  font-size: 16px;
+  color: #64748b;
+}
+
+.rankings-section, .history-section {
   padding: 16px;
 }
 
