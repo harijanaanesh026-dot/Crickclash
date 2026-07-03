@@ -300,7 +300,7 @@ function App() {
         <button className="skip-btn" onClick={loadNewBattle}>Skip →</button>
       </div>
 
-      <footer>©️ 2026 crickclash production by ANESH</footer>
+      <footer>©️ 2026 crickclash. a production by ANESH</footer>
     </div>
   );
 }
