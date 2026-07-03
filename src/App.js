@@ -5,13 +5,13 @@ import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, onA
 import { getDatabase, ref, onValue, set, runTransaction } from 'firebase/database';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyD08fB-AbbdqKoJf0Bu6FL6ofz7X1ONCd6g",
+  apiKey: "AIzaSyD9BfrAh8djKof1Bu6FLG0Fz7X10NCdm6g",
   authDomain: "crickclash-d30fe.firebaseapp.com",
   databaseURL: "https://crickclash-d30fe-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "crickclash-d30fe",
   storageBucket: "crickclash-d30fe.firebasestorage.app",
-  messagingSenderId: "1092212958816",
-  appId: "1:1092212958816:web:a9c4cb4d2b5c3c1b4a8c4d"
+  messagingSenderId: "595133866613",
+  appId: "1:595133866613:web:dda3f0509462310cb74e3c"
 };
 
 const app = initializeApp(firebaseConfig);
