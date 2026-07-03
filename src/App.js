@@ -19,110 +19,110 @@ const auth = getAuth(app);
 const db = getDatabase(app);
 
 const INDIAN_PLAYERS = [
-  { name: 'Virat Kohli', role: 'Run Machine', country: 'INDIA', flag: '🇮🇳', icon: '👑' },
-  { name: 'Rohit Sharma', role: 'Hitman', country: 'INDIA', flag: '🇮🇳', icon: '🎯' },
-  { name: 'Jasprit Bumrah', role: 'Yorker King', country: 'INDIA', flag: '🇮🇳', icon: '💣' },
-  { name: 'Hardik Pandya', role: 'Kung Fu Pandya', country: 'INDIA', flag: '🇮🇳', icon: '⚡' },
-  { name: 'KL Rahul', role: 'Classic Batter', country: 'INDIA', flag: '🇮🇳', icon: '🧤' },
-  { name: 'Shubman Gill', role: 'Prince', country: 'INDIA', flag: '🇮🇳', icon: '🏏' },
-  { name: 'Suryakumar Yadav', role: 'Mr 360', country: 'INDIA', flag: '🇮🇳', icon: '🏏' },
-  { name: 'Ravindra Jadeja', role: 'Sir Jadeja', country: 'INDIA', flag: '🇮🇳', icon: '⚡' },
-  { name: 'Mohammed Shami', role: 'Seam Master', country: 'INDIA', flag: '🇮🇳', icon: '🎯' },
-  { name: 'Rishabh Pant', role: 'Spidey', country: 'INDIA', flag: '🇮🇳', icon: '🧤' },
-  { name: 'Shreyas Iyer', role: 'Crisis Man', country: 'INDIA', flag: '🇮🇳', icon: '🏏' },
-  { name: 'Axar Patel', role: 'Bapu', country: 'INDIA', flag: '🇮🇳', icon: '⚡' },
-  { name: 'Mohammed Siraj', role: 'Miyan Magic', country: 'INDIA', flag: '🇮🇳', icon: '🎯' },
-  { name: 'Yuzvendra Chahal', role: 'Yuzi', country: 'INDIA', flag: '🇮🇳', icon: '🎯' },
-  { name: 'Kuldeep Yadav', role: 'Chinaman', country: 'INDIA', flag: '🇮🇳', icon: '🎯' },
-  { name: 'Ishan Kishan', role: 'Pocket Dynamo', country: 'INDIA', flag: '🇮🇳', icon: '🧤' },
-  { name: 'Sanju Samson', role: 'Kerala Express', country: 'INDIA', flag: '🇮🇳', icon: '🧤' },
-  { name: 'Arshdeep Singh', role: 'Left-arm Sling', country: 'INDIA', flag: '🇮🇳', icon: '🎯' },
-  { name: 'Washington Sundar', role: 'Washi', country: 'INDIA', flag: '🇮🇳', icon: '⚡' },
-  { name: 'Shardul Thakur', role: 'Lord', country: 'INDIA', flag: '🇮🇳', icon: '⚡' },
-  { name: 'Deepak Chahar', role: 'Swing King', country: 'INDIA', flag: '🇮🇳', icon: '🎯' },
-  { name: 'Prithvi Shaw', role: 'Little Master', country: 'INDIA', flag: '🇮🇳', icon: '🏏' },
-  { name: 'Ruturaj Gaikwad', role: 'Run Machine', country: 'INDIA', flag: '🇮🇳', icon: '🏏' },
-  { name: 'Tilak Varma', role: 'Young Gun', country: 'INDIA', flag: '🇮🇳', icon: '🏏' },
-  { name: 'Rinku Singh', role: 'Finisher', country: 'INDIA', flag: '🇮🇳', icon: '🏏' },
-  { name: 'Yashasvi Jaiswal', role: 'Fearless', country: 'INDIA', flag: '🇮🇳', icon: '🏏' },
-  { name: 'Jitesh Sharma', role: 'Finisher', country: 'INDIA', flag: '🇮🇳', icon: '🧤' },
-  { name: 'Rahul Tewatia', role: 'Iceman', country: 'INDIA', flag: '🇮🇳', icon: '⚡' },
-  { name: 'Harshal Patel', role: 'Slower One', country: 'INDIA', flag: '🇮🇳', icon: '🎯' },
-  { name: 'Umran Malik', role: 'Speed Gun', country: 'INDIA', flag: '🇮🇳', icon: '🎯' },
-  { name: 'Avesh Khan', role: 'Express Pacer', country: 'INDIA', flag: '🇮🇳', icon: '🎯' },
-  { name: 'Ravi Bishnoi', role: 'Googly Master', country: 'INDIA', flag: '🇮🇳', icon: '🎯' },
-  { name: 'Deepak Hooda', role: 'Hurricane', country: 'INDIA', flag: '🇮🇳', icon: '⚡' },
-  { name: 'Shivam Dube', role: 'Sixer King', country: 'INDIA', flag: '🇮🇳', icon: '⚡' },
-  { name: 'Mukesh Kumar', role: 'Line Length', country: 'INDIA', flag: '🇮🇳', icon: '🎯' },
-  { name: 'Shahbaz Ahmed', role: 'All Rounder', country: 'INDIA', flag: '🇮🇳', icon: '⚡' },
-  { name: 'Rahul Tripathi', role: 'Innovator', country: 'INDIA', flag: '🇮🇳', icon: '🏏' },
-  { name: 'Venkatesh Iyer', role: 'Power Hitter', country: 'INDIA', flag: '🇮🇳', icon: '⚡' },
-  { name: 'T Natarajan', role: 'Yorker Nattu', country: 'INDIA', flag: '🇮🇳', icon: '🎯' },
-  { name: 'Bhuvneshwar Kumar', role: 'Swing Master', country: 'INDIA', flag: '🇮🇳', icon: '🎯' },
-  { name: 'Dinesh Karthik', role: 'Finisher DK', country: 'INDIA', flag: '🇮🇳', icon: '🧤' },
-  { name: 'Ravichandran Ashwin', role: 'Scientist', country: 'INDIA', flag: '🇮🇳', icon: '⚡' },
-  { name: 'Mayank Agarwal', role: 'Opener', country: 'INDIA', flag: '🇮🇳', icon: '🏏' },
-  { name: 'Manish Pandey', role: 'Gun Fielder', country: 'INDIA', flag: '🇮🇳', icon: '🏏' },
-  { name: 'Shikhar Dhawan', role: 'Gabbar', country: 'INDIA', flag: '🇮🇳', icon: '🏏' },
-  { name: 'Ajinkya Rahane', role: 'Jinx', country: 'INDIA', flag: '🇮🇳', icon: '🏏' },
-  { name: 'Cheteshwar Pujara', role: 'Wall', country: 'INDIA', flag: '🇮🇳', icon: '🏏' },
-  { name: 'Umesh Yadav', role: 'Vidarbha Express', country: 'INDIA', flag: '🇮🇳', icon: '🎯' },
-  { name: 'Jaydev Unadkat', role: 'Left-arm Swing', country: 'INDIA', flag: '🇮🇳', icon: '🎯' },
-  { name: 'MS Dhoni', role: 'Captain Cool', country: 'INDIA', flag: '🇮🇳', icon: '👑' },
-  { name: 'Vaibhav Sooryavanshi', role: 'U19 Prodigy', country: 'INDIA', flag: '🇮🇳', icon: '⭐' }
+  { name: 'Virat Kohli', role: 'Run Machine', country: 'INDIA', icon: '👑' },
+  { name: 'Rohit Sharma', role: 'Hitman', country: 'INDIA', icon: '🎯' },
+  { name: 'Jasprit Bumrah', role: 'Yorker King', country: 'INDIA', icon: '💣' },
+  { name: 'Hardik Pandya', role: 'Kung Fu Pandya', country: 'INDIA', icon: '⚡' },
+  { name: 'KL Rahul', role: 'Classic Batter', country: 'INDIA', icon: '🧤' },
+  { name: 'Shubman Gill', role: 'Prince', country: 'INDIA', icon: '🏏' },
+  { name: 'Suryakumar Yadav', role: 'Mr 360', country: 'INDIA', icon: '🏏' },
+  { name: 'Ravindra Jadeja', role: 'Sir Jadeja', country: 'INDIA', icon: '⚡' },
+  { name: 'Mohammed Shami', role: 'Seam Master', country: 'INDIA', icon: '🎯' },
+  { name: 'Rishabh Pant', role: 'Spidey', country: 'INDIA', icon: '🧤' },
+  { name: 'Shreyas Iyer', role: 'Crisis Man', country: 'INDIA', icon: '🏏' },
+  { name: 'Axar Patel', role: 'Bapu', country: 'INDIA', icon: '⚡' },
+  { name: 'Mohammed Siraj', role: 'Miyan Magic', country: 'INDIA', icon: '🎯' },
+  { name: 'Yuzvendra Chahal', role: 'Yuzi', country: 'INDIA', icon: '🎯' },
+  { name: 'Kuldeep Yadav', role: 'Chinaman', country: 'INDIA', icon: '🎯' },
+  { name: 'Ishan Kishan', role: 'Pocket Dynamo', country: 'INDIA', icon: '🧤' },
+  { name: 'Sanju Samson', role: 'Kerala Express', country: 'INDIA', icon: '🧤' },
+  { name: 'Arshdeep Singh', role: 'Left-arm Sling', country: 'INDIA', icon: '🎯' },
+  { name: 'Washington Sundar', role: 'Washi', country: 'INDIA', icon: '⚡' },
+  { name: 'Shardul Thakur', role: 'Lord', country: 'INDIA', icon: '⚡' },
+  { name: 'Deepak Chahar', role: 'Swing King', country: 'INDIA', icon: '🎯' },
+  { name: 'Prithvi Shaw', role: 'Little Master', country: 'INDIA', icon: '🏏' },
+  { name: 'Ruturaj Gaikwad', role: 'Run Machine', country: 'INDIA', icon: '🏏' },
+  { name: 'Tilak Varma', role: 'Young Gun', country: 'INDIA', icon: '🏏' },
+  { name: 'Rinku Singh', role: 'Finisher', country: 'INDIA', icon: '🏏' },
+  { name: 'Yashasvi Jaiswal', role: 'Fearless', country: 'INDIA', icon: '🏏' },
+  { name: 'Jitesh Sharma', role: 'Finisher', country: 'INDIA', icon: '🧤' },
+  { name: 'Rahul Tewatia', role: 'Iceman', country: 'INDIA', icon: '⚡' },
+  { name: 'Harshal Patel', role: 'Slower One', country: 'INDIA', icon: '🎯' },
+  { name: 'Umran Malik', role: 'Speed Gun', country: 'INDIA', icon: '🎯' },
+  { name: 'Avesh Khan', role: 'Express Pacer', country: 'INDIA', icon: '🎯' },
+  { name: 'Ravi Bishnoi', role: 'Googly Master', country: 'INDIA', icon: '🎯' },
+  { name: 'Deepak Hooda', role: 'Hurricane', country: 'INDIA', icon: '⚡' },
+  { name: 'Shivam Dube', role: 'Sixer King', country: 'INDIA', icon: '⚡' },
+  { name: 'Mukesh Kumar', role: 'Line Length', country: 'INDIA', icon: '🎯' },
+  { name: 'Shahbaz Ahmed', role: 'All Rounder', country: 'INDIA', icon: '⚡' },
+  { name: 'Rahul Tripathi', role: 'Innovator', country: 'INDIA', icon: '🏏' },
+  { name: 'Venkatesh Iyer', role: 'Power Hitter', country: 'INDIA', icon: '⚡' },
+  { name: 'T Natarajan', role: 'Yorker Nattu', country: 'INDIA', icon: '🎯' },
+  { name: 'Bhuvneshwar Kumar', role: 'Swing Master', country: 'INDIA', icon: '🎯' },
+  { name: 'Dinesh Karthik', role: 'Finisher DK', country: 'INDIA', icon: '🧤' },
+  { name: 'Ravichandran Ashwin', role: 'Scientist', country: 'INDIA', icon: '⚡' },
+  { name: 'Mayank Agarwal', role: 'Opener', country: 'INDIA', icon: '🏏' },
+  { name: 'Manish Pandey', role: 'Gun Fielder', country: 'INDIA', icon: '🏏' },
+  { name: 'Shikhar Dhawan', role: 'Gabbar', country: 'INDIA', icon: '🏏' },
+  { name: 'Ajinkya Rahane', role: 'Jinx', country: 'INDIA', icon: '🏏' },
+  { name: 'Cheteshwar Pujara', role: 'Wall', country: 'INDIA', icon: '🏏' },
+  { name: 'Umesh Yadav', role: 'Vidarbha Express', country: 'INDIA', icon: '🎯' },
+  { name: 'Jaydev Unadkat', role: 'Left-arm Swing', country: 'INDIA', icon: '🎯' },
+  { name: 'MS Dhoni', role: 'Captain Cool', country: 'INDIA', icon: '👑' },
+  { name: 'Vaibhav Sooryavanshi', role: 'U19 Prodigy', country: 'INDIA', icon: '⭐' }
 ];
 
 const GLOBAL_PLAYERS = [
-  { name: 'Babar Azam', role: 'Cover Drive King', country: 'PAKISTAN', flag: '🇵🇰', icon: '🏏' },
-  { name: 'Shaheen Afridi', role: 'Eagle', country: 'PAKISTAN', flag: '🇵🇰', icon: '🎯' },
-  { name: 'Mohammad Rizwan', role: 'Mr Consistent', country: 'PAKISTAN', flag: '🇵🇰', icon: '🧤' },
-  { name: 'Shadab Khan', role: 'Vice Captain', country: 'PAKISTAN', flag: '🇵🇰', icon: '⚡' },
-  { name: 'Steve Smith', role: 'Run Machine', country: 'AUSTRALIA', flag: '🇦🇺', icon: '🏏' },
-  { name: 'Pat Cummins', role: 'Captain', country: 'AUSTRALIA', flag: '🇦🇺', icon: '🎯' },
-  { name: 'Mitchell Starc', role: 'Starc Attack', country: 'AUSTRALIA', flag: '🇦🇺', icon: '🎯' },
-  { name: 'Glenn Maxwell', role: 'Big Show', country: 'AUSTRALIA', flag: '🇦🇺', icon: '⚡' },
-  { name: 'David Warner', role: 'Bull', country: 'AUSTRALIA', flag: '🇦🇺', icon: '🏏' },
-  { name: 'Josh Hazlewood', role: 'Hoff', country: 'AUSTRALIA', flag: '🇦🇺', icon: '🎯' },
-  { name: 'Kane Williamson', role: 'Captain Calm', country: 'NEW ZEALAND', flag: '🇳🇿', icon: '🏏' },
-  { name: 'Trent Boult', role: 'Boulty', country: 'NEW ZEALAND', flag: '🇳🇿', icon: '🎯' },
-  { name: 'Tim Southee', role: 'Veteran', country: 'NEW ZEALAND', flag: '🇳🇿', icon: '🎯' },
-  { name: 'Devon Conway', role: 'Opener', country: 'NEW ZEALAND', flag: '🇳🇿', icon: '🧤' },
-  { name: 'Joe Root', role: 'Root of England', country: 'ENGLAND', flag: '🏴', icon: '🏏' },
-  { name: 'Ben Stokes', role: 'Stokesy', country: 'ENGLAND', flag: '🏴', icon: '⚡' },
-  { name: 'Jos Buttler', role: 'Boss', country: 'ENGLAND', flag: '🏴', icon: '🧤' },
-  { name: 'Jofra Archer', role: 'Express', country: 'ENGLAND', flag: '🏴', icon: '🎯' },
-  { name: 'Jonny Bairstow', role: 'Bluey', country: 'ENGLAND', flag: '🏴', icon: '🧤' },
-  { name: 'Moeen Ali', role: 'Mo', country: 'ENGLAND', flag: '🏴', icon: '⚡' },
-  { name: 'Quinton de Kock', role: 'Quinny', country: 'SOUTH AFRICA', flag: '🇿🇦', icon: '🧤' },
-  { name: 'Kagiso Rabada', role: 'KG', country: 'SOUTH AFRICA', flag: '🇿🇦', icon: '🎯' },
-  { name: 'David Miller', role: 'Killer Miller', country: 'SOUTH AFRICA', flag: '🇿🇦', icon: '🏏' },
-  { name: 'Anrich Nortje', role: 'Express', country: 'SOUTH AFRICA', flag: '🇿🇦', icon: '🎯' },
-  { name: 'Aiden Markram', role: 'Captain', country: 'SOUTH AFRICA', flag: '🇿🇦', icon: '🏏' },
-  { name: 'Heinrich Klaasen', role: 'Finisher', country: 'SOUTH AFRICA', flag: '🇿🇦', icon: '🧤' },
-  { name: 'Rashid Khan', role: 'Wizard', country: 'AFGHANISTAN', flag: '🇦🇫', icon: '🎯' },
-  { name: 'Mohammad Nabi', role: 'President', country: 'AFGHANISTAN', flag: '🇦🇫', icon: '⚡' },
-  { name: 'Shakib Al Hasan', role: 'Legend', country: 'BANGLADESH', flag: '🇧🇩', icon: '⚡' },
-  { name: 'Mustafizur Rahman', role: 'Fizz', country: 'BANGLADESH', flag: '🇧🇩', icon: '🎯' },
-  { name: 'Litton Das', role: 'Opener', country: 'BANGLADESH', flag: '🇧🇩', icon: '🧤' },
-  { name: 'Taskin Ahmed', role: 'Pacer', country: 'BANGLADESH', flag: '🇧🇩', icon: '🎯' },
-  { name: 'Wanindu Hasaranga', role: 'Spin King', country: 'SRI LANKA', flag: '🇱🇰', icon: '⚡' },
-  { name: 'Maheesh Theekshana', role: 'Mystery', country: 'SRI LANKA', flag: '🇱🇰', icon: '🎯' },
-  { name: 'Kusal Mendis', role: 'Keeper', country: 'SRI LANKA', flag: '🇱🇰', icon: '🧤' },
-  { name: 'Dushmantha Chameera', role: 'Express', country: 'SRI LANKA', flag: '🇱🇰', icon: '🎯' },
-  { name: 'Nicholas Pooran', role: 'Nicky P', country: 'WEST INDIES', flag: '🏝️', icon: '🧤' },
-  { name: 'Jason Holder', role: 'Big Jason', country: 'WEST INDIES', flag: '🏝️', icon: '⚡' },
-  { name: 'Andre Russell', role: 'Dre Russ', country: 'WEST INDIES', flag: '🏝️', icon: '⚡' },
-  { name: 'Alzarri Joseph', role: 'Express', country: 'WEST INDIES', flag: '🏝️', icon: '🎯' },
-  { name: 'Shai Hope', role: 'Captain', country: 'WEST INDIES', flag: '🏝️', icon: '🧤' },
-  { name: 'Brandon King', role: 'King', country: 'WEST INDIES', flag: '🏝️', icon: '🏏' },
-  { name: 'Sikandar Raza', role: 'Captain', country: 'ZIMBABWE', flag: '🇿🇼', icon: '⚡' },
-  { name: 'Blessing Muzarabani', role: 'Tall One', country: 'ZIMBABWE', flag: '🇿🇼', icon: '🎯' },
-  { name: 'Gerhard Erasmus', role: 'Captain', country: 'NAMIBIA', flag: '🇳🇦', icon: '⚡' },
-  { name: 'David Wiese', role: 'Finisher', country: 'NAMIBIA', flag: '🇳🇦', icon: '⚡' },
-  { name: 'Paul Stirling', role: 'Captain', country: 'IRELAND', flag: '🇮🇪', icon: '🏏' },
-  { name: 'Josh Little', role: 'Express', country: 'IRELAND', flag: '🇮🇪', icon: '🎯' },
-  { name: 'Kieron Pollard', role: 'Power Hitter', country: 'WEST INDIES', flag: '🏝️', icon: '🌴' },
-  { name: 'Mohammad Amir', role: 'Left-arm Pacer', country: 'PAKISTAN', flag: '🇵🇰', icon: '🌪️' }
+  { name: 'Babar Azam', role: 'Cover Drive King', country: 'PAKISTAN', icon: '🏏' },
+  { name: 'Shaheen Afridi', role: 'Eagle', country: 'PAKISTAN', icon: '🎯' },
+  { name: 'Mohammad Rizwan', role: 'Mr Consistent', country: 'PAKISTAN', icon: '🧤' },
+  { name: 'Shadab Khan', role: 'Vice Captain', country: 'PAKISTAN', icon: '⚡' },
+  { name: 'Steve Smith', role: 'Run Machine', country: 'AUSTRALIA', icon: '🏏' },
+  { name: 'Pat Cummins', role: 'Captain', country: 'AUSTRALIA', icon: '🎯' },
+  { name: 'Mitchell Starc', role: 'Starc Attack', country: 'AUSTRALIA', icon: '🎯' },
+  { name: 'Glenn Maxwell', role: 'Big Show', country: 'AUSTRALIA', icon: '⚡' },
+  { name: 'David Warner', role: 'Bull', country: 'AUSTRALIA', icon: '🏏' },
+  { name: 'Josh Hazlewood', role: 'Hoff', country: 'AUSTRALIA', icon: '🎯' },
+  { name: 'Kane Williamson', role: 'Captain Calm', country: 'NEW ZEALAND', icon: '🏏' },
+  { name: 'Trent Boult', role: 'Boulty', country: 'NEW ZEALAND', icon: '🎯' },
+  { name: 'Tim Southee', role: 'Veteran', country: 'NEW ZEALAND', icon: '🎯' },
+  { name: 'Devon Conway', role: 'Opener', country: 'NEW ZEALAND', icon: '🧤' },
+  { name: 'Joe Root', role: 'Root of England', country: 'ENGLAND', icon: '🏏' },
+  { name: 'Ben Stokes', role: 'Stokesy', country: 'ENGLAND', icon: '⚡' },
+  { name: 'Jos Buttler', role: 'Boss', country: 'ENGLAND', icon: '🧤' },
+  { name: 'Jofra Archer', role: 'Express', country: 'ENGLAND', icon: '🎯' },
+  { name: 'Jonny Bairstow', role: 'Bluey', country: 'ENGLAND', icon: '🧤' },
+  { name: 'Moeen Ali', role: 'Mo', country: 'ENGLAND', icon: '⚡' },
+  { name: 'Quinton de Kock', role: 'Quinny', country: 'SOUTH AFRICA', icon: '🧤' },
+  { name: 'Kagiso Rabada', role: 'KG', country: 'SOUTH AFRICA', icon: '🎯' },
+  { name: 'David Miller', role: 'Killer Miller', country: 'SOUTH AFRICA', icon: '🏏' },
+  { name: 'Anrich Nortje', role: 'Express', country: 'SOUTH AFRICA', icon: '🎯' },
+  { name: 'Aiden Markram', role: 'Captain', country: 'SOUTH AFRICA', icon: '🏏' },
+  { name: 'Heinrich Klaasen', role: 'Finisher', country: 'SOUTH AFRICA', icon: '🧤' },
+  { name: 'Rashid Khan', role: 'Wizard', country: 'AFGHANISTAN', icon: '🎯' },
+  { name: 'Mohammad Nabi', role: 'President', country: 'AFGHANISTAN', icon: '⚡' },
+  { name: 'Shakib Al Hasan', role: 'Legend', country: 'BANGLADESH', icon: '⚡' },
+  { name: 'Mustafizur Rahman', role: 'Fizz', country: 'BANGLADESH', icon: '🎯' },
+  { name: 'Litton Das', role: 'Opener', country: 'BANGLADESH', icon: '🧤' },
+  { name: 'Taskin Ahmed', role: 'Pacer', country: 'BANGLADESH', icon: '🎯' },
+  { name: 'Wanindu Hasaranga', role: 'Spin King', country: 'SRI LANKA', icon: '⚡' },
+  { name: 'Maheesh Theekshana', role: 'Mystery', country: 'SRI LANKA', icon: '🎯' },
+  { name: 'Kusal Mendis', role: 'Keeper', country: 'SRI LANKA', icon: '🧤' },
+  { name: 'Dushmantha Chameera', role: 'Express', country: 'SRI LANKA', icon: '🎯' },
+  { name: 'Nicholas Pooran', role: 'Nicky P', country: 'WEST INDIES', icon: '🧤' },
+  { name: 'Jason Holder', role: 'Big Jason', country: 'WEST INDIES', icon: '⚡' },
+  { name: 'Andre Russell', role: 'Dre Russ', country: 'WEST INDIES', icon: '⚡' },
+  { name: 'Alzarri Joseph', role: 'Express', country: 'WEST INDIES', icon: '🎯' },
+  { name: 'Shai Hope', role: 'Captain', country: 'WEST INDIES', icon: '🧤' },
+  { name: 'Brandon King', role: 'King', country: 'WEST INDIES', icon: '🏏' },
+  { name: 'Sikandar Raza', role: 'Captain', country: 'ZIMBABWE', icon: '⚡' },
+  { name: 'Blessing Muzarabani', role: 'Tall One', country: 'ZIMBABWE', icon: '🎯' },
+  { name: 'Gerhard Erasmus', role: 'Captain', country: 'NAMIBIA', icon: '⚡' },
+  { name: 'David Wiese', role: 'Finisher', country: 'NAMIBIA', icon: '⚡' },
+  { name: 'Paul Stirling', role: 'Captain', country: 'IRELAND', icon: '🏏' },
+  { name: 'Josh Little', role: 'Express', country: 'IRELAND', icon: '🎯' },
+  { name: 'Kieron Pollard', role: 'Power Hitter', country: 'WEST INDIES', icon: '🌴' },
+  { name: 'Mohammad Amir', role: 'Left-arm Pacer', country: 'PAKISTAN', icon: '🌪️' }
 ];
 
 function App() {
@@ -160,7 +160,7 @@ function App() {
     onValue(ref(db, `userStreak/${user.uid}`), (snap) => {
       setStreak(snap.val() || 0);
     });
-  }, );
+  }, [user]);
 
   const handleLogin = async () => {
     try {
@@ -170,11 +170,9 @@ function App() {
     }
   };
 
-  const handleLogout = async () => await signOut(auth);
-
   const getPlayers = useCallback(() => {
     return mode === 'INDIA'? INDIAN_PLAYERS : GLOBAL_PLAYERS;
-  }, );
+  }, [mode]);
 
   const loadNewBattle = useCallback(() => {
     const players = getPlayers();
@@ -268,10 +266,10 @@ function App() {
 
         <div className="mode-toggle">
           <button className={mode === 'INDIA'? 'active' : ''} onClick={() => setMode('INDIA')}>
-            🇮🇳 INDIA
+            INDIA
           </button>
           <button className={mode === 'WORLD'? 'active' : ''} onClick={() => setMode('WORLD')}>
-            🌍 WORLD
+            WORLD
           </button>
         </div>
 
@@ -280,7 +278,7 @@ function App() {
             <div className="card blue" onClick={() => handleVote(player1.name)}>
               <div className="icon">{player1.icon}</div>
               <div className="country">
-                {player1.flag} {player1.country}
+                {player1.country}
               </div>
               <h3>{player1.name}</h3>
               <p className="role">{player1.role}</p>
@@ -290,7 +288,7 @@ function App() {
             <div className="card purple" onClick={() => handleVote(player2.name)}>
               <div className="icon">{player2.icon}</div>
               <div className="country">
-                {player2.flag} {player2.country}
+                {player2.country}
               </div>
               <h3>{player2.name}</h3>
               <p className="role">{player2.role}</p>
