@@ -626,3 +626,40 @@ body {
   color: #64748b;
   font-size: 14px;
   }
+.mode-toggle {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin: 16px 0;
+}
+.mode-btn {
+  padding: 8px 20px;
+  border: 2px solid #333;
+  background: #1a1a1a;
+  color: #888;
+  border-radius: 20px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.mode-btn.active {
+  background: #00ff88;
+  color: #000;
+  border-color: #00ff88;
+  transform: scale(1.05);
+}
+.role-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  background: #00ff88;
+  color: #000;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 700;
+  margin: 8px 0;
+}
+.share-btn {
+  background: #00ff88;
+  color: #000;
+  font-weight: 700;
+}
