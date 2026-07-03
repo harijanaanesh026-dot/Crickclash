@@ -11,7 +11,7 @@ body {
 }
 
 .app {
-  max-width: 500px;
+  max-width: 450px;
   margin: 0 auto;
   min-height: 100vh;
   background: #0a0e27;
@@ -24,16 +24,10 @@ body {
   justify-content: center;
   min-height: 100vh;
   padding: 20px;
-  text-align: center;
 }
 
 .login-screen h1 {
   font-size: 48px;
-  margin-bottom: 8px;
-}
-
-.login-screen p {
-  color: #888;
   margin-bottom: 24px;
 }
 
@@ -48,18 +42,11 @@ body {
   cursor: pointer;
 }
 
-.footer-text {
-  margin-top: 40px;
-  font-size: 12px;
-  color: #666;
-}
-
 header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 16px;
-  background: #0a0e27;
 }
 
 .logo {
@@ -68,7 +55,7 @@ header {
   gap: 8px;
 }
 
-.logo-icon {
+.bolt {
   font-size: 28px;
 }
 
@@ -77,118 +64,102 @@ header {
   font-weight: 700;
 }
 
-.logo.clash {
-  color: #00ff88;
+.clash {
+  color: #f59e0b;
 }
 
-.logo p {
-  font-size: 11px;
-  color: #888;
-}
-
-.user-section {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.streak-badge {
+  background: #f59e0b;
+  color: #000;
+  padding: 6px 14px;
+  border-radius: 20px;
   font-weight: 700;
-}
-
-.signout {
-  background: #1a1f3a;
-  border: 1px solid #333;
-  color: #fff;
-  padding: 6px 16px;
-  border-radius: 8px;
   font-size: 14px;
-  cursor: pointer;
 }
 
 .tabs {
   display: flex;
-  gap: 8px;
-  padding: 0 16px 16px;
-  background: #0a0e27;
+  gap: 0;
+  padding: 0 16px;
+  border-bottom: 2px solid #1a1f3a;
 }
 
 .tab {
   flex: 1;
-  padding: 10px;
-  background: #1a1f3a;
+  padding: 12px;
+  background: transparent;
   border: none;
-  color: #888;
-  border-radius: 12px;
+  color: #666;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
+  border-bottom: 3px solid transparent;
 }
 
 .tab.active {
-  background: #00ff88;
-  color: #000;
+  color: #10b981;
+  border-bottom-color: #10b981;
 }
 
 .stats {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-  padding: 0 16px 20px;
+  gap: 12px;
+  padding: 16px;
 }
 
-.stat-box {
+.stat {
   background: #1a1f3a;
   border-radius: 12px;
   padding: 12px 8px;
   text-align: center;
 }
 
-.stat-box h2 {
-  font-size: 20px;
+.stat h2 {
+  font-size: 22px;
   font-weight: 700;
+  color: #f59e0b;
   margin-bottom: 4px;
 }
 
-.stat-box p {
+.stat p {
   font-size: 9px;
   color: #888;
   font-weight: 600;
 }
 
-.battle {
+.battle-section {
   padding: 0 16px 40px;
+}
+
+.subtitle {
+  text-align: center;
+  color: #666;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
 }
 
 .battle-title {
   text-align: center;
-  font-size: 24px;
+  font-size: 28px;
   font-weight: 700;
-  margin-bottom: 4px;
+  margin-bottom: 20px;
 }
 
-.battle-num {
-  text-align: center;
-  color: #666;
-  font-size: 14px;
-  margin-bottom: 16px;
+.battle-title.num {
+  color: #10b981;
 }
 
-.mode-switch {
+.mode-toggle {
   display: flex;
   gap: 8px;
   justify-content: center;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
-.mode-switch button {
+.mode-toggle button {
   padding: 8px 24px;
   border: 2px solid #333;
   background: #1a1f3a;
@@ -198,35 +169,10 @@ header {
   cursor: pointer;
 }
 
-.mode-switch button.active {
+.mode-toggle button.active {
   background: #00ff88;
   color: #000;
   border-color: #00ff88;
-}
-
-.filters {
-  display: flex;
-  gap: 8px;
-  justify-content: center;
-  margin-bottom: 24px;
-  flex-wrap: wrap;
-}
-
-.filters button {
-  padding: 8px 16px;
-  background: #1a1f3a;
-  border: 1px solid #333;
-  color: #888;
-  border-radius: 20px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.filters button.active {
-  background: #2a2f4a;
-  color: #fff;
-  border-color: #444;
 }
 
 .arena {
@@ -239,12 +185,16 @@ header {
 
 .card {
   background: #1a1f3a;
-  border-radius: 16px;
-  padding: 32px 16px;
+  border-radius: 20px;
+  padding: 24px 16px;
   text-align: center;
   cursor: pointer;
   transition: transform 0.2s;
   border: 2px solid transparent;
+  min-height: 280px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .card:active {
@@ -262,30 +212,34 @@ header {
 }
 
 .icon {
-  font-size: 64px;
-  margin-bottom: 12px;
+  font-size: 72px;
+  margin-bottom: 16px;
 }
 
-.badge {
-  display: inline-block;
-  padding: 4px 12px;
-  background: #00ff88;
-  color: #000;
-  border-radius: 12px;
+.country {
   font-size: 11px;
-  font-weight: 700;
-  margin-bottom: 12px;
+  color: #888;
+  font-weight: 600;
+  margin-bottom: 8px;
+  text-transform: uppercase;
 }
 
 .card h3 {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 700;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
 }
 
-.card p {
+.role {
+  font-size: 13px;
   color: #888;
-  font-size: 14px;
+  margin-bottom: 12px;
+}
+
+.votes {
+  color: #10b981;
+  font-size: 15px;
+  font-weight: 700;
 }
 
 .vs {
@@ -297,30 +251,20 @@ header {
   align-items: center;
   justify-content: center;
   font-weight: 700;
-  color: #666;
+  color: #f59e0b;
   border: 2px solid #333;
 }
 
-.skip,.share {
+.skip-btn {
   width: 100%;
   padding: 14px;
-  border: none;
+  background: transparent;
+  color: #fff;
+  border: 2px solid #333;
   border-radius: 12px;
   font-size: 16px;
   font-weight: 700;
   cursor: pointer;
-  margin-bottom: 12px;
-}
-
-.skip {
-  background: #1a1f3a;
-  color: #fff;
-  border: 1px solid #333;
-}
-
-.share {
-  background: #00ff88;
-  color: #000;
 }
 
 footer {
@@ -337,4 +281,4 @@ footer {
   justify-content: center;
   min-height: 100vh;
   font-size: 18px;
-}
+  }
