@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import './App.css';
 import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, signInWithRedirect, onAuthStateChanged } from 'firebase/auth';
+import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from 'firebase/auth';
 import { getDatabase, ref, onValue, set, runTransaction } from 'firebase/database';
 
 const firebaseConfig = {
@@ -160,19 +160,21 @@ function App() {
     onValue(ref(db, `userStreak/${user.uid}`), (snap) => {
       setStreak(snap.val() || 0);
     });
-  }, [user]);
+  }, );
 
   const handleLogin = async () => {
     try {
-      await signInWithRedirect(auth, new GoogleAuthProvider());
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
     } catch (e) {
-      console.error(e);
+      console.error('Login Error:', e);
+      alert(`Login failed: ${e.message}`);
     }
   };
 
   const getPlayers = useCallback(() => {
     return mode === 'INDIA'? INDIAN_PLAYERS : GLOBAL_PLAYERS;
-  }, [mode]);
+  }, );
 
   const loadNewBattle = useCallback(() => {
     const players = getPlayers();
@@ -215,7 +217,7 @@ function App() {
   if (!user) {
     return (
       <div className="login-screen">
-        <h1>⚡ Cricket Clash</h1>
+        <h1>WORLD'S Fantasy Sport!</h1>
         <button onClick={handleLogin}>Continue with Google</button>
       </div>
     );
@@ -300,7 +302,7 @@ function App() {
         <button className="skip-btn" onClick={loadNewBattle}>Skip →</button>
       </div>
 
-      <footer>©️ 2026 crickclash production by ANESH</footer>
+      <footer>© 2026 CrickClash | Founded & Built by ANESH </footer>
     </div>
   );
 }
