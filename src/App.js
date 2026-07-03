@@ -19,110 +19,109 @@ const auth = getAuth(app);
 const db = getDatabase(app);
 
 const INDIAN_PLAYERS = [
-  { name: 'Virat Kohli', role: 'Run Machine', country: 'INDIA', icon: '👑' },
-  { name: 'Rohit Sharma', role: 'Hitman', country: 'INDIA', icon: '🎯' },
-  { name: 'Jasprit Bumrah', role: 'Yorker King', country: 'INDIA', icon: '💣' },
-  { name: 'Hardik Pandya', role: 'Kung Fu Pandya', country: 'INDIA', icon: '⚡' },
-  { name: 'KL Rahul', role: 'Classic Batter', country: 'INDIA', icon: '🧤' },
-  { name: 'Shubman Gill', role: 'Prince', country: 'INDIA', icon: '🏏' },
-  { name: 'Suryakumar Yadav', role: 'Mr 360', country: 'INDIA', icon: '🏏' },
-  { name: 'Ravindra Jadeja', role: 'Sir Jadeja', country: 'INDIA', icon: '⚡' },
-  { name: 'Mohammed Shami', role: 'Seam Master', country: 'INDIA', icon: '🎯' },
-  { name: 'Rishabh Pant', role: 'Spidey', country: 'INDIA', icon: '🧤' },
-  { name: 'Shreyas Iyer', role: 'Crisis Man', country: 'INDIA', icon: '🏏' },
-  { name: 'Axar Patel', role: 'Bapu', country: 'INDIA', icon: '⚡' },
-  { name: 'Mohammed Siraj', role: 'Miyan Magic', country: 'INDIA', icon: '🎯' },
-  { name: 'Yuzvendra Chahal', role: 'Yuzi', country: 'INDIA', icon: '🎯' },
-  { name: 'Kuldeep Yadav', role: 'Chinaman', country: 'INDIA', icon: '🎯' },
-  { name: 'Ishan Kishan', role: 'Pocket Dynamo', country: 'INDIA', icon: '🧤' },
-  { name: 'Sanju Samson', role: 'Kerala Express', country: 'INDIA', icon: '🧤' },
-  { name: 'Arshdeep Singh', role: 'Left-arm Sling', country: 'INDIA', icon: '🎯' },
-  { name: 'Washington Sundar', role: 'Washi', country: 'INDIA', icon: '⚡' },
-  { name: 'Shardul Thakur', role: 'Lord', country: 'INDIA', icon: '⚡' },
-  { name: 'Deepak Chahar', role: 'Swing King', country: 'INDIA', icon: '🎯' },
-  { name: 'Prithvi Shaw', role: 'Little Master', country: 'INDIA', icon: '🏏' },
-  { name: 'Ruturaj Gaikwad', role: 'Run Machine', country: 'INDIA', icon: '🏏' },
-  { name: 'Tilak Varma', role: 'Young Gun', country: 'INDIA', icon: '🏏' },
-  { name: 'Rinku Singh', role: 'Finisher', country: 'INDIA', icon: '🏏' },
-  { name: 'Yashasvi Jaiswal', role: 'Fearless', country: 'INDIA', icon: '🏏' },
-  { name: 'Jitesh Sharma', role: 'Finisher', country: 'INDIA', icon: '🧤' },
-  { name: 'Rahul Tewatia', role: 'Iceman', country: 'INDIA', icon: '⚡' },
-  { name: 'Harshal Patel', role: 'Slower One', country: 'INDIA', icon: '🎯' },
-  { name: 'Umran Malik', role: 'Speed Gun', country: 'INDIA', icon: '🎯' },
-  { name: 'Avesh Khan', role: 'Express Pacer', country: 'INDIA', icon: '🎯' },
-  { name: 'Ravi Bishnoi', role: 'Googly Master', country: 'INDIA', icon: '🎯' },
-  { name: 'Deepak Hooda', role: 'Hurricane', country: 'INDIA', icon: '⚡' },
-  { name: 'Shivam Dube', role: 'Sixer King', country: 'INDIA', icon: '⚡' },
-  { name: 'Mukesh Kumar', role: 'Line Length', country: 'INDIA', icon: '🎯' },
-  { name: 'Shahbaz Ahmed', role: 'All Rounder', country: 'INDIA', icon: '⚡' },
-  { name: 'Rahul Tripathi', role: 'Innovator', country: 'INDIA', icon: '🏏' },
-  { name: 'Venkatesh Iyer', role: 'Power Hitter', country: 'INDIA', icon: '⚡' },
-  { name: 'T Natarajan', role: 'Yorker Nattu', country: 'INDIA', icon: '🎯' },
-  { name: 'Bhuvneshwar Kumar', role: 'Swing Master', country: 'INDIA', icon: '🎯' },
-  { name: 'Dinesh Karthik', role: 'Finisher DK', country: 'INDIA', icon: '🧤' },
-  { name: 'Ravichandran Ashwin', role: 'Scientist', country: 'INDIA', icon: '⚡' },
-  { name: 'Mayank Agarwal', role: 'Opener', country: 'INDIA', icon: '🏏' },
-  { name: 'Manish Pandey', role: 'Gun Fielder', country: 'INDIA', icon: '🏏' },
-  { name: 'Shikhar Dhawan', role: 'Gabbar', country: 'INDIA', icon: '🏏' },
-  { name: 'Ajinkya Rahane', role: 'Jinx', country: 'INDIA', icon: '🏏' },
-  { name: 'Cheteshwar Pujara', role: 'Wall', country: 'INDIA', icon: '🏏' },
-  { name: 'Umesh Yadav', role: 'Vidarbha Express', country: 'INDIA', icon: '🎯' },
-  { name: 'Jaydev Unadkat', role: 'Left-arm Swing', country: 'INDIA', icon: '🎯' },
-  { name: 'MS Dhoni', role: 'Captain Cool', country: 'INDIA', icon: '👑' },
-  { name: 'Vaibhav Sooryavanshi', role: 'U19 Prodigy', country: 'INDIA', icon: '⭐' }
+  { name: 'Virat Kohli', role: 'BATTER', country: 'INDIA', icon: '👑', isCaptain: true },
+  { name: 'Rohit Sharma', role: 'BATTER', country: 'INDIA', icon: '🎯', isCaptain: true },
+  { name: 'Jasprit Bumrah', role: 'BOWLER', country: 'INDIA', icon: '💣' },
+  { name: 'Hardik Pandya', role: 'ALL-ROUNDER', country: 'INDIA', icon: '⚡', isCaptain: true },
+  { name: 'KL Rahul', role: 'KEEPER', country: 'INDIA', icon: '🧤' },
+  { name: 'Shubman Gill', role: 'BATTER', country: 'INDIA', icon: '🏏' },
+  { name: 'Suryakumar Yadav', role: 'BATTER', country: 'INDIA', icon: '🏏' },
+  { name: 'Ravindra Jadeja', role: 'ALL-ROUNDER', country: 'INDIA', icon: '⚡' },
+  { name: 'Mohammed Shami', role: 'BOWLER', country: 'INDIA', icon: '🎯' },
+  { name: 'Rishabh Pant', role: 'KEEPER', country: 'INDIA', icon: '🧤', isCaptain: true },
+  { name: 'Shreyas Iyer', role: 'BATTER', country: 'INDIA', icon: '🏏' },
+  { name: 'Axar Patel', role: 'ALL-ROUNDER', country: 'INDIA', icon: '⚡' },
+  { name: 'Mohammed Siraj', role: 'BOWLER', country: 'INDIA', icon: '🎯' },
+  { name: 'Yuzvendra Chahal', role: 'BOWLER', country: 'INDIA', icon: '🎯' },
+  { name: 'Kuldeep Yadav', role: 'BOWLER', country: 'INDIA', icon: '🎯' },
+  { name: 'Ishan Kishan', role: 'KEEPER', country: 'INDIA', icon: '🧤' },
+  { name: 'Sanju Samson', role: 'KEEPER', country: 'INDIA', icon: '🧤' },
+  { name: 'Arshdeep Singh', role: 'BOWLER', country: 'INDIA', icon: '🎯' },
+  { name: 'Washington Sundar', role: 'ALL-ROUNDER', country: 'INDIA', icon: '⚡' },
+  { name: 'Shardul Thakur', role: 'ALL-ROUNDER', country: 'INDIA', icon: '⚡' },
+  { name: 'Deepak Chahar', role: 'BOWLER', country: 'INDIA', icon: '🎯' },
+  { name: 'Prithvi Shaw', role: 'BATTER', country: 'INDIA', icon: '🏏' },
+  { name: 'Ruturaj Gaikwad', role: 'BATTER', country: 'INDIA', icon: '🏏' },
+  { name: 'Tilak Varma', role: 'BATTER', country: 'INDIA', icon: '🏏' },
+  { name: 'Rinku Singh', role: 'BATTER', country: 'INDIA', icon: '🏏' },
+  { name: 'Yashasvi Jaiswal', role: 'BATTER', country: 'INDIA', icon: '🏏' },
+  { name: 'Jitesh Sharma', role: 'KEEPER', country: 'INDIA', icon: '🧤' },
+  { name: 'Rahul Tewatia', role: 'ALL-ROUNDER', country: 'INDIA', icon: '⚡' },
+  { name: 'Harshal Patel', role: 'BOWLER', country: 'INDIA', icon: '🎯' },
+  { name: 'Umran Malik', role: 'BOWLER', country: 'INDIA', icon: '🎯' },
+  { name: 'Avesh Khan', role: 'BOWLER', country: 'INDIA', icon: '🎯' },
+  { name: 'Ravi Bishnoi', role: 'BOWLER', country: 'INDIA', icon: '🎯' },
+  { name: 'Deepak Hooda', role: 'ALL-ROUNDER', country: 'INDIA', icon: '⚡' },
+  { name: 'Shivam Dube', role: 'ALL-ROUNDER', country: 'INDIA', icon: '⚡' },
+  { name: 'Mukesh Kumar', role: 'BOWLER', country: 'INDIA', icon: '🎯' },
+  { name: 'Shahbaz Ahmed', role: 'ALL-ROUNDER', country: 'INDIA', icon: '⚡' },
+  { name: 'Rahul Tripathi', role: 'BATTER', country: 'INDIA', icon: '🏏' },
+  { name: 'Venkatesh Iyer', role: 'ALL-ROUNDER', country: 'INDIA', icon: '⚡' },
+  { name: 'T Natarajan', role: 'BOWLER', country: 'INDIA', icon: '🎯' },
+  { name: 'Bhuvneshwar Kumar', role: 'BOWLER', country: 'INDIA', icon: '🎯' },
+  { name: 'Dinesh Karthik', role: 'KEEPER', country: 'INDIA', icon: '🧤' },
+  { name: 'Ravichandran Ashwin', role: 'ALL-ROUNDER', country: 'INDIA', icon: '⚡' },
+  { name: 'Mayank Agarwal', role: 'BATTER', country: 'INDIA', icon: '🏏' },
+  { name: 'Manish Pandey', role: 'BATTER', country: 'INDIA', icon: '🏏' },
+  { name: 'Shikhar Dhawan', role: 'BATTER', country: 'INDIA', icon: '🏏', isCaptain: true },
+  { name: 'Ajinkya Rahane', role: 'BATTER', country: 'INDIA', icon: '🏏', isCaptain: true },
+  { name: 'Cheteshwar Pujara', role: 'BATTER', country: 'INDIA', icon: '🏏' },
+  { name: 'Umesh Yadav', role: 'BOWLER', country: 'INDIA', icon: '🎯' },
+  { name: 'MS Dhoni', role: 'KEEPER', country: 'INDIA', icon: '👑', isCaptain: true },
+  { name: 'Vaibhav Sooryavanshi', role: 'BATTER', country: 'INDIA', icon: '⭐' }
 ];
 
 const GLOBAL_PLAYERS = [
-  { name: 'Babar Azam', role: 'Cover Drive King', country: 'PAKISTAN', icon: '🏏' },
-  { name: 'Shaheen Afridi', role: 'Eagle', country: 'PAKISTAN', icon: '🎯' },
-  { name: 'Mohammad Rizwan', role: 'Mr Consistent', country: 'PAKISTAN', icon: '🧤' },
-  { name: 'Shadab Khan', role: 'Vice Captain', country: 'PAKISTAN', icon: '⚡' },
-  { name: 'Steve Smith', role: 'Run Machine', country: 'AUSTRALIA', icon: '🏏' },
-  { name: 'Pat Cummins', role: 'Captain', country: 'AUSTRALIA', icon: '🎯' },
-  { name: 'Mitchell Starc', role: 'Starc Attack', country: 'AUSTRALIA', icon: '🎯' },
-  { name: 'Glenn Maxwell', role: 'Big Show', country: 'AUSTRALIA', icon: '⚡' },
-  { name: 'David Warner', role: 'Bull', country: 'AUSTRALIA', icon: '🏏' },
-  { name: 'Josh Hazlewood', role: 'Hoff', country: 'AUSTRALIA', icon: '🎯' },
-  { name: 'Kane Williamson', role: 'Captain Calm', country: 'NEW ZEALAND', icon: '🏏' },
-  { name: 'Trent Boult', role: 'Boulty', country: 'NEW ZEALAND', icon: '🎯' },
-  { name: 'Tim Southee', role: 'Veteran', country: 'NEW ZEALAND', icon: '🎯' },
-  { name: 'Devon Conway', role: 'Opener', country: 'NEW ZEALAND', icon: '🧤' },
-  { name: 'Joe Root', role: 'Root of England', country: 'ENGLAND', icon: '🏏' },
-  { name: 'Ben Stokes', role: 'Stokesy', country: 'ENGLAND', icon: '⚡' },
-  { name: 'Jos Buttler', role: 'Boss', country: 'ENGLAND', icon: '🧤' },
-  { name: 'Jofra Archer', role: 'Express', country: 'ENGLAND', icon: '🎯' },
-  { name: 'Jonny Bairstow', role: 'Bluey', country: 'ENGLAND', icon: '🧤' },
-  { name: 'Moeen Ali', role: 'Mo', country: 'ENGLAND', icon: '⚡' },
-  { name: 'Quinton de Kock', role: 'Quinny', country: 'SOUTH AFRICA', icon: '🧤' },
-  { name: 'Kagiso Rabada', role: 'KG', country: 'SOUTH AFRICA', icon: '🎯' },
-  { name: 'David Miller', role: 'Killer Miller', country: 'SOUTH AFRICA', icon: '🏏' },
-  { name: 'Anrich Nortje', role: 'Express', country: 'SOUTH AFRICA', icon: '🎯' },
-  { name: 'Aiden Markram', role: 'Captain', country: 'SOUTH AFRICA', icon: '🏏' },
-  { name: 'Heinrich Klaasen', role: 'Finisher', country: 'SOUTH AFRICA', icon: '🧤' },
-  { name: 'Rashid Khan', role: 'Wizard', country: 'AFGHANISTAN', icon: '🎯' },
-  { name: 'Mohammad Nabi', role: 'President', country: 'AFGHANISTAN', icon: '⚡' },
-  { name: 'Shakib Al Hasan', role: 'Legend', country: 'BANGLADESH', icon: '⚡' },
-  { name: 'Mustafizur Rahman', role: 'Fizz', country: 'BANGLADESH', icon: '🎯' },
-  { name: 'Litton Das', role: 'Opener', country: 'BANGLADESH', icon: '🧤' },
-  { name: 'Taskin Ahmed', role: 'Pacer', country: 'BANGLADESH', icon: '🎯' },
-  { name: 'Wanindu Hasaranga', role: 'Spin King', country: 'SRI LANKA', icon: '⚡' },
-  { name: 'Maheesh Theekshana', role: 'Mystery', country: 'SRI LANKA', icon: '🎯' },
-  { name: 'Kusal Mendis', role: 'Keeper', country: 'SRI LANKA', icon: '🧤' },
-  { name: 'Dushmantha Chameera', role: 'Express', country: 'SRI LANKA', icon: '🎯' },
-  { name: 'Nicholas Pooran', role: 'Nicky P', country: 'WEST INDIES', icon: '🧤' },
-  { name: 'Jason Holder', role: 'Big Jason', country: 'WEST INDIES', icon: '⚡' },
-  { name: 'Andre Russell', role: 'Dre Russ', country: 'WEST INDIES', icon: '⚡' },
-  { name: 'Alzarri Joseph', role: 'Express', country: 'WEST INDIES', icon: '🎯' },
-  { name: 'Shai Hope', role: 'Captain', country: 'WEST INDIES', icon: '🧤' },
-  { name: 'Brandon King', role: 'King', country: 'WEST INDIES', icon: '🏏' },
-  { name: 'Sikandar Raza', role: 'Captain', country: 'ZIMBABWE', icon: '⚡' },
-  { name: 'Blessing Muzarabani', role: 'Tall One', country: 'ZIMBABWE', icon: '🎯' },
-  { name: 'Gerhard Erasmus', role: 'Captain', country: 'NAMIBIA', icon: '⚡' },
-  { name: 'David Wiese', role: 'Finisher', country: 'NAMIBIA', icon: '⚡' },
-  { name: 'Paul Stirling', role: 'Captain', country: 'IRELAND', icon: '🏏' },
-  { name: 'Josh Little', role: 'Express', country: 'IRELAND', icon: '🎯' },
-  { name: 'Kieron Pollard', role: 'Power Hitter', country: 'WEST INDIES', icon: '🌴' },
-  { name: 'Mohammad Amir', role: 'Left-arm Pacer', country: 'PAKISTAN', icon: '🌪️' }
+  { name: 'Babar Azam', role: 'BATTER', country: 'PAKISTAN', icon: '🏏', isCaptain: true },
+  { name: 'Shaheen Afridi', role: 'BOWLER', country: 'PAKISTAN', icon: '🎯' },
+  { name: 'Mohammad Rizwan', role: 'KEEPER', country: 'PAKISTAN', icon: '🧤', isCaptain: true },
+  { name: 'Shadab Khan', role: 'ALL-ROUNDER', country: 'PAKISTAN', icon: '⚡' },
+  { name: 'Mohammad Amir', role: 'BOWLER', country: 'PAKISTAN', icon: '🌪️' },
+  { name: 'Fakhar Zaman', role: 'BATTER', country: 'PAKISTAN', icon: '🏏' },
+  { name: 'Haris Rauf', role: 'BOWLER', country: 'PAKISTAN', icon: '🎯' },
+  { name: 'Steve Smith', role: 'BATTER', country: 'AUSTRALIA', icon: '🏏', isCaptain: true },
+  { name: 'Pat Cummins', role: 'BOWLER', country: 'AUSTRALIA', icon: '🎯', isCaptain: true },
+  { name: 'Mitchell Starc', role: 'BOWLER', country: 'AUSTRALIA', icon: '🎯' },
+  { name: 'Glenn Maxwell', role: 'ALL-ROUNDER', country: 'AUSTRALIA', icon: '⚡' },
+  { name: 'David Warner', role: 'BATTER', country: 'AUSTRALIA', icon: '🏏' },
+  { name: 'Josh Hazlewood', role: 'BOWLER', country: 'AUSTRALIA', icon: '🎯' },
+  { name: 'Travis Head', role: 'BATTER', country: 'AUSTRALIA', icon: '🏏' },
+  { name: 'Marcus Stoinis', role: 'ALL-ROUNDER', country: 'AUSTRALIA', icon: '⚡' },
+  { name: 'Adam Zampa', role: 'BOWLER', country: 'AUSTRALIA', icon: '🎯' },
+  { name: 'Cameron Green', role: 'ALL-ROUNDER', country: 'AUSTRALIA', icon: '⚡' },
+  { name: 'Alex Carey', role: 'KEEPER', country: 'AUSTRALIA', icon: '🧤' },
+  { name: 'Kane Williamson', role: 'BATTER', country: 'NEW ZEALAND', icon: '🏏', isCaptain: true },
+  { name: 'Trent Boult', role: 'BOWLER', country: 'NEW ZEALAND', icon: '🎯' },
+  { name: 'Tim Southee', role: 'BOWLER', country: 'NEW ZEALAND', icon: '🎯' },
+  { name: 'Devon Conway', role: 'KEEPER', country: 'NEW ZEALAND', icon: '🧤' },
+  { name: 'Mitchell Santner', role: 'ALL-ROUNDER', country: 'NEW ZEALAND', icon: '⚡' },
+  { name: 'Lockie Ferguson', role: 'BOWLER', country: 'NEW ZEALAND', icon: '🎯' },
+  { name: 'Joe Root', role: 'BATTER', country: 'ENGLAND', icon: '🏏', isCaptain: true },
+  { name: 'Ben Stokes', role: 'ALL-ROUNDER', country: 'ENGLAND', icon: '⚡', isCaptain: true },
+  { name: 'Jos Buttler', role: 'KEEPER', country: 'ENGLAND', icon: '🧤', isCaptain: true },
+  { name: 'Jofra Archer', role: 'BOWLER', country: 'ENGLAND', icon: '🎯' },
+  { name: 'Jonny Bairstow', role: 'KEEPER', country: 'ENGLAND', icon: '🧤' },
+  { name: 'Moeen Ali', role: 'ALL-ROUNDER', country: 'ENGLAND', icon: '⚡' },
+  { name: 'Sam Curran', role: 'ALL-ROUNDER', country: 'ENGLAND', icon: '⚡' },
+  { name: 'Mark Wood', role: 'BOWLER', country: 'ENGLAND', icon: '🎯' },
+  { name: 'Harry Brook', role: 'BATTER', country: 'ENGLAND', icon: '🏏' },
+  { name: 'Liam Livingstone', role: 'ALL-ROUNDER', country: 'ENGLAND', icon: '⚡' },
+  { name: 'Quinton de Kock', role: 'KEEPER', country: 'SOUTH AFRICA', icon: '🧤', isCaptain: true },
+  { name: 'Kagiso Rabada', role: 'BOWLER', country: 'SOUTH AFRICA', icon: '🎯' },
+  { name: 'David Miller', role: 'BATTER', country: 'SOUTH AFRICA', icon: '🏏' },
+  { name: 'Anrich Nortje', role: 'BOWLER', country: 'SOUTH AFRICA', icon: '🎯' },
+  { name: 'Aiden Markram', role: 'BATTER', country: 'SOUTH AFRICA', icon: '🏏', isCaptain: true },
+  { name: 'Heinrich Klaasen', role: 'KEEPER', country: 'SOUTH AFRICA', icon: '🧤' },
+  { name: 'Marco Jansen', role: 'ALL-ROUNDER', country: 'SOUTH AFRICA', icon: '⚡' },
+  { name: 'Tabraiz Shamsi', role: 'BOWLER', country: 'SOUTH AFRICA', icon: '🎯' },
+  { name: 'Rashid Khan', role: 'BOWLER', country: 'AFGHANISTAN', icon: '🎯', isCaptain: true },
+  { name: 'Mohammad Nabi', role: 'ALL-ROUNDER', country: 'AFGHANISTAN', icon: '⚡' },
+  { name: 'Shakib Al Hasan', role: 'ALL-ROUNDER', country: 'BANGLADESH', icon: '⚡', isCaptain: true },
+  { name: 'Mustafizur Rahman', role: 'BOWLER', country: 'BANGLADESH', icon: '🎯' },
+  { name: 'Wanindu Hasaranga', role: 'ALL-ROUNDER', country: 'SRI LANKA', icon: '⚡' },
+  { name: 'Maheesh Theekshana', role: 'BOWLER', country: 'SRI LANKA', icon: '🎯' },
+  { name: 'Nicholas Pooran', role: 'KEEPER', country: 'WEST INDIES', icon: '🧤', isCaptain: true },
+  { name: 'Andre Russell', role: 'ALL-ROUNDER', country: 'WEST INDIES', icon: '⚡' }
 ];
 
 function App() {
@@ -131,6 +130,7 @@ function App() {
   const [votes, setVotes] = useState({});
   const [battleCount, setBattleCount] = useState(0);
   const [mode, setMode] = useState('INDIA');
+  const [roleFilter, setRoleFilter] = useState('Any');
   const [player1, setPlayer1] = useState(null);
   const [player2, setPlayer2] = useState(null);
   const [activeTab, setActiveTab] = useState('battle');
@@ -172,17 +172,21 @@ function App() {
     }
   };
 
-  const getPlayers = useCallback(() => {
-    return mode === 'INDIA'? INDIAN_PLAYERS : GLOBAL_PLAYERS;
-  }, );
+  const getFilteredPlayers = useCallback(() => {
+    const players = mode === 'INDIA'? INDIAN_PLAYERS : GLOBAL_PLAYERS;
+    if (roleFilter === 'Any') return players;
+    if (roleFilter === 'Captain') return players.filter(p => p.isCaptain);
+    const filter = roleFilter === 'Batters'? 'BATTER' : roleFilter === 'Bowlers'? 'BOWLER' : roleFilter === 'Keepers'? 'KEEPER' : 'ALL-ROUNDER';
+    return players.filter(p => p.role === filter);
+  }, [mode, roleFilter]);
 
   const loadNewBattle = useCallback(() => {
-    const players = getPlayers();
+    const players = getFilteredPlayers();
     if (players.length < 2) return;
     const shuffled = [...players].sort(() => 0.5 - Math.random());
     setPlayer1(shuffled[0]);
     setPlayer2(shuffled[1]);
-  }, [getPlayers]);
+  }, [getFilteredPlayers]);
 
   useEffect(() => {
     loadNewBattle();
@@ -212,12 +216,22 @@ function App() {
     return entries.sort((a, b) => b[1] - a[1])[0][0].split(' ')[0];
   };
 
+  const shareBattle = () => {
+    const text = `Cricket Clash Battle ${battleCount + 1}: ${player1.name} vs ${player2.name}! Who wins?`;
+    if (navigator.share) {
+      navigator.share({ title: 'Cricket Clash', text, url: window.location.href });
+    } else {
+      navigator.clipboard.writeText(text + ' ' + window.location.href);
+      alert('Link copied!');
+    }
+  };
+
   if (loading) return <div className="loading">Loading...</div>;
 
   if (!user) {
     return (
       <div className="login-screen">
-        <h1>WORLD'S Fantasy Sport!</h1>
+        <h1>⚡ Cricket Clash</h1>
         <button onClick={handleLogin}>Continue with Google</button>
       </div>
     );
@@ -230,9 +244,7 @@ function App() {
           <span className="bolt">⚡</span>
           <h1>Cricket <span className="clash">Clash</span></h1>
         </div>
-        <div className="streak-badge">
-          🔥 {streak} streak
-        </div>
+        <button className="signout" onClick={() => auth.signOut()}>Sign Out</button>
       </header>
 
       <div className="tabs">
@@ -258,12 +270,12 @@ function App() {
         </div>
         <div className="stat">
           <h2>{streak}</h2>
-          <p>BEST STREAK</p>
+          <p>🔥 STREAK</p>
         </div>
       </div>
 
       <div className="battle-section">
-        <p className="subtitle">WHO WINS THIS CLASH?</p>
+        <p className="subtitle">WHO DO YOU LIKE?</p>
         <h2 className="battle-title">Battle <span className="num">{battleCount + 1}</span></h2>
 
         <div className="mode-toggle">
@@ -275,30 +287,55 @@ function App() {
           </button>
         </div>
 
+        <div className="role-filters">
+          <button className={roleFilter === 'Any'? 'active' : ''} onClick={() => setRoleFilter('Any')}>
+            🎲 Any
+          </button>
+          <button className={roleFilter === 'Batters'? 'active' : ''} onClick={() => setRoleFilter('Batters')}>
+            🏏 Batters
+          </button>
+          <button className={roleFilter === 'Bowlers'? 'active' : ''} onClick={() => setRoleFilter('Bowlers')}>
+            🎯 Bowlers
+          </button>
+          <button className={roleFilter === 'All-Rounders'? 'active' : ''} onClick={() => setRoleFilter('All-Rounders')}>
+            ⚡ All-Rounders
+          </button>
+          <button className={roleFilter === 'Keepers'? 'active' : ''} onClick={() => setRoleFilter('Keepers')}>
+            🧤 Keepers
+          </button>
+          <button className={roleFilter === 'Captain'? 'active' : ''} onClick={() => setRoleFilter('Captain')}>
+            👑 Captain
+          </button>
+        </div>
+
         {player1 && player2 && (
           <div className="arena">
             <div className="card blue" onClick={() => handleVote(player1.name)}>
               <div className="icon">{player1.icon}</div>
-              <div className="country">{player1.country}</div>
+              <div className="role-badge">{player1.role}</div>
+              {player1.isCaptain && <div className="captain-badge">C</div>}
               <h3>{player1.name}</h3>
-              <p className="role">{player1.role}</p>
               <p className="votes">{getVotes(player1.name)} votes</p>
             </div>
             <div className="vs">VS</div>
             <div className="card purple" onClick={() => handleVote(player2.name)}>
               <div className="icon">{player2.icon}</div>
-              <div className="country">{player2.country}</div>
+              <div className="role-badge">{player2.role}</div>
+              {player2.isCaptain && <div className="captain-badge">C</div>}
               <h3>{player2.name}</h3>
-              <p className="role">{player2.role}</p>
               <p className="votes">{getVotes(player2.name)} votes</p>
             </div>
           </div>
         )}
 
         <button className="skip-btn" onClick={loadNewBattle}>Skip →</button>
+
+        <div className="share-row">
+          <button className="share-btn" onClick={shareBattle}>📤 Share Battle</button>
+        </div>
       </div>
 
-      <footer>©️ 2026 crickclash. a production by ANESH</footer>
+      <footer>©️ 2026 crickclash production by ANESH</footer>
     </div>
   );
 }
