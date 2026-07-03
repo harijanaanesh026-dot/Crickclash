@@ -217,7 +217,7 @@ function App() {
   if (!user) {
     return (
       <div className="login-screen">
-        <h1>⚡ Cricket Clash</h1>
+        <h1>WORLD'S Fantasy Sport!</h1>
         <button onClick={handleLogin}>Continue with Google</button>
       </div>
     );
@@ -298,7 +298,7 @@ function App() {
         <button className="skip-btn" onClick={loadNewBattle}>Skip →</button>
       </div>
 
-      <footer>©️ 2026 crickclash production by ANESH</footer>
+      <footer>©️ 2026 crickclash. a production by ANESH</footer>
     </div>
   );
 }
