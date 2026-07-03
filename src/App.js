@@ -3,7 +3,7 @@ import './App.css';
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
 
-// REPLACE CHEY FIREBASE CONFIG
+// NEE FIREBASE CONFIG IKKADA PASTE CHEY
 const firebaseConfig = {
   apiKey: "AIzaSyD9BfrAh8djKof1Bu6FLG0Fz7X10NCdm6g",
   authDomain: "crickclash-d30fe.firebaseapp.com",
@@ -13,13 +13,13 @@ const firebaseConfig = {
   messagingSenderId: "595133866613",
   appId: "1:595133866613:web:dda3f0509462310cb74e3c"
 };
+
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
-// 50 INDIAN PLAYERS
 const INDIAN_PLAYERS = [
-  { name: "Virat Kohli", role: "Batter", icon: "👑" },
+  { name: "Virat Kohli", role: "Captain", icon: "👑" },
   { name: "Rohit Sharma", role: "Captain", icon: "🎯" },
   { name: "MS Dhoni", role: "Keeper", icon: "🏆" },
   { name: "Hardik Pandya", role: "AR", icon: "⚡" },
@@ -69,7 +69,6 @@ const INDIAN_PLAYERS = [
   { name: "Mayank Agarwal", role: "Batter", icon: "🎯" },
   { name: "Abhishek Sharma", role: "Batter", icon: "🌟" },
   { name: "Umesh Yadav", role: "Bowler", icon: "💪" }
-  { name: "Vaibhav sooryavanshi", role: "Batter", icon: "👊" },
 ];
 
 const GLOBAL_PLAYERS = [
@@ -128,7 +127,7 @@ const GLOBAL_PLAYERS = [
 const FILTER_MAP = {
   'Batters': 'Batter',
   'Bowlers': 'Bowler',
-  'All-Rounders': 'AllRounder',
+  'All-Rounders': 'AR',
   'Keepers': 'Keeper',
   'Captains': 'Captain'
 };
@@ -203,11 +202,10 @@ function App() {
       return;
     }
     setVotes(prev => ({
-    ...prev,
+     ...prev,
       [player.name]: (prev[player.name] || 0) + 1
     }));
 
-    // Add to history
     setHistory(prev => [{
       winner: player.name,
       loser: player === player1? player2.name : player1.name,
@@ -290,7 +288,6 @@ function App() {
 
   if (loading) return <div className="loading-screen">Loading...</div>;
 
-  // LOGIN SCREEN - FIRST TIME
   if (!user) {
     return (
       <div className="login-screen">
@@ -305,7 +302,7 @@ function App() {
             Continue with Google
           </button>
           <div className="footer-copyright-login">
-            © 2026 Crickclash | Founded & Built by ANESH
+            ©️ 2026 crickclash production by ANESH
           </div>
         </div>
       </div>
@@ -400,7 +397,7 @@ function App() {
           </button>
 
           <div className="footer-copyright">
-            © 2026 CrickClash | Founded & Built by ANESH
+            ©️ 2026 crickclash production by ANESH
           </div>
         </div>
       )}
