@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import './App.css';
 import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from 'firebase/auth';
+import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, onAuthStateChanged } from 'firebase/auth';
 import { getDatabase, ref, onValue, set, runTransaction } from 'firebase/database';
 
 const firebaseConfig = {
@@ -137,6 +137,12 @@ function App() {
   const [streak, setStreak] = useState(0);
 
   useEffect(() => {
+    getRedirectResult(auth).catch((e) => {
+      console.error('Redirect Error:', e);
+    });
+  }, );
+
+  useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       setLoading(false);
@@ -165,7 +171,7 @@ function App() {
   const handleLogin = async () => {
     try {
       const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
+      await signInWithRedirect(auth, provider);
     } catch (e) {
       console.error('Login Error:', e);
       alert(`Login failed: ${e.message}`);
