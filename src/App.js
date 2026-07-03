@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import './App.css';
 import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, signInWithRedirect, signOut, onAuthStateChanged } from 'firebase/auth';
+import { getAuth, GoogleAuthProvider, signInWithRedirect, onAuthStateChanged } from 'firebase/auth';
 import { getDatabase, ref, onValue, set, runTransaction } from 'firebase/database';
 
 const firebaseConfig = {
@@ -300,7 +300,7 @@ function App() {
         <button className="skip-btn" onClick={loadNewBattle}>Skip →</button>
       </div>
 
-      <footer>©️ 2026 crickclash. a production by ANESH</footer>
+      <footer>©️ 2026 crickclash production by ANESH</footer>
     </div>
   );
 }
