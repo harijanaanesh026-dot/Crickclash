@@ -217,7 +217,7 @@ function App() {
   if (!user) {
     return (
       <div className="login-screen">
-        <h1>WORLD'S Fantasy Sport!</h1>
+        <h1>⚡ Cricket Clash</h1>
         <button onClick={handleLogin}>Continue with Google</button>
       </div>
     );
@@ -279,9 +279,7 @@ function App() {
           <div className="arena">
             <div className="card blue" onClick={() => handleVote(player1.name)}>
               <div className="icon">{player1.icon}</div>
-              <div className="country">
-                {player1.country}
-              </div>
+              <div className="country">{player1.country}</div>
               <h3>{player1.name}</h3>
               <p className="role">{player1.role}</p>
               <p className="votes">{getVotes(player1.name)} votes</p>
@@ -289,9 +287,7 @@ function App() {
             <div className="vs">VS</div>
             <div className="card purple" onClick={() => handleVote(player2.name)}>
               <div className="icon">{player2.icon}</div>
-              <div className="country">
-                {player2.country}
-              </div>
+              <div className="country">{player2.country}</div>
               <h3>{player2.name}</h3>
               <p className="role">{player2.role}</p>
               <p className="votes">{getVotes(player2.name)} votes</p>
@@ -302,7 +298,7 @@ function App() {
         <button className="skip-btn" onClick={loadNewBattle}>Skip →</button>
       </div>
 
-      <footer>© 2026 CrickClash | Founded & Built by ANESH </footer>
+      <footer>©️ 2026 crickclash production by ANESH</footer>
     </div>
   );
 }
