@@ -3,8 +3,7 @@ import './App.css';
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
 
-// FIREBASE CONFIG - NUVVU FIREBASE NUNCHI REPLACE CHEY
-
+// REPLACE CHEY FIREBASE CONFIG
 const firebaseConfig = {
   apiKey: "AIzaSyD9BfrAh8djKof1Bu6FLG0Fz7X10NCdm6g",
   authDomain: "crickclash-d30fe.firebaseapp.com",
@@ -70,9 +69,9 @@ const INDIAN_PLAYERS = [
   { name: "Mayank Agarwal", role: "Batter", icon: "🎯" },
   { name: "Abhishek Sharma", role: "Batter", icon: "🌟" },
   { name: "Umesh Yadav", role: "Bowler", icon: "💪" }
+  { name: "Vaibhav sooryavanshi", role: "Batter", icon: "👊" },
 ];
 
-// 50 GLOBAL PLAYERS
 const GLOBAL_PLAYERS = [
   { name: "Babar Azam", role: "Captain", icon: "👑" },
   { name: "Pat Cummins", role: "Captain", icon: "🔥" },
@@ -129,19 +128,20 @@ const GLOBAL_PLAYERS = [
 const FILTER_MAP = {
   'Batters': 'Batter',
   'Bowlers': 'Bowler',
-  'All-Rounders': 'AR',
+  'All-Rounders': 'AllRounder',
   'Keepers': 'Keeper',
   'Captains': 'Captain'
 };
 
 function App() {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [mode, setMode] = useState('INDIA');
   const [filter, setFilter] = useState('Any');
   const [player1, setPlayer1] = useState(null);
   const [player2, setPlayer2] = useState(null);
   const [battleNum, setBattleNum] = useState(1);
   const [activeTab, setActiveTab] = useState('Battle');
-  const [user, setUser] = useState(null);
   const [showShareModal, setShowShareModal] = useState(false);
 
   const [votes, setVotes] = useState(() => {
@@ -154,9 +154,15 @@ function App() {
     return saved? parseInt(saved) : 0;
   });
 
+  const [history, setHistory] = useState(() => {
+    const saved = localStorage.getItem('cricketClashHistory');
+    return saved? JSON.parse(saved) : [];
+  });
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
+      setLoading(false);
     });
     return () => unsubscribe();
   }, []);
@@ -168,6 +174,10 @@ function App() {
   useEffect(() => {
     localStorage.setItem('cricketClashBattles', totalBattles.toString());
   }, [totalBattles]);
+
+  useEffect(() => {
+    localStorage.setItem('cricketClashHistory', JSON.stringify(history));
+  }, [history]);
 
   const getPlayers = useCallback(() => {
     const players = mode === 'INDIA'? INDIAN_PLAYERS : [...INDIAN_PLAYERS,...GLOBAL_PLAYERS];
@@ -184,8 +194,8 @@ function App() {
   }, [getPlayers]);
 
   useEffect(() => {
-    loadBattle();
-  }, [loadBattle]);
+    if (user) loadBattle();
+  }, [loadBattle, user]);
 
   const vote = (player) => {
     if (!user) {
@@ -193,9 +203,17 @@ function App() {
       return;
     }
     setVotes(prev => ({
-   ...prev,
+    ...prev,
       [player.name]: (prev[player.name] || 0) + 1
     }));
+
+    // Add to history
+    setHistory(prev => [{
+      winner: player.name,
+      loser: player === player1? player2.name : player1.name,
+      timestamp: Date.now()
+    },...prev].slice(0, 50));
+
     setTotalBattles(prev => prev + 1);
     setBattleNum(prev => prev + 1);
     loadBattle();
@@ -225,7 +243,6 @@ function App() {
   const shareToSocial = (platform) => {
     const text = `Who wins: ${player1?.name} vs ${player2?.name}? Vote on Cricket Clash!`;
     const url = window.location.href;
-
     const shareUrls = {
       whatsapp: `https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`,
       twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`,
@@ -233,7 +250,6 @@ function App() {
       linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`,
       telegram: `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`
     };
-
     if (platform === 'instagram') {
       navigator.clipboard.writeText(text + ' ' + url);
       alert('Link copied! Paste in Instagram Story or DM 📸');
@@ -257,12 +273,44 @@ function App() {
 
   const getVotes = (playerName) => votes[playerName] || 0;
   const getTotalVotes = () => Object.values(votes).reduce((sum, v) => sum + v, 0);
+
   const getTopChamp = () => {
     const entries = Object.entries(votes);
-    if (entries.length === 0) return 'Kohli';
+    if (entries.length === 0) return 'None';
     const sorted = entries.sort((a, b) => b[1] - a[1]);
     return sorted[0][0].split(' ')[0];
   };
+
+  const getRankings = () => {
+    return Object.entries(votes)
+     .sort((a, b) => b[1] - a[1])
+     .slice(0, 20)
+     .map(([name, count]) => ({ name, votes: count }));
+  };
+
+  if (loading) return <div className="loading-screen">Loading...</div>;
+
+  // LOGIN SCREEN - FIRST TIME
+  if (!user) {
+    return (
+      <div className="login-screen">
+        <div className="login-container">
+          <div className="login-logo">
+            <span className="logo-zap-big">⚡</span>
+            <h1>Cricket <span className="clash-text">Clash</span></h1>
+            <p className="tagline">Vote for your favorite cricketers</p>
+          </div>
+          <button className="google-login-btn" onClick={handleGoogleLogin}>
+            <img src="https://www.google.com/favicon.ico" alt="Google" />
+            Continue with Google
+          </button>
+          <div className="footer-copyright-login">
+            © 2026 Crickclash | Founded & Built by ANESH
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!player1 ||!player2) return <div className="loading">Loading...</div>;
 
@@ -272,14 +320,10 @@ function App() {
         <h1><span className="logo-zap">⚡</span> Cricket <span className="clash-text">Clash</span></h1>
         <div className="header-right">
           <div className="made-by">by Anesh</div>
-          {user? (
-            <div className="user-profile">
-              <img src={user.photoURL} alt={user.displayName} className="user-avatar" />
-              <button className="sign-out-btn" onClick={handleLogout}>Sign Out</button>
-            </div>
-          ) : (
-            <button className="sign-in-btn" onClick={handleGoogleLogin}>Sign In</button>
-          )}
+          <div className="user-profile">
+            <img src={user.photoURL} alt={user.displayName} className="user-avatar" />
+            <button className="sign-out-btn" onClick={handleLogout}>Sign Out</button>
+          </div>
         </div>
       </div>
 
@@ -309,92 +353,122 @@ function App() {
           <div className="stat-label">TOP CHAMP</div>
         </div>
         <div className="stat-item">
-          <div className="stat-value">0</div>
-          <div className="stat-label">🔥 STREAK</div>
+          <div className="stat-value">{history.length}</div>
+          <div className="stat-label">🔥 VOTED</div>
         </div>
       </div>
 
-      <div className="battle-section">
-        <div className="battle-title">WHO DO YOU LIKE?</div>
-        <div className="battle-number-main">Battle {battleNum}</div>
+      {activeTab === 'Battle' && (
+        <div className="battle-section">
+          <div className="battle-title">WHO DO YOU LIKE?</div>
+          <div className="battle-number-main">Battle {battleNum}</div>
 
-        <div className="filter-tabs">
-          {['Any', 'Batters', 'Bowlers', 'All-Rounders', 'Keepers', 'Captains'].map(f => (
-            <button key={f} className={filter === f? 'active' : ''} onClick={() => setFilter(f)}>
-              {f === 'Any' && '🎲'} {f === 'Batters' && '🏏'} {f === 'Bowlers' && '🎯'} {f === 'All-Rounders' && '⚡'} {f === 'Keepers' && '🧤'} {f === 'Captains' && '👑'} {f}
-            </button>
+          <div className="filter-tabs">
+            {['Any', 'Batters', 'Bowlers', 'All-Rounders', 'Keepers', 'Captains'].map(f => (
+              <button key={f} className={filter === f? 'active' : ''} onClick={() => setFilter(f)}>
+                {f === 'Any' && '🎲'} {f === 'Batters' && '🏏'} {f === 'Bowlers' && '🎯'} {f === 'All-Rounders' && '⚡'} {f === 'Keepers' && '🧤'} {f === 'Captains' && '👑'} {f}
+              </button>
+            ))}
+          </div>
+
+          <div className="battle-cards-side">
+            <div className="player-card-icon left" onClick={() => vote(player1)}>
+              <div className="icon-display">{player1.icon}</div>
+              <div className="player-info-bottom">
+                <div className="player-role-tag">{player1.role.toUpperCase()}</div>
+                <div className="player-name-side">{player1.name}</div>
+                <div className="player-votes-side">{getVotes(player1.name)} votes</div>
+              </div>
+            </div>
+
+            <div className="vs-center">VS</div>
+
+            <div className="player-card-icon right" onClick={() => vote(player2)}>
+              <div className="icon-display">{player2.icon}</div>
+              <div className="player-info-bottom">
+                <div className="player-role-tag">{player2.role.toUpperCase()}</div>
+                <div className="player-name-side">{player2.name}</div>
+                <div className="player-votes-side">{getVotes(player2.name)} votes</div>
+              </div>
+            </div>
+          </div>
+
+          <button className="skip-btn-full" onClick={skip}>Skip →</button>
+
+          <button className="share-btn-main" onClick={share}>
+            📤 Share this battle
+          </button>
+
+          <div className="footer-copyright">
+            © 2026 CrickClash | Founded & Built by ANESH
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'Rankings' && (
+        <div className="rankings-section">
+          <div className="section-title">🏆 Top 20 Players</div>
+          {getRankings().map((player, idx) => (
+            <div key={player.name} className="ranking-item">
+              <div className="rank-number">{idx + 1}</div>
+              <div className="rank-name">{player.name}</div>
+              <div className="rank-votes">{player.votes} votes</div>
+            </div>
           ))}
+          {getRankings().length === 0 && <div className="empty-state">No votes yet. Start battling!</div>}
         </div>
+      )}
 
-        <div className="battle-cards-side">
-          <div className="player-card-icon left" onClick={() => vote(player1)}>
-            <div className="icon-display">{player1.icon}</div>
-            <div className="player-info-bottom">
-              <div className="player-role-tag">{player1.role.toUpperCase()}</div>
-              <div className="player-name-side">{player1.name}</div>
-              <div className="player-votes-side">{getVotes(player1.name)} votes</div>
+      {activeTab === 'History' && (
+        <div className="history-section">
+          <div className="section-title">📜 Your Recent Battles</div>
+          {history.map((battle, idx) => (
+            <div key={idx} className="history-item">
+              <div className="history-winner">✅ {battle.winner}</div>
+              <div className="history-vs">beat</div>
+              <div className="history-loser">❌ {battle.loser}</div>
+            </div>
+          ))}
+          {history.length === 0 && <div className="empty-state">No battles yet. Start voting!</div>}
+        </div>
+      )}
+
+      {showShareModal && (
+        <div className="share-modal-overlay" onClick={() => setShowShareModal(false)}>
+          <div className="share-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="share-modal-header">
+              <h3>Share to</h3>
+              <button onClick={() => setShowShareModal(false)}>✕</button>
+            </div>
+            <div className="share-buttons-grid">
+              <button className="share-social-btn whatsapp" onClick={() => shareToSocial('whatsapp')}>
+                <span className="share-icon">💬</span>
+                <span>WhatsApp</span>
+              </button>
+              <button className="share-social-btn instagram" onClick={() => shareToSocial('instagram')}>
+                <span className="share-icon">📸</span>
+                <span>Instagram</span>
+              </button>
+              <button className="share-social-btn twitter" onClick={() => shareToSocial('twitter')}>
+                <span className="share-icon">🐦</span>
+                <span>Twitter</span>
+              </button>
+              <button className="share-social-btn facebook" onClick={() => shareToSocial('facebook')}>
+                <span className="share-icon">👥</span>
+                <span>Facebook</span>
+              </button>
+              <button className="share-social-btn linkedin" onClick={() => shareToSocial('linkedin')}>
+                <span className="share-icon">💼</span>
+                <span>LinkedIn</span>
+              </button>
+              <button className="share-social-btn telegram" onClick={() => shareToSocial('telegram')}>
+                <span className="share-icon">✈️</span>
+                <span>Telegram</span>
+              </button>
             </div>
           </div>
-
-          <div className="vs-center">VS</div>
-
-          <div className="player-card-icon right" onClick={() => vote(player2)}>
-            <div className="icon-display">{player2.icon}</div>
-            <div className="player-info-bottom">
-              <div className="player-role-tag">{player2.role.toUpperCase()}</div>
-              <div className="player-name-side">{player2.name}</div>
-              <div className="player-votes-side">{getVotes(player2.name)} votes</div>
-            </div>
-          </div>
         </div>
-
-        <button className="skip-btn-full" onClick={skip}>Skip →</button>
-
-        <button className="share-btn-main" onClick={share}>
-          📤 Share this battle
-        </button>
-
-        <div className="footer-copyright">
-          ©️ 2026 crickclash production by ANESH
-        </div>
-
-        {showShareModal && (
-          <div className="share-modal-overlay" onClick={() => setShowShareModal(false)}>
-            <div className="share-modal" onClick={(e) => e.stopPropagation()}>
-              <div className="share-modal-header">
-                <h3>Share to</h3>
-                <button onClick={() => setShowShareModal(false)}>✕</button>
-              </div>
-              <div className="share-buttons-grid">
-                <button className="share-social-btn whatsapp" onClick={() => shareToSocial('whatsapp')}>
-                  <span className="share-icon">💬</span>
-                  <span>WhatsApp</span>
-                </button>
-                <button className="share-social-btn instagram" onClick={() => shareToSocial('instagram')}>
-                  <span className="share-icon">📸</span>
-                  <span>Instagram</span>
-                </button>
-                <button className="share-social-btn twitter" onClick={() => shareToSocial('twitter')}>
-                  <span className="share-icon">🐦</span>
-                  <span>Twitter</span>
-                </button>
-                <button className="share-social-btn facebook" onClick={() => shareToSocial('facebook')}>
-                  <span className="share-icon">👥</span>
-                  <span>Facebook</span>
-                </button>
-                <button className="share-social-btn linkedin" onClick={() => shareToSocial('linkedin')}>
-                  <span className="share-icon">💼</span>
-                  <span>LinkedIn</span>
-                </button>
-                <button className="share-social-btn telegram" onClick={() => shareToSocial('telegram')}>
-                  <span className="share-icon">✈️</span>
-                  <span>Telegram</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
+      )}
     </div>
   );
 }
