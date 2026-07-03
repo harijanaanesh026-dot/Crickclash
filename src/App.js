@@ -137,10 +137,14 @@ function App() {
   const [streak, setStreak] = useState(0);
 
   useEffect(() => {
-    getRedirectResult(auth).catch((e) => {
-      console.error('Redirect Error:', e);
-    });
-  }, );
+  getRedirectResult(auth).then((result) => {
+    if (result) {
+      console.log('Login success:', result.user);
+    }
+  }).catch((e) => {
+    console.error('Redirect Error:', e);
+  });
+}, );
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
