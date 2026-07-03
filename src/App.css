@@ -405,8 +405,8 @@ body {
 .share-social-btn {
   display: flex;
   flex-direction: column;
-  align-items:
-      gap: 8px;
+  align-items: center;
+  gap: 8px;
   padding: 16px 8px;
   background: #0f172a;
   border: 1px solid #334155;
