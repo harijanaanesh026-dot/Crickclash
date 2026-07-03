@@ -302,7 +302,7 @@ function App() {
             Continue with Google
           </button>
           <div className="footer-copyright-login">
-            ©️ 2026 crickclash production by ANESH
+            © 2026 Crickclash. The Vision of ANESH
           </div>
         </div>
       </div>
@@ -393,11 +393,11 @@ function App() {
           <button className="skip-btn-full" onClick={skip}>Skip →</button>
 
           <button className="share-btn-main" onClick={share}>
-            📤 Share this battle
+            Challenge a friend: Who do they pick?
           </button>
 
           <div className="footer-copyright">
-            ©️ 2026 crickclash production by ANESH
+            © 2026 crickclash production | Founded & Built by ANESH
           </div>
         </div>
       )}
