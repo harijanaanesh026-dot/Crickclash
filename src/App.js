@@ -18,7 +18,6 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
 
-// 🇮🇳 INDIAN PLAYERS - 50
 const INDIAN_PLAYERS = [
   { name: 'Virat Kohli', role: 'Run Machine', country: 'INDIA', flag: '🇮🇳', icon: '👑' },
   { name: 'Rohit Sharma', role: 'Hitman', country: 'INDIA', flag: '🇮🇳', icon: '🎯' },
@@ -26,7 +25,7 @@ const INDIAN_PLAYERS = [
   { name: 'Hardik Pandya', role: 'Kung Fu Pandya', country: 'INDIA', flag: '🇮🇳', icon: '⚡' },
   { name: 'KL Rahul', role: 'Classic Batter', country: 'INDIA', flag: '🇮🇳', icon: '🧤' },
   { name: 'Shubman Gill', role: 'Prince', country: 'INDIA', flag: '🇮🇳', icon: '🏏' },
-  { name: 'Suryakumar Yadav', role: 'Mr. 360', country: 'INDIA', flag: '🇮🇳', icon: '🏏' },
+  { name: 'Suryakumar Yadav', role: 'Mr 360', country: 'INDIA', flag: '🇮🇳', icon: '🏏' },
   { name: 'Ravindra Jadeja', role: 'Sir Jadeja', country: 'INDIA', flag: '🇮🇳', icon: '⚡' },
   { name: 'Mohammed Shami', role: 'Seam Master', country: 'INDIA', flag: '🇮🇳', icon: '🎯' },
   { name: 'Rishabh Pant', role: 'Spidey', country: 'INDIA', flag: '🇮🇳', icon: '🧤' },
@@ -72,11 +71,10 @@ const INDIAN_PLAYERS = [
   { name: 'MS Dhoni', role: 'Captain Cool', country: 'INDIA', flag: '🇮🇳', icon: '👑' }
 ];
 
-// 🌍 GLOBAL PLAYERS - 50
 const GLOBAL_PLAYERS = [
   { name: 'Babar Azam', role: 'Cover Drive King', country: 'PAKISTAN', flag: '🇵🇰', icon: '🏏' },
   { name: 'Shaheen Afridi', role: 'Eagle', country: 'PAKISTAN', flag: '🇵🇰', icon: '🎯' },
-  { name: 'Mohammad Rizwan', role: 'Mr. Consistent', country: 'PAKISTAN', flag: '🇵🇰', icon: '🧤' },
+  { name: 'Mohammad Rizwan', role: 'Mr Consistent', country: 'PAKISTAN', flag: '🇵🇰', icon: '🧤' },
   { name: 'Shadab Khan', role: 'Vice Captain', country: 'PAKISTAN', flag: '🇵🇰', icon: '⚡' },
   { name: 'Steve Smith', role: 'Run Machine', country: 'AUSTRALIA', flag: '🇦🇺', icon: '🏏' },
   { name: 'Pat Cummins', role: 'Captain', country: 'AUSTRALIA', flag: '🇦🇺', icon: '🎯' },
@@ -88,12 +86,12 @@ const GLOBAL_PLAYERS = [
   { name: 'Trent Boult', role: 'Boulty', country: 'NEW ZEALAND', flag: '🇳🇿', icon: '🎯' },
   { name: 'Tim Southee', role: 'Veteran', country: 'NEW ZEALAND', flag: '🇳🇿', icon: '🎯' },
   { name: 'Devon Conway', role: 'Opener', country: 'NEW ZEALAND', flag: '🇳🇿', icon: '🧤' },
-  { name: 'Joe Root', role: 'Root of England', country: 'ENGLAND', flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿', icon: '🏏' },
-  { name: 'Ben Stokes', role: 'Stokesy', country: 'ENGLAND', flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿', icon: '⚡' },
-  { name: 'Jos Buttler', role: 'Boss', country: 'ENGLAND', flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿', icon: '🧤' },
-  { name: 'Jofra Archer', role: 'Express', country: 'ENGLAND', flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿', icon: '🎯' },
-  { name: 'Jonny Bairstow', role: 'Bluey', country: 'ENGLAND', flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿', icon: '🧤' },
-  { name: 'Moeen Ali', role: 'Mo', country: 'ENGLAND', flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿', icon: '⚡' },
+  { name: 'Joe Root', role: 'Root of England', country: 'ENGLAND', flag: '🏴', icon: '🏏' },
+  { name: 'Ben Stokes', role: 'Stokesy', country: 'ENGLAND', flag: '🏴', icon: '⚡' },
+  { name: 'Jos Buttler', role: 'Boss', country: 'ENGLAND', flag: '🏴', icon: '🧤' },
+  { name: 'Jofra Archer', role: 'Express', country: 'ENGLAND', flag: '🏴', icon: '🎯' },
+  { name: 'Jonny Bairstow', role: 'Bluey', country: 'ENGLAND', flag: '🏴', icon: '🧤' },
+  { name: 'Moeen Ali', role: 'Mo', country: 'ENGLAND', flag: '🏴', icon: '⚡' },
   { name: 'Quinton de Kock', role: 'Quinny', country: 'SOUTH AFRICA', flag: '🇿🇦', icon: '🧤' },
   { name: 'Kagiso Rabada', role: 'KG', country: 'SOUTH AFRICA', flag: '🇿🇦', icon: '🎯' },
   { name: 'David Miller', role: 'Killer Miller', country: 'SOUTH AFRICA', flag: '🇿🇦', icon: '🏏' },
@@ -131,7 +129,6 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [votes, setVotes] = useState({});
   const [battleCount, setBattleCount] = useState(0);
-  const [filter, setFilter] = useState('Any');
   const [mode, setMode] = useState('INDIA');
   const [player1, setPlayer1] = useState(null);
   const [player2, setPlayer2] = useState(null);
@@ -182,20 +179,23 @@ function App() {
 
   const getPlayers = useCallback(() => {
     return mode === 'INDIA'? INDIAN_PLAYERS : GLOBAL_PLAYERS;
-  }, [mode]);
+  }, );
 
   const loadNewBattle = useCallback(() => {
     const players = getPlayers();
+    if (players.length < 2) return;
     const shuffled = [...players].sort(() => 0.5 - Math.random());
     setPlayer1(shuffled[0]);
     setPlayer2(shuffled[1]);
   }, [getPlayers]);
 
-  useEffect(() => { loadNewBattle(); }, [loadNewBattle]);
+  useEffect(() => {
+    loadNewBattle();
+  }, [loadNewBattle]);
 
   const handleVote = (name) => {
     if (todayVotes >= 10) {
-      alert('ANESH RULE: Roju ki 10 votes matrame! Repu malli ra 🏏');
+      alert('ANESH RULE: Roju ki 10 votes matrame! Repu malli ra');
       return;
     }
     const today = new Date().toDateString();
@@ -210,11 +210,17 @@ function App() {
     loadNewBattle();
   };
 
-  const getTotalVotes = () => (Object.values(votes).reduce((s, v) => s + v, 0) / 1000).toFixed(1);
+  const getTotalVotes = () => {
+    const total = Object.values(votes).reduce((s, v) => s + v, 0);
+    return (total / 1000).toFixed(1);
+  };
+
   const getVotes = (name) => votes[name] || 0;
+
   const getTopChamp = () => {
-    const e = Object.entries(votes);
-    return e.length? e.sort((a, b) => b[1] - a[1])[0][0].split(' ')[0] : 'Kohli';
+    const entries = Object.entries(votes);
+    if (entries.length === 0) return 'Kohli';
+    return entries.sort((a, b) => b[1] - a[1])[0][0].split(' ')[0];
   };
 
   if (loading) return <div className="loading">Loading...</div>;
@@ -241,7 +247,7 @@ function App() {
       </header>
 
       <div className="tabs">
-        <button className={activeTab === 'battle'? 'tab active' : 'tab'}>
+        <button className={activeTab === 'battle'? 'tab active' : 'tab'} onClick={() => setActiveTab('battle')}>
           ⚔️ Battle
         </button>
         <button className="tab">🏆 Rankings</button>
@@ -269,7 +275,7 @@ function App() {
 
       <div className="battle-section">
         <p className="subtitle">WHO WINS THIS CLASH?</p>
-        <h2 className="battle-title">Battle <span className="num">{battleCount}</span></h2>
+        <h2 className="battle-title">Battle <span className="num">{battleCount + 1}</span></h2>
 
         <div className="mode-toggle">
           <button className={mode === 'INDIA'? 'active' : ''} onClick={() => setMode('INDIA')}>
