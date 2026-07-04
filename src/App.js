@@ -14,20 +14,16 @@ import {
   runTransaction,
   onValue
 } from 'firebase/database';
-import {
-  LogOut,
-  Flame
-} from 'lucide-react';
 
 // ⚠️ NEE REAL FIREBASE CONFIG IKKADA PASTE CHEY
 const firebaseConfig = {
-  apiKey: "AIzaSyD9BfrAh8djKof1Bu6FLG0Fz7X10NCdm6g",
+  apiKey: "NEE REAL API KEY",
   authDomain: "crickclash-d30fe.firebaseapp.com",
   databaseURL: "https://crickclash-d30fe-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "crickclash-d30fe",
   storageBucket: "crickclash-d30fe.firebasestorage.app",
-  messagingSenderId: "595133866613",
-  appId: "1:595133866613:web:dda3f0509462310cb74e3c"
+  messagingSenderId: "NEE REAL SENDER ID",
+  appId: "NEE REAL APP ID"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -151,12 +147,11 @@ export default function CrickClash() {
   const [player2, setPlayer2] = useState(null);
   const [streak, setStreak] = useState(0);
 
-  // LOGIN FIX - SINGLE USEEFFECT
   useEffect(() => {
     setLoading(true);
     getRedirectResult(auth)
-   .then((result) => { if (result) setUser(result.user); })
-   .catch((error) => { console.error('Redirect Error:', error); });
+  .then((result) => { if (result) setUser(result.user); })
+  .catch((error) => { console.error('Redirect Error:', error); });
 
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
@@ -211,15 +206,14 @@ export default function CrickClash() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black text-white p-4">
       <div className="max-w-4xl mx-auto">
-        {/* ZUCKERBERG HEADER */}
         <header className="flex justify-between items-center mb-6">
           <div>
             <h1 className="text-3xl font-bold">🏏 CrickClash</h1>
             <p className="text-xs text-gray-400">Created by ANESH • Like Mark Zuckerberg</p>
           </div>
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2"><Flame className="text-orange-500" /><span className="font-bold">{streak}</span></div>
-            <button onClick={handleLogout} className="flex items-center gap-2 bg-red-600 px-4 py-2 rounded hover:bg-red-700"><LogOut size={18} />Logout</button>
+            <div className="flex items-center gap-2">🔥<span className="font-bold">{streak}</span></div>
+            <button onClick={handleLogout} className="flex items-center gap-2 bg-red-600 px-4 py-2 rounded hover:bg-red-700">🚪Logout</button>
           </div>
         </header>
 
@@ -242,11 +236,10 @@ export default function CrickClash() {
 
         <div className="text-center mt-6 text-gray-400">Total Battles: {battleCount}</div>
 
-        {/* ZUCKERBERG FOOTER */}
         <div className="text-center mt-8 text-gray-500 text-sm border-t border-gray-800 pt-4">
           Made with 🔥 by ANESH | The Mark Zuckerberg of Cricket
         </div>
       </div>
     </div>
   );
-    }
+  }
