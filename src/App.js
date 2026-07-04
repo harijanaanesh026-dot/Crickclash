@@ -16,13 +16,13 @@ import {
 
 // ⚠️ NEE REAL FIREBASE CONFIG IKKADA PETTU
 const firebaseConfig = {
-  apiKey: "AIzaSyD9BfrAh8djKof1Bu6FLG0Fz7X10NCdm6g",
+  apiKey: "NEE REAL API KEY",
   authDomain: "crickclash-d30fe.firebaseapp.com",
   databaseURL: "https://crickclash-d30fe-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "crickclash-d30fe",
   storageBucket: "crickclash-d30fe.firebasestorage.app",
-  messagingSenderId: "595133866613",
-  appId: "1:595133866613:web:dda3f0509462310cb74e3c"
+  messagingSenderId: "NEE REAL SENDER ID",
+  appId: "NEE REAL APP ID"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -30,7 +30,6 @@ const auth = getAuth(app);
 const db = getDatabase(app);
 const provider = new GoogleAuthProvider();
 
-// 50 INDIA + 50 WORLD = 100 PLAYERS WITH EMOJIS
 const INDIA_PLAYERS = [
   { name: 'Virat Kohli', role: 'BATTER', img: '👑' }, { name: 'Rohit Sharma', role: 'BATTER', img: '💥' },
   { name: 'Jasprit Bumrah', role: 'BOWLER', img: '🎯' }, { name: 'Hardik Pandya', role: 'ALL-ROUNDER', img: '⚡' },
@@ -92,7 +91,7 @@ export default function CrickClash() {
   const [loading, setLoading] = useState(true);
   const [votes, setVotes] = useState({});
   const [battleCount, setBattleCount] = useState(0);
-  const [mode, setMode] = useState('INDIA');
+  const = useState('INDIA'); // setMode teesesam
   const [player1, setPlayer1] = useState(null);
   const [player2, setPlayer2] = useState(null);
   const [streak, setStreak] = useState(0);
@@ -115,7 +114,7 @@ export default function CrickClash() {
     return () => { unsubVotes(); unsubCount(); };
   }, []);
 
-  const players = mode === 'INDIA'? INDIA_PLAYERS : WORLD_PLAYERS;
+  const players = INDIA_PLAYERS; // Direct INDIA pettesam
 
   useEffect(() => {
     if (players.length >= 2) {
@@ -126,7 +125,7 @@ export default function CrickClash() {
       setPlayer1(shuffled[0]);
       setPlayer2(shuffled[1]);
     }
-  }, [players, battleCount, filter]);
+  }, [players, battleCount, filter]); // mode teesesam
 
   const handleLogin = async () => {
     try { const result = await signInWithPopup(auth, provider); setUser(result.user); }
@@ -174,7 +173,7 @@ export default function CrickClash() {
     <div className="min-h-screen bg-[#0a0a1a] text-white p-4">
       <div className="max-w-lg mx-auto">
         <header className="flex justify-between items-center mb-4">
-          <h1 className="text-3xl font-bold">Crickclash<span className="text-orange-400">Clash</span></h1>
+          <h1 className="text-3xl font-bold">⚡ Cricket <span className="text-orange-400">Clash</span></h1>
           <button onClick={handleLogout} className="bg-green-500 text-black px-6 py-2 rounded-full font-bold">Logout</button>
         </header>
 
@@ -229,9 +228,9 @@ export default function CrickClash() {
         </div>
 
         <div className="text-center mt-8 text-gray-500 text-sm border-t border-gray-800 pt-4">
-          © 2026 CrickClash A Production By ANESH
+          © 2026 CrickClash Created by ANESH. Founder & CEO
         </div>
       </div>
     </div>
   );
-                                                      }
+    }
