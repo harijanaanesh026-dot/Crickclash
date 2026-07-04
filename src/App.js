@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { initializeApp } from 'firebase/app';
 import {
   getAuth,
-  signInWithRedirect,
+  signInWithPopup,
   signOut,
   onAuthStateChanged,
   GoogleAuthProvider,
@@ -147,12 +147,11 @@ export default function CrickClash() {
   const [player2, setPlayer2] = useState(null);
   const [streak, setStreak] = useState(0);
 
-  // FIXED: ESLINT ERROR REMOVED
   useEffect(() => {
     setLoading(true);
     getRedirectResult(auth)
-   .then((result) => { if (result) setUser(result.user); })
-   .catch((error) => { console.error('Redirect Error:', error); });
+  .then((result) => { if (result) setUser(result.user); })
+  .catch((error) => { console.error('Redirect Error:', error); });
 
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
@@ -180,7 +179,15 @@ export default function CrickClash() {
     }
   }, [players, battleCount]);
 
-  const handleLogin = () => signInWithRedirect(auth, provider);
+  const handleLogin = async () => {
+    try {
+      const result = await signInWithPopup(auth, provider);
+      setUser(result.user);
+    } catch (error) {
+      console.error("Login Error:", error);
+    }
+  };
+
   const handleLogout = () => signOut(auth);
 
   const handleVote = async (playerName) => {
@@ -198,8 +205,8 @@ export default function CrickClash() {
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-black flex items-center justify-center p-4">
       <div className="text-center">
         <h1 className="text-5xl font-bold text-white mb-2">🏏 CrickClash</h1>
-        <p className="text-gray-300 mb-2">Built by ANESH • 100 Legends. 1 Platform.</p>
-        <p className="text-sm text-gray-400 mb-8">The Mark Zuckerberg of Cricket</p>
+        <p className="text-gray-300 mb-2">Built by ANESH </p>
+        <p className="text-sm text-gray-400 mb-8">The ANESH Of Cricket</p>
         <button onClick={handleLogin} className="bg-white text-black px-8 py-4 rounded-lg font-bold text-lg hover:bg-gray-200">Continue with Google</button>
       </div>
     </div>
@@ -210,8 +217,8 @@ export default function CrickClash() {
       <div className="max-w-4xl mx-auto">
         <header className="flex justify-between items-center mb-6">
           <div>
-            <h1 className="text-3xl font-bold">🏏 CrickClash</h1>
-            <p className="text-xs text-gray-400">Created by ANESH • Like Mark Zuckerberg</p>
+            <h1 className="text-3xl font-bold">CrickClash</h1>
+            <p className="text-xs text-gray-400">© 2026 Crickclash Created by ANESH. Founder & CEO</p>
           </div>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">🔥<span className="font-bold">{streak}</span></div>
@@ -239,9 +246,9 @@ export default function CrickClash() {
         <div className="text-center mt-6 text-gray-400">Total Battles: {battleCount}</div>
 
         <div className="text-center mt-8 text-gray-500 text-sm border-t border-gray-800 pt-4">
-          Made with 🔥 by ANESH | The Mark Zuckerberg of Cricket
+          © 2026 Crickclash A Production By ANESH!
         </div>
       </div>
     </div>
   );
-  }
+   }
