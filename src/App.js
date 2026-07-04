@@ -58,7 +58,7 @@ const INDIA_PLAYERS = [
   { name: 'Khaleel Ahmed', role: 'BOWLER', img: '🌊' },
 ];
 
-const WORLD_PLAYERS = [
+//const WORLD_PLAYERS = [
   { name: 'Babar Azam', role: 'BATTER', img: '👑' }, { name: 'Pat Cummins', role: 'BOWLER', img: '🎯' },
   { name: 'Ben Stokes', role: 'ALL-ROUNDER', img: '⚡' }, { name: 'Jos Buttler', role: 'BATTER', img: '💥' },
   { name: 'Kane Williamson', role: 'BATTER', img: '🧠' }, { name: 'Rashid Khan', role: 'BOWLER', img: '🌀' },
