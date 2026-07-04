@@ -16,13 +16,13 @@ import {
 
 // ⚠️ NEE REAL FIREBASE CONFIG IKKADA PETTU
 const firebaseConfig = {
-  apiKey: "NEE REAL API KEY",
+  apiKey: "AIzaSyD9BfrAh8djKof1Bu6FLG0Fz7X10NCdm6g",
   authDomain: "crickclash-d30fe.firebaseapp.com",
   databaseURL: "https://crickclash-d30fe-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "crickclash-d30fe",
   storageBucket: "crickclash-d30fe.firebasestorage.app",
-  messagingSenderId: "NEE REAL SENDER ID",
-  appId: "NEE REAL APP ID"
+  messagingSenderId: "595133866613",
+  appId: "1:595133866613:web:dda3f0509462310cb74e3c"
 };
 
 const app = initializeApp(firebaseConfig);
