@@ -91,7 +91,6 @@ export default function CrickClash() {
   const [loading, setLoading] = useState(true);
   const [votes, setVotes] = useState({});
   const [battleCount, setBattleCount] = useState(0);
-  const = useState('INDIA'); // setMode teesesam
   const [player1, setPlayer1] = useState(null);
   const [player2, setPlayer2] = useState(null);
   const [streak, setStreak] = useState(0);
