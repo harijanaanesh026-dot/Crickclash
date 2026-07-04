@@ -17,13 +17,13 @@ import {
 
 // ⚠️ NEE REAL FIREBASE CONFIG IKKADA PASTE CHEY
 const firebaseConfig = {
-  apiKey: "NEE REAL API KEY",
+  apiKey: "AIzaSyD9BfrAh8djKof1Bu6FLG0Fz7X10NCdm6g",
   authDomain: "crickclash-d30fe.firebaseapp.com",
   databaseURL: "https://crickclash-d30fe-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "crickclash-d30fe",
   storageBucket: "crickclash-d30fe.firebasestorage.app",
-  messagingSenderId: "NEE REAL SENDER ID",
-  appId: "NEE REAL APP ID"
+  messagingSenderId: "595133866613",
+  appId: "1:595133866613:web:dda3f0509462310cb74e3c"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -147,18 +147,20 @@ export default function CrickClash() {
   const [player2, setPlayer2] = useState(null);
   const [streak, setStreak] = useState(0);
 
+  // FIXED: ESLINT ERROR REMOVED
   useEffect(() => {
     setLoading(true);
     getRedirectResult(auth)
-  .then((result) => { if (result) setUser(result.user); })
-  .catch((error) => { console.error('Redirect Error:', error); });
+   .then((result) => { if (result) setUser(result.user); })
+   .catch((error) => { console.error('Redirect Error:', error); });
 
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       setLoading(false);
     });
     return () => unsubscribe();
-  }, );
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     const votesRef = ref(db, 'votes');
@@ -166,7 +168,7 @@ export default function CrickClash() {
     const unsubVotes = onValue(votesRef, (snapshot) => setVotes(snapshot.val() || {}));
     const unsubCount = onValue(countRef, (snapshot) => setBattleCount(snapshot.val() || 0));
     return () => { unsubVotes(); unsubCount(); };
-  }, );
+  }, []);
 
   const players = mode === 'INDIA'? INDIA_PLAYERS : WORLD_PLAYERS;
 
