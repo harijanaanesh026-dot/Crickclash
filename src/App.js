@@ -156,8 +156,8 @@ export default function CrickClash() {
   if (!user) return (
     <div className="min-h-screen bg-gradient-to-br from-[#0a0a1a] via-[#1a1a3a] to-[#0a0a1a] flex items-center justify-center p-4">
       <div className="text-center">
-        <h1 className="text-5xl font-bold text-white mb-2">Crickclash<span className="text-orange-400">Clash</span></h1>
-        <p className="text-gray-400 mb-2">Built by ANESH</p>
+        <h1 className="text-5xl font-bold text-white mb-2">Crick<span className="text-orange-400">Clash</span></h1>
+        <p className="text-gray-400 mb-2">© 2026 CrickClash</p>
         <p className="text-sm text-gray-500 mb-8">The ANESH of Cricket</p>
         <button onClick={handleLogin} className="bg-green-500 text-black px-8 py-4 rounded-full font-bold text-lg">Sign In</button>
       </div>
