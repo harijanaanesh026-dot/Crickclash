@@ -28,8 +28,8 @@ const ALL_PLAYERS = [
   { name: 'Rinku Singh', role: 'BATTER', img: '💪' }, { name: 'Prithvi Shaw', role: 'BATTER', img: '💫' },
   { name: 'Devdutt Padikkal', role: 'BATTER', img: '🌸' }, { name: 'Ruturaj Gaikwad', role: 'BATTER', img: '👨‍✈️' },
   { name: 'Mayank Agarwal', role: 'BATTER', img: '🛡️' }, { name: 'Ajinkya Rahane', role: 'BATTER', img: '🧠' },
-  { name: 'Cheteshwar Pujara', role: 'BATTER', img: '🏰' }, { name: 'Yashasvi Jaiswal', role: 'BATTER', img: '🌅' },
-  { name: 'Nitish Rana', role: 'BATTER', img: '🐯' }, { name: 'Manish Pandey', role: 'BATTER', img: '🎯' },
+  { name: 'Sachin Tendulkar', role: 'BATTER', img: '🏰' }, { name: 'Yashasvi Jaiswal', role: 'BATTER', img: '🌅' },
+  { name: 'Vaibhav Sooryavanshi', role: 'BATTER', img: '🐯' }, { name: 'Abhishek Sharma', role: 'BATTER', img: '🎯' },
 
   // BOWLER 20
   { name: 'Jasprit Bumrah', role: 'BOWLER', img: '🎯' }, { name: 'Mohammed Shami', role: 'BOWLER', img: '🔫' },
@@ -156,7 +156,7 @@ export default function CrickClash() {
   if (!user) return (
     <div className="min-h-screen bg-gradient-to-br from-[#0a0a1a] via-[#1a1a3a] to-[#0a0a1a] flex items-center justify-center p-4">
       <div className="text-center">
-        <h1 className="text-5xl font-bold text-white mb-2">⚡ Cricket <span className="text-orange-400">Clash</span></h1>
+        <h1 className="text-5xl font-bold text-white mb-2">Crickclash<span className="text-orange-400">Clash</span></h1>
         <p className="text-gray-400 mb-2">Built by ANESH</p>
         <p className="text-sm text-gray-500 mb-8">The ANESH of Cricket</p>
         <button onClick={handleLogin} className="bg-green-500 text-black px-8 py-4 rounded-full font-bold text-lg">Sign In</button>
@@ -168,7 +168,7 @@ export default function CrickClash() {
     <div className="min-h-screen bg-[#0a0a1a] text-white p-4">
       <div className="max-w-lg mx-auto">
         <header className="flex justify-between items-center mb-4">
-          <h1 className="text-3xl font-bold">⚡ Cricket <span className="text-orange-400">Clash</span></h1>
+          <h1 className="text-3xl font-bold">Crick<span className="text-orange-400">Clash</span></h1>
           <button onClick={handleLogout} className="bg-green-500 text-black px-6 py-2 rounded-full font-bold">Logout</button>
         </header>
 
@@ -249,7 +249,7 @@ export default function CrickClash() {
         )}
 
         <div className="text-center mt-8 text-gray-500 text-sm border-t border-gray-800 pt-4">
-          © 2026 CrickClash Created by ANESH. Founder & CEO
+          © 2026 CrickClash A Production by ANESH. Founder & CEO
         </div>
       </div>
     </div>
