@@ -92,6 +92,14 @@ export default function CrickClash() {
   const [tab, setTab] = useState('Battle');
   const [stats, setStats] = useState({totalVotes: 0, battles: 4, topChamp: 'Virat', streak: 0});
 
+  const saveInitialPlayers = async (playerList) => {
+    const updates = {};
+    playerList.forEach((p) => {
+      updates[`players/${p.id}`] = p;
+    });
+    await update(ref(db), updates);
+  }
+
   useEffect(() => {
     onAuthStateChanged(auth, (user) => {
       setUser(user);
@@ -107,6 +115,7 @@ export default function CrickClash() {
       } else {
         const initialPlayers = ALL_PLAYERS.map((p, idx) => ({...p, id: idx, votes: 0 }));
         setPlayers(initialPlayers);
+        saveInitialPlayers(initialPlayers); // Firebase ki save cheyadam
         generateBattle(initialPlayers, 'Any');
       }
     });
@@ -130,7 +139,7 @@ export default function CrickClash() {
       btn.innerHTML = "⚡ +1";
       setTimeout(() => { btn.innerHTML = "VOTE"; }, 800);
     }
-    const player = players.find(p => p.id === playerId);
+    const player = players.find(p => p.id == playerId);
     await update(ref(db, `players/${playerId}`), { votes: (player.votes || 0) + 1 });
     setStats(prev => ({...prev, totalVotes: prev.totalVotes + 1, battles: prev.battles + 1}));
     setBattleNo(prev => prev + 1);
@@ -194,7 +203,7 @@ export default function CrickClash() {
 
             <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
               {['Any', 'BATTER', 'BOWLER', 'ALL-ROUNDER', 'KEEPER', 'CAPTAIN'].map(role => (
-                <button key={role} onClick={() => {setFilter(role); generateBattle(players, role)}} className={`px-4 py-2 rounded-full font-bold ${filter === role? 'bg-green-500 text-black' : 'bg-gray-800'}`}>{role}</button>
+                <button key={role} onClick={() => {setFilter(role); generateBattle(players, role)}} className={`px-4 py-2 rounded-full font-bold whitespace-nowrap ${filter === role? 'bg-green-500 text-black' : 'bg-gray-800'}`}>{role}</button>
               ))}
             </div>
 
@@ -248,4 +257,4 @@ export default function CrickClash() {
       </div>
     </div>
   );
-  }
+   }
