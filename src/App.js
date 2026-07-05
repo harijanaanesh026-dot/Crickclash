@@ -27,7 +27,7 @@ const ALL_PLAYERS = [
   { name: 'Sanju Samson', role: 'BATTER', img: '👊' }, { name: 'Tilak Varma', role: 'BATTER', img: '🌱' },
   { name: 'Rinku Singh', role: 'BATTER', img: '💪' }, { name: 'Prithvi Shaw', role: 'BATTER', img: '💫' },
   { name: 'Devdutt Padikkal', role: 'BATTER', img: '🌸' }, { name: 'Ruturaj Gaikwad', role: 'BATTER', img: '👨‍✈️' },
-  { name: 'Mayank Agarwal', role: 'BATTER', img: '🛡️' }, { name: 'Ajinkya Rahane', role: 'BATTER', img: '🧠' },
+  { name: 'Rahul Dravid', role: 'BATTER', img: '🛡️' }, { name: 'Ajinkya Rahane', role: 'BATTER', img: '🧠' },
   { name: 'Sachin Tendulkar', role: 'BATTER', img: '🏰' }, { name: 'Yashasvi Jaiswal', role: 'BATTER', img: '🌅' },
   { name: 'Vaibhav Sooryavanshi', role: 'BATTER', img: '🐯' }, { name: 'Abhishek Sharma', role: 'BATTER', img: '🎯' },
 
@@ -49,7 +49,7 @@ const ALL_PLAYERS = [
   { name: 'Shivam Dube', role: 'ALL-ROUNDER', img: '🏋️' }, { name: 'Krunal Pandya', role: 'ALL-ROUNDER', img: '🔨' },
   { name: 'Venkatesh Iyer', role: 'ALL-ROUNDER', img: '🏇' }, { name: 'R Ashwin', role: 'ALL-ROUNDER', img: '🎓' },
   { name: 'Ravichandran Ashwin', role: 'ALL-ROUNDER', img: '🧠' }, { name: 'Deepak Hooda', role: 'ALL-ROUNDER', img: '💪' },
-  { name: 'Vijay Shankar', role: 'ALL-ROUNDER', img: '🛡️' }, { name: 'Shahbaz Ahmed', role: 'ALL-ROUNDER', img: '🌟' },
+  { name: 'Nitish Reddy', role: 'ALL-ROUNDER', img: '🛡️' }, { name: 'Shahbaz Ahmed', role: 'ALL-ROUNDER', img: '🌟' },
   { name: 'Rahul Tewatia', role: 'ALL-ROUNDER', img: '🔥' }, { name: 'Kedar Jadhav', role: 'ALL-ROUNDER', img: '🎯' },
   { name: 'Stuart Binny', role: 'ALL-ROUNDER', img: '👊' }, { name: 'Piyush Chawla', role: 'ALL-ROUNDER', img: '🌀' },
   { name: 'Yusuf Pathan', role: 'ALL-ROUNDER', img: '💣' }, { name: 'Irfan Pathan', role: 'ALL-ROUNDER', img: '⚔️' },
