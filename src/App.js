@@ -18,32 +18,66 @@ const auth = getAuth(app);
 const db = getDatabase(app);
 const provider = new GoogleAuthProvider();
 
-const INDIA_PLAYERS = [
+const ALL_PLAYERS = [
+  // BATTER 20
   { name: 'Virat Kohli', role: 'BATTER', img: '👑' }, { name: 'Rohit Sharma', role: 'BATTER', img: '💥' },
-  { name: 'Jasprit Bumrah', role: 'BOWLER', img: '🎯' }, { name: 'Hardik Pandya', role: 'ALL-ROUNDER', img: '⚡' },
-  { name: 'Ravindra Jadeja', role: 'ALL-ROUNDER', img: '🗡️' }, { name: 'KL Rahul', role: 'BATTER', img: '🔥' },
-  { name: 'Shubman Gill', role: 'BATTER', img: '🌟' }, { name: 'Suryakumar Yadav', role: 'BATTER', img: '🚀' },
-  { name: 'Shreyas Iyer', role: 'BATTER', img: '🏏' }, { name: 'Rishabh Pant', role: 'BATTER', img: '💣' },
-  { name: 'Mohammed Shami', role: 'BOWLER', img: '🔫' }, { name: 'Mohammed Siraj', role: 'BOWLER', img: '⚔️' },
-  { name: 'Kuldeep Yadav', role: 'BOWLER', img: '🌀' }, { name: 'Yuzvendra Chahal', role: 'BOWLER', img: '🕸️' },
-  { name: 'Axar Patel', role: 'ALL-ROUNDER', img: '🛡️' }, { name: 'Washington Sundar', role: 'ALL-ROUNDER', img: '✨' },
-  { name: 'Arshdeep Singh', role: 'BOWLER', img: '🏹' }, { name: 'Ishan Kishan', role: 'BATTER', img: '💨' },
+  { name: 'KL Rahul', role: 'BATTER', img: '🔥' }, { name: 'Shubman Gill', role: 'BATTER', img: '🌟' },
+  { name: 'Suryakumar Yadav', role: 'BATTER', img: '🚀' }, { name: 'Shreyas Iyer', role: 'BATTER', img: '🏏' },
+  { name: 'Rishabh Pant', role: 'BATTER', img: '💣' }, { name: 'Ishan Kishan', role: 'BATTER', img: '💨' },
   { name: 'Sanju Samson', role: 'BATTER', img: '👊' }, { name: 'Tilak Varma', role: 'BATTER', img: '🌱' },
-  { name: 'Rinku Singh', role: 'BATTER', img: '💪' }, { name: 'Shivam Dube', role: 'ALL-ROUNDER', img: '🏋️' },
-  { name: 'Ravi Bishnoi', role: 'BOWLER', img: '🐝' }, { name: 'Prasidh Krishna', role: 'BOWLER', img: '🚄' },
-  { name: 'Avesh Khan', role: 'BOWLER', img: '🦂' }, { name: 'Deepak Chahar', role: 'ALL-ROUNDER', img: '🌪️' },
-  { name: 'Shardul Thakur', role: 'ALL-ROUNDER', img: '🦁' }, { name: 'Bhuvneshwar Kumar', role: 'BOWLER', img: '🎭' },
-  { name: 'Rahul Tripathi', role: 'BATTER', img: '⚡' }, { name: 'Prithvi Shaw', role: 'BATTER', img: '💫' },
+  { name: 'Rinku Singh', role: 'BATTER', img: '💪' }, { name: 'Prithvi Shaw', role: 'BATTER', img: '💫' },
   { name: 'Devdutt Padikkal', role: 'BATTER', img: '🌸' }, { name: 'Ruturaj Gaikwad', role: 'BATTER', img: '👨‍✈️' },
-  { name: 'Krunal Pandya', role: 'ALL-ROUNDER', img: '🔨' }, { name: 'Venkatesh Iyer', role: 'ALL-ROUNDER', img: '🏇' },
-  { name: 'Umran Malik', role: 'BOWLER', img: '🚀' }, { name: 'T Natarajan', role: 'BOWLER', img: '🌙' },
   { name: 'Mayank Agarwal', role: 'BATTER', img: '🛡️' }, { name: 'Ajinkya Rahane', role: 'BATTER', img: '🧠' },
-  { name: 'Cheteshwar Pujara', role: 'BATTER', img: '🏰' }, { name: 'R Ashwin', role: 'ALL-ROUNDER', img: '🎓' },
-  { name: 'Yashasvi Jaiswal', role: 'BATTER', img: '🌅' }, { name: 'Nitish Rana', role: 'BATTER', img: '🐯' },
-  { name: 'Jitesh Sharma', role: 'BATTER', img: '⚡' }, { name: 'Harshal Patel', role: 'BOWLER', img: '🪄' },
-  { name: 'Rahul Chahar', role: 'BOWLER', img: '🎩' }, { name: 'Dinesh Karthik', role: 'BATTER', img: '👴' },
-  { name: 'Manish Pandey', role: 'BATTER', img: '🎯' }, { name: 'Varun Chakravarthy', role: 'BOWLER', img: '🌀' },
-  { name: 'Khaleel Ahmed', role: 'BOWLER', img: '🌊' },
+  { name: 'Cheteshwar Pujara', role: 'BATTER', img: '🏰' }, { name: 'Yashasvi Jaiswal', role: 'BATTER', img: '🌅' },
+  { name: 'Nitish Rana', role: 'BATTER', img: '🐯' }, { name: 'Manish Pandey', role: 'BATTER', img: '🎯' },
+
+  // BOWLER 20
+  { name: 'Jasprit Bumrah', role: 'BOWLER', img: '🎯' }, { name: 'Mohammed Shami', role: 'BOWLER', img: '🔫' },
+  { name: 'Mohammed Siraj', role: 'BOWLER', img: '⚔️' }, { name: 'Kuldeep Yadav', role: 'BOWLER', img: '🌀' },
+  { name: 'Yuzvendra Chahal', role: 'BOWLER', img: '🕸️' }, { name: 'Arshdeep Singh', role: 'BOWLER', img: '🏹' },
+  { name: 'Ravi Bishnoi', role: 'BOWLER', img: '🐝' }, { name: 'Prasidh Krishna', role: 'BOWLER', img: '🚄' },
+  { name: 'Avesh Khan', role: 'BOWLER', img: '🦂' }, { name: 'Bhuvneshwar Kumar', role: 'BOWLER', img: '🎭' },
+  { name: 'Umran Malik', role: 'BOWLER', img: '🚀' }, { name: 'T Natarajan', role: 'BOWLER', img: '🌙' },
+  { name: 'Harshal Patel', role: 'BOWLER', img: '🪄' }, { name: 'Rahul Chahar', role: 'BOWLER', img: '🎩' },
+  { name: 'Varun Chakravarthy', role: 'BOWLER', img: '🌀' }, { name: 'Khaleel Ahmed', role: 'BOWLER', img: '🌊' },
+  { name: 'Deepak Chahar', role: 'BOWLER', img: '🌪️' }, { name: 'Shardul Thakur', role: 'BOWLER', img: '🦁' },
+  { name: 'Navdeep Saini', role: 'BOWLER', img: '💨' }, { name: 'Jaydev Unadkat', role: 'BOWLER', img: '⚡' },
+
+  // ALL-ROUNDER 20
+  { name: 'Hardik Pandya', role: 'ALL-ROUNDER', img: '⚡' }, { name: 'Ravindra Jadeja', role: 'ALL-ROUNDER', img: '🗡️' },
+  { name: 'Axar Patel', role: 'ALL-ROUNDER', img: '🛡️' }, { name: 'Washington Sundar', role: 'ALL-ROUNDER', img: '✨' },
+  { name: 'Shivam Dube', role: 'ALL-ROUNDER', img: '🏋️' }, { name: 'Krunal Pandya', role: 'ALL-ROUNDER', img: '🔨' },
+  { name: 'Venkatesh Iyer', role: 'ALL-ROUNDER', img: '🏇' }, { name: 'R Ashwin', role: 'ALL-ROUNDER', img: '🎓' },
+  { name: 'Ravichandran Ashwin', role: 'ALL-ROUNDER', img: '🧠' }, { name: 'Deepak Hooda', role: 'ALL-ROUNDER', img: '💪' },
+  { name: 'Vijay Shankar', role: 'ALL-ROUNDER', img: '🛡️' }, { name: 'Shahbaz Ahmed', role: 'ALL-ROUNDER', img: '🌟' },
+  { name: 'Rahul Tewatia', role: 'ALL-ROUNDER', img: '🔥' }, { name: 'Kedar Jadhav', role: 'ALL-ROUNDER', img: '🎯' },
+  { name: 'Stuart Binny', role: 'ALL-ROUNDER', img: '👊' }, { name: 'Piyush Chawla', role: 'ALL-ROUNDER', img: '🌀' },
+  { name: 'Yusuf Pathan', role: 'ALL-ROUNDER', img: '💣' }, { name: 'Irfan Pathan', role: 'ALL-ROUNDER', img: '⚔️' },
+  { name: 'Dinesh Karthik', role: 'ALL-ROUNDER', img: '👴' }, { name: 'Karthik Tyagi', role: 'ALL-ROUNDER', img: '🚀' },
+
+  // KEEPER 20
+  { name: 'MS Dhoni', role: 'KEEPER', img: '🏆' }, { name: 'Rishabh Pant', role: 'KEEPER', img: '💣' },
+  { name: 'KL Rahul', role: 'KEEPER', img: '🔥' }, { name: 'Ishan Kishan', role: 'KEEPER', img: '💨' },
+  { name: 'Sanju Samson', role: 'KEEPER', img: '👊' }, { name: 'Dinesh Karthik', role: 'KEEPER', img: '👴' },
+  { name: 'Jitesh Sharma', role: 'KEEPER', img: '⚡' }, { name: 'KS Bharat', role: 'KEEPER', img: '🛡️' },
+  { name: 'Wriddhiman Saha', role: 'KEEPER', img: '🧤' }, { name: 'Parthiv Patel', role: 'KEEPER', img: '⚡' },
+  { name: 'Naman Ojha', role: 'KEEPER', img: '🎯' }, { name: 'Upendra Yadav', role: 'KEEPER', img: '💪' },
+  { name: 'Dhruv Jurel', role: 'KEEPER', img: '🌱' }, { name: 'Anuj Rawat', role: 'KEEPER', img: '🔥' },
+  { name: ' Prabhsimran Singh', role: 'KEEPER', img: '🌟' }, { name: 'Vishnu Vinod', role: 'KEEPER', img: '💥' },
+  { name: 'Aryan Juyal', role: 'KEEPER', img: '👊' }, { name: 'Urvil Patel', role: 'KEEPER', img: '🚀' },
+  { name: 'Kumar Kushagra', role: 'KEEPER', img: '🏏' }, { name: 'Robin Uthappa', role: 'KEEPER', img: '👑' },
+
+  // CAPTAIN 20
+  { name: 'Virat Kohli', role: 'CAPTAIN', img: '👑' }, { name: 'Rohit Sharma', role: 'CAPTAIN', img: '💥' },
+  { name: 'MS Dhoni', role: 'CAPTAIN', img: '🏆' }, { name: 'Hardik Pandya', role: 'CAPTAIN', img: '⚡' },
+  { name: 'KL Rahul', role: 'CAPTAIN', img: '🔥' }, { name: 'Shubman Gill', role: 'CAPTAIN', img: '🌟' },
+  { name: 'Rishabh Pant', role: 'CAPTAIN', img: '💣' }, { name: 'Shreyas Iyer', role: 'CAPTAIN', img: '🏏' },
+  { name: 'Ajinkya Rahane', role: 'CAPTAIN', img: '🧠' }, { name: 'Ravindra Jadeja', role: 'CAPTAIN', img: '🗡️' },
+  { name: 'Suryakumar Yadav', role: 'CAPTAIN', img: '🚀' }, { name: 'Krunal Pandya', role: 'CAPTAIN', img: '🔨' },
+  { name: 'Venkatesh Iyer', role: 'CAPTAIN', img: '🏇' }, { name: 'Ruturaj Gaikwad', role: 'CAPTAIN', img: '👨‍✈️' },
+  { name: 'Sanju Samson', role: 'CAPTAIN', img: '👊' }, { name: 'Mayank Agarwal', role: 'CAPTAIN', img: '🛡️' },
+  { name: 'Nitish Rana', role: 'CAPTAIN', img: '🐯' }, { name: 'Manish Pandey', role: 'CAPTAIN', img: '🎯' },
+  { name: 'Ishan Kishan', role: 'CAPTAIN', img: '💨' }, { name: 'Yashasvi Jaiswal', role: 'CAPTAIN', img: '🌅' },
 ];
 
 export default function CrickClash() {
@@ -55,6 +89,7 @@ export default function CrickClash() {
   const [player2, setPlayer2] = useState(null);
   const [streak, setStreak] = useState(0);
   const [filter, setFilter] = useState('Any');
+  const [tab, setTab] = useState('Battle'); // Battle, Rankings, History
 
   useEffect(() => {
     setLoading(true);
@@ -73,7 +108,7 @@ export default function CrickClash() {
     return () => { unsubVotes(); unsubCount(); };
   }, []);
 
-  const players = INDIA_PLAYERS;
+  const players = ALL_PLAYERS;
 
   useEffect(() => {
     if (players.length >= 2) {
@@ -114,13 +149,14 @@ export default function CrickClash() {
   const getVoteCount = (playerName) => votes[playerName] || 0;
   const totalVotes = Object.values(votes).reduce((a,b)=>a+b,0);
   const topChamp = Object.keys(votes).length > 0? Object.keys(votes).reduce((a, b) => votes[a] > votes[b]? a : b) : 'None';
+  const sortedPlayers = Object.keys(votes).sort((a,b) => votes[b] - votes[a]).slice(0, 10);
 
   if (loading) return <div className="min-h-screen bg-[#0a0a1a] flex items-center justify-center text-white text-2xl">Loading...</div>;
 
   if (!user) return (
     <div className="min-h-screen bg-gradient-to-br from-[#0a0a1a] via-[#1a1a3a] to-[#0a0a1a] flex items-center justify-center p-4">
       <div className="text-center">
-        <h1 className="text-5xl font-bold text-white mb-2">Crickclash <span className="text-orange-400">Clash</span></h1>
+        <h1 className="text-5xl font-bold text-white mb-2">⚡ Cricket <span className="text-orange-400">Clash</span></h1>
         <p className="text-gray-400 mb-2">Built by ANESH</p>
         <p className="text-sm text-gray-500 mb-8">The ANESH of Cricket</p>
         <button onClick={handleLogin} className="bg-green-500 text-black px-8 py-4 rounded-full font-bold text-lg">Sign In</button>
@@ -132,64 +168,90 @@ export default function CrickClash() {
     <div className="min-h-screen bg-[#0a0a1a] text-white p-4">
       <div className="max-w-lg mx-auto">
         <header className="flex justify-between items-center mb-4">
-          <h1 className="text-3xl font-bold"> Crickclash <span className="text-orange-400">Clash</span></h1>
+          <h1 className="text-3xl font-bold">⚡ Cricket <span className="text-orange-400">Clash</span></h1>
           <button onClick={handleLogout} className="bg-green-500 text-black px-6 py-2 rounded-full font-bold">Logout</button>
         </header>
 
+        {/* WORKING TABS */}
         <div className="flex justify-around mb-4 border-b border-gray-800">
-          <button className="text-green-400 font-bold border-b-2 border-green-400 pb-2">⚔️ Battle</button>
-          <button className="text-gray-500 pb-2">🏆 Rankings</button>
-          <button className="text-gray-500 pb-2">📜 History</button>
+          <button onClick={()=>setTab('Battle')} className={`${tab==='Battle'?'text-green-400 border-b-2 border-green-400':'text-gray-500'} pb-2 font-bold`}>⚔️ Battle</button>
+          <button onClick={()=>setTab('Rankings')} className={`${tab==='Rankings'?'text-green-400 border-b-2 border-green-400':'text-gray-500'} pb-2 font-bold`}>🏆 Rankings</button>
+          <button onClick={()=>setTab('History')} className={`${tab==='History'?'text-green-400 border-b-2 border-green-400':'text-gray-500'} pb-2 font-bold`}>📜 History</button>
         </div>
 
-        <div className="grid grid-cols-4 text-center mb-6">
-          <div><p className="text-2xl font-bold text-orange-400">{(totalVotes/1000).toFixed(1)}k</p><p className="text-xs text-gray-400">TOTAL VOTES</p></div>
-          <div><p className="text-2xl font-bold text-orange-400">{battleCount}</p><p className="text-xs text-gray-400">BATTLES</p></div>
-          <div><p className="text-lg font-bold text-orange-400 truncate">{topChamp.split(' ')[0]}</p><p className="text-xs text-gray-400">TOP CHAMP</p></div>
-          <div><p className="text-2xl font-bold text-orange-400">🔥{streak}</p><p className="text-xs text-gray-400">STREAK</p></div>
-        </div>
+        {tab === 'Battle' && (
+          <>
+            <div className="grid grid-cols-4 text-center mb-6">
+              <div><p className="text-2xl font-bold text-orange-400">{(totalVotes/1000).toFixed(1)}k</p><p className="text-xs text-gray-400">TOTAL VOTES</p></div>
+              <div><p className="text-2xl font-bold text-orange-400">{battleCount}</p><p className="text-xs text-gray-400">BATTLES</p></div>
+              <div><p className="text-lg font-bold text-orange-400 truncate">{topChamp.split(' ')[0]}</p><p className="text-xs text-gray-400">TOP CHAMP</p></div>
+              <div><p className="text-2xl font-bold text-orange-400">🔥{streak}</p><p className="text-xs text-gray-400">STREAK</p></div>
+            </div>
 
-        <h2 className="text-center text-gray-400 tracking-widest">WHO DO YOU LIKE?</h2>
-        <h1 className="text-center text-4xl font-bold mb-4">Battle <span className="text-green-400">{battleCount + 1}</span></h1>
+            <h2 className="text-center text-gray-400 tracking-widest">WHO DO YOU LIKE?</h2>
+            <h1 className="text-center text-4xl font-bold mb-4">Battle <span className="text-green-400">{battleCount + 1}</span></h1>
 
-        <div className="flex gap-2 mb-6">
-          {['Any', 'BATTER', 'BOWLER', 'ALL-ROUNDER', 'Keeper','Captain'].map(f => (
-            <button key={f} onClick={() => setFilter(f)}
-              className={`flex-1 px-4 py-2 rounded-full font-bold ${filter===f?'bg-green-500 text-black':'bg-gray-800'}`}>
-              {f}
-            </button>
-          ))}
-        </div>
+            {/* 5 FILTER BUTTONS */}
+            <div className="flex gap-2 mb-6 overflow-x-auto">
+              {['Any', 'BATTER', 'BOWLER', 'ALL-ROUNDER', 'KEEPER', 'CAPTAIN'].map(f => (
+                <button key={f} onClick={() => setFilter(f)}
+                  className={`flex-shrink-0 px-4 py-2 rounded-full font-bold ${filter===f?'bg-green-500 text-black':'bg-gray-800'}`}>
+                  {f}
+                </button>
+              ))}
+            </div>
 
-        <div className="flex items-center gap-3 mb-6">
-          <div className="flex-1 bg-gradient-to-br from-blue-900 to-blue-950 rounded-2xl p-4 text-center shadow-lg">
-            <div className="text-7xl mb-3">{player1?.img}</div>
-            <span className="bg-orange-500 text-xs px-3 py-1 rounded-full font-bold">{player1?.role}</span>
-            <h3 className="text-xl font-bold mt-2">{player1?.name}</h3>
-            <p className="text-green-400 font-bold">{getVoteCount(player1?.name)} votes</p>
-            <button onClick={() => handleVote(player1?.name)} className="w-full bg-green-500 text-black mt-3 py-3 rounded-lg font-bold text-lg">VOTE</button>
+            <div className="flex items-center gap-3 mb-6">
+              <div className="flex-1 bg-gradient-to-br from-blue-900 to-blue-950 rounded-2xl p-4 text-center shadow-lg">
+                <div className="text-7xl mb-3">{player1?.img}</div>
+                <span className="bg-orange-500 text-xs px-3 py-1 rounded-full font-bold">{player1?.role}</span>
+                <h3 className="text-xl font-bold mt-2">{player1?.name}</h3>
+                <p className="text-green-400 font-bold">{getVoteCount(player1?.name)} votes</p>
+                <button onClick={() => handleVote(player1?.name)} className="w-full bg-green-500 text-black mt-3 py-3 rounded-lg font-bold text-lg">VOTE</button>
+              </div>
+
+              <span className="text-4xl font-bold text-orange-400">VS</span>
+
+              <div className="flex-1 bg-gradient-to-br from-purple-900 to-purple-950 rounded-2xl p-4 text-center shadow-lg">
+                <div className="text-7xl mb-3">{player2?.img}</div>
+                <span className="bg-green-500 text-xs px-3 py-1 rounded-full font-bold">{player2?.role}</span>
+                <h3 className="text-xl font-bold mt-2">{player2?.name}</h3>
+                <p className="text-green-400 font-bold">{getVoteCount(player2?.name)} votes</p>
+                <button onClick={() => handleVote(player2?.name)} className="w-full bg-green-500 text-black mt-3 py-3 rounded-lg font-bold text-lg">VOTE</button>
+              </div>
+            </div>
+
+            <div className="flex gap-4">
+              <button onClick={handleSkip} className="flex-1 bg-gray-800 py-3 rounded-lg font-bold text-lg">Skip →</button>
+              <button onClick={handleShare} className="flex-1 bg-gray-800 py-3 rounded-lg font-bold text-lg">Share 📤</button>
+            </div>
+          </>
+        )}
+
+        {tab === 'Rankings' && (
+          <div className="bg-gray-900 rounded-2xl p-4">
+            <h2 className="text-2xl font-bold mb-4 text-center">🏆 Top 10 Champions</h2>
+            {sortedPlayers.map((p, i) => (
+              <div key={p} className="flex justify-between bg-gray-800 p-3 rounded-lg mb-2">
+                <span>#{i+1} {p}</span>
+                <span className="text-green-400 font-bold">{votes[p]} votes</span>
+              </div>
+            ))}
           </div>
+        )}
 
-          <span className="text-4xl font-bold text-orange-400">VS</span>
-
-          <div className="flex-1 bg-gradient-to-br from-purple-900 to-purple-950 rounded-2xl p-4 text-center shadow-lg">
-            <div className="text-7xl mb-3">{player2?.img}</div>
-            <span className="bg-green-500 text-xs px-3 py-1 rounded-full font-bold">{player2?.role}</span>
-            <h3 className="text-xl font-bold mt-2">{player2?.name}</h3>
-            <p className="text-green-400 font-bold">{getVoteCount(player2?.name)} votes</p>
-            <button onClick={() => handleVote(player2?.name)} className="w-full bg-green-500 text-black mt-3 py-3 rounded-lg font-bold text-lg">VOTE</button>
+        {tab === 'History' && (
+          <div className="bg-gray-900 rounded-2xl p-4 text-center">
+            <h2 className="text-2xl font-bold mb-4">📜 Battle History</h2>
+            <p className="text-gray-400">Total Battles: {battleCount}</p>
+            <p className="text-gray-400">Your Streak: 🔥{streak}</p>
           </div>
-        </div>
-
-        <div className="flex gap-4">
-          <button onClick={handleSkip} className="flex-1 bg-gray-800 py-3 rounded-lg font-bold text-lg">Skip →</button>
-          <button onClick={handleShare} className="flex-1 bg-gray-800 py-3 rounded-lg font-bold text-lg">Share 📤</button>
-        </div>
+        )}
 
         <div className="text-center mt-8 text-gray-500 text-sm border-t border-gray-800 pt-4">
-          © 2026 CrickClash. A Production by Anesh.
+          © 2026 CrickClash Created by ANESH. Founder & CEO
         </div>
       </div>
     </div>
   );
-                                                                }
+  }
