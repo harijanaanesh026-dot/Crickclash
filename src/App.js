@@ -139,7 +139,7 @@ export default function CrickClash() {
       btn.innerHTML = "⚡ +1";
       setTimeout(() => { btn.innerHTML = "VOTE"; }, 800);
     }
-    const player = players.find(p => p.id == playerId);
+    const player = players.find(p => p.id === playerId);
     await update(ref(db, `players/${playerId}`), { votes: (player.votes || 0) + 1 });
     setStats(prev => ({...prev, totalVotes: prev.totalVotes + 1, battles: prev.battles + 1}));
     setBattleNo(prev => prev + 1);
