@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { initializeApp } from 'firebase/app';
-import { getAuth, signInWithPopup, signOut, onAuthStateChanged, GoogleAuthProvider, FacebookAuthProvider, OAuthProvider } from 'firebase/auth';
+import { getAuth, signInWithPopup, signOut, onAuthStateChanged, GoogleAuthProvider } from 'firebase/auth';
 import { getDatabase, ref, set, update, onValue } from 'firebase/database';
 
 const firebaseConfig = {
@@ -17,71 +17,69 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
 const googleProvider = new GoogleAuthProvider();
-const facebookProvider = new FacebookAuthProvider();
-const appleProvider = new OAuthProvider('apple.com');
 
 // 100 PLAYERS LIST
 const ALL_PLAYERS = [
   // BATTERS 35
-  { name: 'Virat Kohli', role: 'BATTER', img: ' 🦁', votes: 0 }, { name: 'Rohit Sharma', role: 'BATTER', img: '💥', votes: 0 },
-  { name: 'KL Rahul', role: 'BATTER', img: '🔥', votes: 0 }, { name: 'Shubman Gill', role: 'BATTER', img: '⭐', votes: 0 },
-  { name: 'Suryakumar Yadav', role: 'BATTER', img: '360', votes: 0 }, { name: 'Shreyas Iyer', role: 'BATTER', img: '💪', votes: 0 },
-  { name: 'Rishabh Pant', role: 'BATTER', img: '⚡', votes: 0 }, { name: 'Ishan Kishan', role: 'BATTER', img: '🚀', votes: 0 },
-  { name: 'Sanju Samson', role: 'BATTER', img: '🎯', votes: 0 }, { name: 'Tilak Varma', role: 'BATTER', img: '🌱', votes: 0 },
-  { name: 'Yashasvi Jaiswal', role: 'BATTER', img: '⚡', votes: 0 }, { name: 'Prithvi Shaw', role: 'BATTER', img: '💥', votes: 0 },
-  { name: 'Devdutt Padikkal', role: 'BATTER', img: '⭐', votes: 0 }, { name: 'Ruturaj Gaikwad', role: 'BATTER', img: '🔥', votes: 0 },
-  { name: 'Abhishek Sharma', role: 'BATTER', img: '💣', votes: 0 }, { name: 'Nitish Rana', role: 'BATTER', img: '💪', votes: 0 },
-  { name: 'Manish Pandey', role: 'BATTER', img: '🎯', votes: 0 }, { name: 'Ambati Rayudu', role: 'BATTER', img: '🧠', votes: 0 },
-  { name: 'Suresh Raina', role: 'BATTER', img: '⚡', votes: 0 }, { name: 'Ajinkya Rahane', role: 'BATTER', img: '🎯', votes: 0 },
-  { name: 'Mayank Agarwal', role: 'BATTER', img: '💥', votes: 0 }, { name: 'Venkatesh Iyer', role: 'BATTER', img: '🔥', votes: 0 },
-  { name: 'Rinku Singh', role: 'BATTER', img: '💣', votes: 0 }, { name: 'Jitesh Sharma', role: 'BATTER', img: '⚡', votes: 0 },
-  { name: 'Rahul Tripathi', role: 'BATTER', img: '⭐', votes: 0 }, { name: 'Shivam Dube', role: 'BATTER', img: '💪', votes: 0 },
-  { name: 'Dhruv Jurel', role: 'BATTER', img: '🌱', votes: 0 }, { name: 'Sai Sudharsan', role: 'BATTER', img: '🎯', votes: 0 },
-  { name: 'Prabhsimran Singh', role: 'BATTER', img: '🚀', votes: 0 }, { name: 'Anuj Rawat', role: 'BATTER', img: '⚡', votes: 0 },
-  { name: 'Sakib Hussain', role: 'BATTER', img: '🔥', votes: 0 }, { name: 'Baba Indrajith', role: 'BATTER', img: '💪', votes: 0 },
-  { name: 'Rajat Patidar', role: 'BATTER', img: '⭐', votes: 0 }, { name: 'N Jagadeesan', role: 'BATTER', img: '🎯', votes: 0 },
-  { name: 'Vijay Shankar', role: 'BATTER', img: '💥', votes: 0 },
+  { name: 'Virat Kohli', role: 'BATTER', votes: 0 }, { name: 'Rohit Sharma', role: 'BATTER', votes: 0 },
+  { name: 'KL Rahul', role: 'BATTER', votes: 0 }, { name: 'Shubman Gill', role: 'BATTER', votes: 0 },
+  { name: 'Suryakumar Yadav', role: 'BATTER', votes: 0 }, { name: 'Shreyas Iyer', role: 'BATTER', votes: 0 },
+  { name: 'Rishabh Pant', role: 'BATTER', votes: 0 }, { name: 'Ishan Kishan', role: 'BATTER', votes: 0 },
+  { name: 'Sanju Samson', role: 'BATTER', votes: 0 }, { name: 'Tilak Varma', role: 'BATTER', votes: 0 },
+  { name: 'Yashasvi Jaiswal', role: 'BATTER', votes: 0 }, { name: 'Prithvi Shaw', role: 'BATTER', votes: 0 },
+  { name: 'Devdutt Padikkal', role: 'BATTER', votes: 0 }, { name: 'Ruturaj Gaikwad', role: 'BATTER', votes: 0 },
+  { name: 'Abhishek Sharma', role: 'BATTER', votes: 0 }, { name: 'Nitish Rana', role: 'BATTER', votes: 0 },
+  { name: 'Manish Pandey', role: 'BATTER', votes: 0 }, { name: 'Ambati Rayudu', role: 'BATTER', votes: 0 },
+  { name: 'Suresh Raina', role: 'BATTER', votes: 0 }, { name: 'Ajinkya Rahane', role: 'BATTER', votes: 0 },
+  { name: 'Mayank Agarwal', role: 'BATTER', votes: 0 }, { name: 'Venkatesh Iyer', role: 'BATTER', votes: 0 },
+  { name: 'Rinku Singh', role: 'BATTER', votes: 0 }, { name: 'Jitesh Sharma', role: 'BATTER', votes: 0 },
+  { name: 'Rahul Tripathi', role: 'BATTER', votes: 0 }, { name: 'Shivam Dube', role: 'BATTER', votes: 0 },
+  { name: 'Dhruv Jurel', role: 'BATTER', votes: 0 }, { name: 'Sai Sudharsan', role: 'BATTER', votes: 0 },
+  { name: 'Prabhsimran Singh', role: 'BATTER', votes: 0 }, { name: 'Anuj Rawat', role: 'BATTER', votes: 0 },
+  { name: 'Sakib Hussain', role: 'BATTER', votes: 0 }, { name: 'Baba Indrajith', role: 'BATTER', votes: 0 },
+  { name: 'Rajat Patidar', role: 'BATTER', votes: 0 }, { name: 'N Jagadeesan', role: 'BATTER', votes: 0 },
+  { name: 'Vijay Shankar', role: 'BATTER', votes: 0 },
 
   // BOWLERS 30
-  { name: 'Jasprit Bumrah', role: 'BOWLER', img: '🔥', votes: 0 }, { name: 'Mohammed Shami', role: 'BOWLER', img: '💀', votes: 0 },
-  { name: 'Mohammed Siraj', role: 'BOWLER', img: '🌪️', votes: 0 }, { name: 'Kuldeep Yadav', role: 'BOWLER', img: '🌀', votes: 0 },
-  { name: 'Yuzvendra Chahal', role: 'BOWLER', img: '🎯', votes: 0 }, { name: 'Arshdeep Singh', role: 'BOWLER', img: '⚡', votes: 0 },
-  { name: 'Bhuvneshwar Kumar', role: 'BOWLER', img: '🎯', votes: 0 }, { name: 'Deepak Chahar', role: 'BOWLER', img: '⚡', votes: 0 },
-  { name: 'T Natarajan', role: 'BOWLER', img: '🌪️', votes: 0 }, { name: 'Umran Malik', role: 'BOWLER', img: '💣', votes: 0 },
-  { name: 'Avesh Khan', role: 'BOWLER', img: '🔥', votes: 0 }, { name: 'Ravi Bishnoi', role: 'BOWLER', img: '🌀', votes: 0 },
-  { name: 'Varun Chakravarthy', role: 'BOWLER', img: '🎯', votes: 0 }, { name: 'Khaleel Ahmed', role: 'BOWLER', img: '⚡', votes: 0 },
-  { name: 'Shardul Thakur', role: 'BOWLER', img: '💪', votes: 0 }, { name: 'Prasidh Krishna', role: 'BOWLER', img: '🔥', votes: 0 },
-  { name: 'Harshal Patel', role: 'BOWLER', img: '🎯', votes: 0 }, { name: 'Jaydev Unadkat', role: 'BOWLER', img: '🌪️', votes: 0 },
-  { name: 'Chetan Sakariya', role: 'BOWLER', img: '⚡', votes: 0 }, { name: 'Mukesh Kumar', role: 'BOWLER', img: '🔥', votes: 0 },
-  { name: 'Akash Deep', role: 'BOWLER', img: '💀', votes: 0 }, { name: 'Kartik Tyagi', role: 'BOWLER', img: '🌪️', votes: 0 },
-  { name: 'Sandeep Sharma', role: 'BOWLER', img: '🎯', votes: 0 }, { name: 'Mohit Sharma', role: 'BOWLER', img: '💪', votes: 0 },
-  { name: 'Tushar Deshpande', role: 'BOWLER', img: '⚡', votes: 0 }, { name: 'Shivam Mavi', role: 'BOWLER', img: '🔥', votes: 0 },
-  { name: 'Ansh Patel', role: 'BOWLER', img: '🌪️', votes: 0 }, { name: 'Rahul Chahar', role: 'BOWLER', img: '🌀', votes: 0 },
-  { name: 'R Sai Kishore', role: 'BOWLER', img: '🎯', votes: 0 }, { name: 'Fazalhaq Farooqi', role: 'BOWLER', img: '⚡', votes: 0 },
+  { name: 'Jasprit Bumrah', role: 'BOWLER', votes: 0 }, { name: 'Mohammed Shami', role: 'BOWLER', votes: 0 },
+  { name: 'Mohammed Siraj', role: 'BOWLER', votes: 0 }, { name: 'Kuldeep Yadav', role: 'BOWLER', votes: 0 },
+  { name: 'Yuzvendra Chahal', role: 'BOWLER', votes: 0 }, { name: 'Arshdeep Singh', role: 'BOWLER', votes: 0 },
+  { name: 'Bhuvneshwar Kumar', role: 'BOWLER', votes: 0 }, { name: 'Deepak Chahar', role: 'BOWLER', votes: 0 },
+  { name: 'T Natarajan', role: 'BOWLER', votes: 0 }, { name: 'Umran Malik', role: 'BOWLER', votes: 0 },
+  { name: 'Avesh Khan', role: 'BOWLER', votes: 0 }, { name: 'Ravi Bishnoi', role: 'BOWLER', votes: 0 },
+  { name: 'Varun Chakravarthy', role: 'BOWLER', votes: 0 }, { name: 'Khaleel Ahmed', role: 'BOWLER', votes: 0 },
+  { name: 'Shardul Thakur', role: 'BOWLER', votes: 0 }, { name: 'Prasidh Krishna', role: 'BOWLER', votes: 0 },
+  { name: 'Harshal Patel', role: 'BOWLER', votes: 0 }, { name: 'Jaydev Unadkat', role: 'BOWLER', votes: 0 },
+  { name: 'Chetan Sakariya', role: 'BOWLER', votes: 0 }, { name: 'Mukesh Kumar', role: 'BOWLER', votes: 0 },
+  { name: 'Akash Deep', role: 'BOWLER', votes: 0 }, { name: 'Kartik Tyagi', role: 'BOWLER', votes: 0 },
+  { name: 'Sandeep Sharma', role: 'BOWLER', votes: 0 }, { name: 'Mohit Sharma', role: 'BOWLER', votes: 0 },
+  { name: 'Tushar Deshpande', role: 'BOWLER', votes: 0 }, { name: 'Shivam Mavi', role: 'BOWLER', votes: 0 },
+  { name: 'Ansh Patel', role: 'BOWLER', votes: 0 }, { name: 'Rahul Chahar', role: 'BOWLER', votes: 0 },
+  { name: 'R Sai Kishore', role: 'BOWLER', votes: 0 }, { name: 'Fazalhaq Farooqi', role: 'BOWLER', votes: 0 },
 
   // ALL-ROUNDERS 15
-  { name: 'Hardik Pandya', role: 'ALL-ROUNDER', img: '💥', votes: 0 }, { name: 'Ravindra Jadeja', role: 'ALL-ROUNDER', img: '⚡', votes: 0 },
-  { name: 'Axar Patel', role: 'ALL-ROUNDER', img: '🎯', votes: 0 }, { name: 'Washington Sundar', role: 'ALL-ROUNDER', img: '🧠', votes: 0 },
-  { name: 'Ravichandran Ashwin', role: 'ALL-ROUNDER', img: '🧠', votes: 0 }, { name: 'Krunal Pandya', role: 'ALL-ROUNDER', img: '💪', votes: 0 },
-  { name: 'Deepak Hooda', role: 'ALL-ROUNDER', img: '🔥', votes: 0 }, { name: 'Shahbaz Ahmed', role: 'ALL-ROUNDER', img: '⚡', votes: 0 },
-  { name: 'Vijay Shankar', role: 'ALL-ROUNDER', img: '💥', votes: 0 }, { name: 'Shivam Dube', role: 'ALL-ROUNDER', img: '💣', votes: 0 },
-  { name: 'Rajat Patidar', role: 'ALL-ROUNDER', img: '⭐', votes: 0 }, { name: 'Piyush Chawla', role: 'ALL-ROUNDER', img: '🎯', votes: 0 },
-  { name: 'Amit Mishra', role: 'ALL-ROUNDER', img: '🌀', votes: 0 }, { name: 'Jayant Yadav', role: 'ALL-ROUNDER', img: '🧠', votes: 0 },
-  { name: 'Gowtham', role: 'ALL-ROUNDER', img: '💪', votes: 0 },
+  { name: 'Hardik Pandya', role: 'ALL-ROUNDER', votes: 0 }, { name: 'Ravindra Jadeja', role: 'ALL-ROUNDER', votes: 0 },
+  { name: 'Axar Patel', role: 'ALL-ROUNDER', votes: 0 }, { name: 'Washington Sundar', role: 'ALL-ROUNDER', votes: 0 },
+  { name: 'Ravichandran Ashwin', role: 'ALL-ROUNDER', votes: 0 }, { name: 'Krunal Pandya', role: 'ALL-ROUNDER', votes: 0 },
+  { name: 'Deepak Hooda', role: 'ALL-ROUNDER', votes: 0 }, { name: 'Shahbaz Ahmed', role: 'ALL-ROUNDER', votes: 0 },
+  { name: 'Shivam Dube', role: 'ALL-ROUNDER', votes: 0 }, { name: 'Rajat Patidar', role: 'ALL-ROUNDER', votes: 0 },
+  { name: 'Piyush Chawla', role: 'ALL-ROUNDER', votes: 0 }, { name: 'Amit Mishra', role: 'ALL-ROUNDER', votes: 0 },
+  { name: 'Jayant Yadav', role: 'ALL-ROUNDER', votes: 0 }, { name: 'Gowtham', role: 'ALL-ROUNDER', votes: 0 },
+  { name: 'Kedar Jadhav', role: 'ALL-ROUNDER', votes: 0 },
 
   // KEEPERS 10
-  { name: 'MS Dhoni', role: 'KEEPER', img: '🐐', votes: 0 }, { name: 'Dinesh Karthik', role: 'KEEPER', img: '🧠', votes: 0 },
-  { name: 'KL Rahul', role: 'KEEPER', img: '🔥', votes: 0 }, { name: 'Rishabh Pant', role: 'KEEPER', img: '⚡', votes: 0 },
-  { name: 'Ishan Kishan', role: 'KEEPER', img: '🚀', votes: 0 }, { name: 'Sanju Samson', role: 'KEEPER', img: '🎯', votes: 0 },
-  { name: 'Jitesh Sharma', role: 'KEEPER', img: '⚡', votes: 0 }, { name: 'Dhruv Jurel', role: 'KEEPER', img: '🌱', votes: 0 },
-  { name: 'Prabhsimran Singh', role: 'KEEPER', img: '🚀', votes: 0 }, { name: 'Anuj Rawat', role: 'KEEPER', img: '⚡', votes: 0 },
+  { name: 'MS Dhoni', role: 'KEEPER', votes: 0 }, { name: 'Dinesh Karthik', role: 'KEEPER', votes: 0 },
+  { name: 'KL Rahul', role: 'KEEPER', votes: 0 }, { name: 'Rishabh Pant', role: 'KEEPER', votes: 0 },
+  { name: 'Ishan Kishan', role: 'KEEPER', votes: 0 }, { name: 'Sanju Samson', role: 'KEEPER', votes: 0 },
+  { name: 'Jitesh Sharma', role: 'KEEPER', votes: 0 }, { name: 'Dhruv Jurel', role: 'KEEPER', votes: 0 },
+  { name: 'Prabhsimran Singh', role: 'KEEPER', votes: 0 }, { name: 'Anuj Rawat', role: 'KEEPER', votes: 0 },
 
   // CAPTAINS 10
-  { name: 'Rohit Sharma', role: 'CAPTAIN', img: '💥', votes: 0 }, { name: 'MS Dhoni', role: 'CAPTAIN', img: '🐐', votes: 0 },
-  { name: 'Virat Kohli', role: 'CAPTAIN', img: '🐍', votes: 0 }, { name: 'KL Rahul', role: 'CAPTAIN', img: '🔥', votes: 0 },
-  { name: 'Hardik Pandya', role: 'CAPTAIN', img: '💥', votes: 0 }, { name: 'Shreyas Iyer', role: 'CAPTAIN', img: '💪', votes: 0 },
-  { name: 'Rishabh Pant', role: 'CAPTAIN', img: '⚡', votes: 0 }, { name: 'Sanju Samson', role: 'CAPTAIN', img: '🎯', votes: 0 },
-  { name: 'Ravindra Jadeja', role: 'CAPTAIN', img: '⚡', votes: 0 }, { name: 'Shubman Gill', role: 'CAPTAIN', img: '⭐', votes: 0 },
+  { name: 'Rohit Sharma', role: 'CAPTAIN', votes: 0 }, { name: 'MS Dhoni', role: 'CAPTAIN', votes: 0 },
+  { name: 'Virat Kohli', role: 'CAPTAIN', votes: 0 }, { name: 'KL Rahul', role: 'CAPTAIN', votes: 0 },
+  { name: 'Hardik Pandya', role: 'CAPTAIN', votes: 0 }, { name: 'Shreyas Iyer', role: 'CAPTAIN', votes: 0 },
+  { name: 'Rishabh Pant', role: 'CAPTAIN', votes: 0 }, { name: 'Sanju Samson', role: 'CAPTAIN', votes: 0 },
+  { name: 'Ravindra Jadeja', role: 'CAPTAIN', votes: 0 }, { name: 'Shubman Gill', role: 'CAPTAIN', votes: 0 },
 ];
 
 export default function CrickClash() {
@@ -110,7 +108,7 @@ export default function CrickClash() {
 
         const totalVotes = playersArray.reduce((sum, p) => sum + (p.votes || 0), 0);
         const topPlayer = playersArray.sort((a,b) => (b.votes||0) - (a.votes||0))[0];
-        
+
         setStats({
           totalVotes: totalVotes,
           battles: Math.floor(totalVotes / 2),
@@ -140,8 +138,6 @@ export default function CrickClash() {
   }
 
   const handleGoogleLogin = () => signInWithPopup(auth, googleProvider);
-  const handleFacebookLogin = () => signInWithPopup(auth, facebookProvider);
-  const handleAppleLogin = () => signInWithPopup(auth, appleProvider);
   const handleLogout = () => signOut(auth);
 
   const handleVote = async (playerId) => {
@@ -167,12 +163,11 @@ export default function CrickClash() {
     return (
       <div className="min-h-screen bg-gradient-to-b from-[#0a0e1a] to-[#1a1f2e] text-white flex-col items-center justify-center p-4">
         <div className="text-5xl mb-2">⚡</div>
-        <h1 className="text-5xl font-bold mb-2"><span className="text-white">Cricket</span><span className="text-orange-400"> Clash</span></h1>
+        <h1 className="text-5xl font-bold mb-1"><span className="text-white">Cricket</span><span className="text-orange-400"> Clash</span></h1>
+        <p className="text-sm text-gray-400 mb-2">A Production by ANESH</p>
         <p className="text-gray-400 mb-8">WHO DO YOU LIKE?</p>
-        
-        <button onClick={handleGoogleLogin} className="bg-white text-black w-full max-w-sm px-10 py-4 rounded-full font-bold text-lg mb-3">Sign In with Google</button>
-        <button onClick={handleFacebookLogin} className="bg-[#1877F2] text-white w-full max-w-sm px-10 py-4 rounded-full font-bold text-lg mb-3">Sign In with Facebook</button>
-        <button onClick={handleAppleLogin} className="bg-black text-white w-full max-w-sm px-10 py-4 rounded-full font-bold text-lg">Sign In with Apple</button>
+
+        <button onClick={handleGoogleLogin} className="bg-white text-black w-full max-w-sm px-10 py-4 rounded-full font-bold text-lg">Sign In with Google</button>
 
         <p className="text-xs text-gray-500 mt-10">© 2026 CrickClash A Production by ANESH</p>
       </div>
@@ -182,8 +177,11 @@ export default function CrickClash() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#0a0e1a] to-[#1a1f2e] text-white p-4">
       <div className="max-w-md mx-auto">
-        <div className="flex justify-between items-center mb-4">
-          <div className="flex items-center gap-2"><div className="text-3xl">⚡</div><h1 className="text-2xl font-bold"><span className="text-white">Cricket</span><span className="text-orange-400"> Clash</span></h1></div>
+        <div className="flex justify-between items-center mb-1">
+          <div>
+            <div className="flex items-center gap-2"><div className="text-3xl">⚡</div><h1 className="text-2xl font-bold"><span className="text-white">Cricket</span><span className="text-orange-400"> Clash</span></h1></div>
+            <p className="text-xs text-gray-400 ml-10">A Production by ANESH</p>
+          </div>
           <button onClick={handleLogout} className="bg-[#a8ff00] text-black px-5 py-2 rounded-full font-bold">Logout</button>
         </div>
 
@@ -214,23 +212,21 @@ export default function CrickClash() {
             {battle[0] && battle[1]? (
               <div className="flex items-center justify-center gap-3">
                 <div className="bg-gradient-to-b from-[#1e3a5f] to-[#0a0e1a] p-4 rounded-2xl w-1/2 text-center">
-                  <div className="text-8xl mb-4">{battle[0].img}</div>
                   <span className="bg-red-900 text-red-300 px-3 py-1 rounded-full text-xs font-bold">{battle[0].role}</span>
-                  <h3 className="text-xl font-bold mt-2">{battle[0].name}</h3>
+                  <h3 className="text-xl font-bold mt-3">{battle[0].name}</h3>
                   <p className="text-[#a8ff00] font-bold">{battle[0].votes || 0} votes</p>
                   <button onClick={() => handleVote(battle[0].id)} className="bg-[#a8ff00] w-full py-3 rounded-xl font-bold mt-2 text-black">VOTE</button>
                 </div>
                 <span className="text-3xl font-bold text-orange-400">VS</span>
                 <div className="bg-gradient-to-b from-[#4a1e5f] to-[#0a0e1a] p-4 rounded-2xl w-1/2 text-center">
-                  <div className="text-8xl mb-4">{battle[1].img}</div>
                   <span className="bg-blue-900 text-blue-300 px-3 py-1 rounded-full text-xs font-bold">{battle[1].role}</span>
-                  <h3 className="text-xl font-bold mt-2">{battle[1].name}</h3>
+                  <h3 className="text-xl font-bold mt-3">{battle[1].name}</h3>
                   <p className="text-[#a8ff00] font-bold">{battle[1].votes || 0} votes</p>
                   <button onClick={() => handleVote(battle[1].id)} className="bg-[#a8ff00] w-full py-3 rounded-xl font-bold mt-2 text-black">VOTE</button>
                 </div>
               </div>
             ) : <p className="text-center">Loading Players...</p>}
-            
+
             <div className="flex gap-4 mt-6">
               <button onClick={handleSkip} className="bg-gray-800 w-1/2 py-3 rounded-xl font-bold">Skip →</button>
               <button onClick={() => navigator.share({title: 'CrickClash', text: 'Vote for your favorite player!'})} className="bg-gray-800 w-1/2 py-3 rounded-xl font-bold">Share 📤</button>
@@ -243,7 +239,7 @@ export default function CrickClash() {
             <h2 className="text-2xl font-bold text-[#a8ff00] mb-4 text-center">🏆 Top 10 Players</h2>
             {players.sort((a,b) => (b.votes||0) - (a.votes||0)).slice(0,10).map((p,i) => (
               <div key={p.id} className="bg-gray-800 p-3 rounded-lg mb-2 flex justify-between">
-                <span>{i+1}. {p.img} {p.name}</span>
+                <span>{i+1}. {p.name}</span>
                 <span className="text-[#a8ff00]">{p.votes||0} votes</span>
               </div>
             ))}
@@ -262,4 +258,4 @@ export default function CrickClash() {
       </div>
     </div>
   );
-    }
+  }
