@@ -179,8 +179,8 @@ export default function CrickClash() {
       <div className="max-w-md mx-auto">
         <div className="flex justify-between items-center mb-1">
           <div>
-            <div className="flex items-center gap-2"><div className="text-3xl">⚡</div><h1 className="text-2xl font-bold"><span className="text-white">Cricket</span><span className="text-orange-400"> Clash</span></h1></div>
-            <p className="text-xs text-gray-400 ml-10">A Production by ANESH</p>
+            <div className="flex items-center gap-2"><div className="text-3xl"></div><h1 className="text-2xl font-bold"><span className="text-white">Crick</span><span className="text-orange-400">Clash</span></h1></div>
+            <p className="text-xs text-gray-400 ml-10">By ANESH</p>
           </div>
           <button onClick={handleLogout} className="bg-[#a8ff00] text-black px-5 py-2 rounded-full font-bold">Logout</button>
         </div>
