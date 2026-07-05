@@ -1,20 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { initializeApp } from 'firebase/app';
-import {
-  getAuth,
-  signInWithPopup,
-  signOut,
-  onAuthStateChanged,
-  GoogleAuthProvider
-} from 'firebase/auth';
-import {
-  getDatabase,
-  ref,
-  runTransaction,
-  onValue
-} from 'firebase/database';
+import { getAuth, signInWithPopup, signOut, onAuthStateChanged, GoogleAuthProvider } from 'firebase/auth';
+import { getDatabase, ref, runTransaction, onValue } from 'firebase/database';
 
-// ⚠️ NEE REAL FIREBASE CONFIG IKKADA PETTU
 const firebaseConfig = {
   apiKey: "AIzaSyD9BfrAh8djKof1Bu6FLG0Fz7X10NCdm6g",
   authDomain: "crickclash-d30fe.firebaseapp.com",
@@ -58,34 +46,6 @@ const INDIA_PLAYERS = [
   { name: 'Khaleel Ahmed', role: 'BOWLER', img: '🌊' },
 ];
 
-//const WORLD_PLAYERS = [
-  { name: 'Babar Azam', role: 'BATTER', img: '👑' }, { name: 'Pat Cummins', role: 'BOWLER', img: '🎯' },
-  { name: 'Ben Stokes', role: 'ALL-ROUNDER', img: '⚡' }, { name: 'Jos Buttler', role: 'BATTER', img: '💥' },
-  { name: 'Kane Williamson', role: 'BATTER', img: '🧠' }, { name: 'Rashid Khan', role: 'BOWLER', img: '🌀' },
-  { name: 'David Warner', role: 'BATTER', img: '💣' }, { name: 'Steve Smith', role: 'BATTER', img: '📚' },
-  { name: 'Glenn Maxwell', role: 'ALL-ROUNDER', img: '🎪' }, { name: 'Mitchell Starc', role: 'BOWLER', img: '🏹' },
-  { name: 'Joe Root', role: 'BATTER', img: '🌳' }, { name: 'Jofra Archer', role: 'BOWLER', img: '🏹' },
-  { name: 'Jonny Bairstow', role: 'BATTER', img: '🔥' }, { name: 'Shaheen Afridi', role: 'BOWLER', img: '🦅' },
-  { name: 'Mohammad Rizwan', role: 'BATTER', img: '🧤' }, { name: 'Shadab Khan', role: 'ALL-ROUNDER', img: '⭐' },
-  { name: 'Quinton de Kock', role: 'BATTER', img: '🧤' }, { name: 'Kagiso Rabada', role: 'BOWLER', img: '🦁' },
-  { name: 'Anrich Nortje', role: 'BOWLER', img: '🚄' }, { name: 'Trent Boult', role: 'BOWLER', img: '🌊' },
-  { name: 'Devon Conway', role: 'BATTER', img: '🏗️' }, { name: 'Glenn Phillips', role: 'ALL-ROUNDER', img: '⚡' },
-  { name: 'Angelo Mathews', role: 'ALL-ROUNDER', img: '🛡️' }, { name: 'Wanindu Hasaranga', role: 'ALL-ROUNDER', img: '🌀' },
-  { name: 'Shakib Al Hasan', role: 'ALL-ROUNDER', img: '👑' }, { name: 'Litton Das', role: 'BATTER', img: '📖' },
-  { name: 'Taskin Ahmed', role: 'BOWLER', img: '💪' }, { name: 'Nicholas Pooran', role: 'BATTER', img: '💣' },
-  { name: 'Andre Russell', role: 'ALL-ROUNDER', img: '🏋️' }, { name: 'Sunil Narine', role: 'ALL-ROUNDER', img: '🎭' },
-  { name: 'Travis Head', role: 'BATTER', img: '🎯' }, { name: 'Marcus Stoinis', role: 'ALL-ROUNDER', img: '🔨' },
-  { name: 'Adam Zampa', role: 'BOWLER', img: '🕸️' }, { name: 'Josh Hazlewood', role: 'BOWLER', img: '🧱' },
-  { name: 'Heinrich Klaasen', role: 'BATTER', img: '💥' }, { name: 'Aiden Markram', role: 'BATTER', img: '⭐' },
-  { name: 'Tabraiz Shamsi', role: 'BOWLER', img: '🎩' }, { name: 'Harry Brook', role: 'BATTER', img: '🌟' },
-  { name: 'Mark Wood', role: 'BOWLER', img: '🪓' }, { name: 'Sam Curran', role: 'ALL-ROUNDER', img: '⚡' },
-  { name: 'Fakhar Zaman', role: 'BATTER', img: '🌪️' }, { name: 'Haris Rauf', role: 'BOWLER', img: '🚀' },
-  { name: 'Naseem Shah', role: 'BOWLER', img: '🌟' }, { name: 'Martin Guptill', role: 'BATTER', img: '🏹' },
-  { name: 'Tim Southee', role: 'BOWLER', img: '👴' }, { name: 'Daryl Mitchell', role: 'ALL-ROUNDER', img: '🛠️' },
-  { name: 'Pathum Nissanka', role: 'BATTER', img: '🌸' }, { name: 'Maheesh Theekshana', role: 'BOWLER', img: '🌀' },
-  { name: 'Towhid Hridoy', role: 'BATTER', img: '❤️' },
-];
-
 export default function CrickClash() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -113,7 +73,7 @@ export default function CrickClash() {
     return () => { unsubVotes(); unsubCount(); };
   }, []);
 
-  const players = INDIA_PLAYERS; // Direct INDIA pettesam
+  const players = INDIA_PLAYERS;
 
   useEffect(() => {
     if (players.length >= 2) {
@@ -124,7 +84,7 @@ export default function CrickClash() {
       setPlayer1(shuffled[0]);
       setPlayer2(shuffled[1]);
     }
-  }, [players, battleCount, filter]); // mode teesesam
+  }, [players, battleCount, filter]);
 
   const handleLogin = async () => {
     try { const result = await signInWithPopup(auth, provider); setUser(result.user); }
@@ -232,4 +192,4 @@ export default function CrickClash() {
       </div>
     </div>
   );
-    }
+                                                                }
