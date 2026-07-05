@@ -163,7 +163,7 @@ export default function CrickClash() {
     return (
       <div className="min-h-screen bg-gradient-to-b from-[#0a0e1a] to-[#1a1f2e] text-white flex-col items-center justify-center p-4">
         <div className="text-5xl mb-2"></div>
-        <h1 className="text-5xl font-bold mb-1"><span className="text-white">Crick</span><span className="text-orange-400"> Clash</span></h1>
+        <h1 className="text-5xl font-bold mb-1"><span className="text-white">Crick</span><span className="text-orange-400">Clash</span></h1>
         <p className="text-sm text-gray-400 mb-2">By ANESH</p>
         <p className="text-gray-400 mb-8"></p>
 
@@ -204,7 +204,7 @@ export default function CrickClash() {
             <h2 className="text-center text-4xl font-bold mb-4">Battle <span className="text-[#a8ff00]">{battleNo}</span></h2>
 
             <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
-              {['Any', 'BATTER', 'BOWLER', 'ALL-ROUNDER', 'KEEPER', 'CAPTAIN'].map(role => (
+              {['ANY', 'BATTER', 'BOWLER', 'ALL-ROUNDER', 'KEEPER', 'CAPTAIN'].map(role => (
                 <button key={role} onClick={() => {setFilter(role); generateBattle(players, role)}} className={`px-4 py-2 rounded-full font-bold whitespace-nowrap ${filter === role? 'bg-[#a8ff00] text-black' : 'bg-gray-800'}`}>{role}</button>
               ))}
             </div>
