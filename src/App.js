@@ -136,7 +136,7 @@ export default function CrickClash() {
     generateBattle(players, filter);
 
     setTimeout(() => {
-      if(confirm("Share cheddama?")){
+      if(window.confirm("Share cheddama?")){
         navigator.share({
           title: "CrickClash by Anesh",
           text: "Nenu " + player.name + " ki vote chesanu! Nu kuda chey 🔥",
