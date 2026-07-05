@@ -153,7 +153,7 @@ export default function CrickClash() {
         <h1 className="text-center text-4xl font-bold mb-4">Battle <span className="text-green-400">{battleCount + 1}</span></h1>
 
         <div className="flex gap-2 mb-6">
-          {['Any', 'BATTER', 'BOWLER', 'ALL-ROUNDER'].map(f => (
+          {['Any', 'BATTER', 'BOWLER', 'ALL-ROUNDER', 'Keeper','Captain'].map(f => (
             <button key={f} onClick={() => setFilter(f)}
               className={`flex-1 px-4 py-2 rounded-full font-bold ${filter===f?'bg-green-500 text-black':'bg-gray-800'}`}>
               {f}
