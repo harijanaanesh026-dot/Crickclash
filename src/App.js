@@ -18,7 +18,6 @@ const auth = getAuth(app);
 const db = getDatabase(app);
 const googleProvider = new GoogleAuthProvider();
 
-// 100 PLAYERS LIST
 const ALL_PLAYERS = [
   { name: 'Virat Kohli', role: 'BATTER', votes: 0 }, { name: 'Rohit Sharma', role: 'BATTER', votes: 0 },
   { name: 'KL Rahul', role: 'BATTER', votes: 0 }, { name: 'Shubman Gill', role: 'BATTER', votes: 0 },
@@ -131,7 +130,13 @@ export default function CrickClash() {
   }
 
   const handleGoogleLogin = () => signInWithPopup(auth, googleProvider);
-  const handleLogout = () => signOut(auth);
+
+  const handleLogout = () => {
+    const confirmLogout = window.confirm("Are you sure you want to logout?");
+    if(confirmLogout){
+      signOut(auth);
+    }
+  }
 
   const handleVote = async (playerId) => {
     const player = players.find(p => p.id === playerId);
@@ -155,10 +160,10 @@ export default function CrickClash() {
   if(!user){
     return (
       <div className="min-h-screen bg-gradient-to-b from-[#0a0e1a] to-[#1a1f2e] text-white flex-col items-center justify-center p-4">
-        <div className="text-5xl mb-2"></div>
-        <h1 className="text-5xl font-bold mb-1"><span className="text-white">Crick</span><span className="text-orange-400"> Clash</span></h1>
+        <div className="text-5xl mb-2">⚡</div>
+        <h1 className="text-5xl font-bold mb-1"><span className="text-white">Cricket</span><span className="text-orange-400"> Clash</span></h1>
         <p className="text-sm text-gray-400 mb-2">ANESH Innovations</p>
-        <p className="text-gray-400 mb-8">The Ultimate Cricket Voting Plotform</p>
+        <p className="text-gray-400 mb-8">WHO DO YOU LIKE?</p>
         <button onClick={handleGoogleLogin} className="bg-white text-black w-full max-w-sm px-10 py-4 rounded-full font-bold text-lg">Sign In with Google</button>
         <p className="text-xs text-gray-500 mt-10">© 2026 CrickClash A Production by ANESH</p>
       </div>
@@ -170,16 +175,14 @@ export default function CrickClash() {
       <div className="max-w-md mx-auto">
         <div className="flex justify-between items-center mb-1">
           <div>
-            <div className="flex items-center gap-2"><div className="text-3xl"></div><h1 className="text-2xl font-bold"><span className="text-white">Crick</span><span className="text-orange-400">Clash</span></h1></div>
+            <div className="flex items-center gap-2"><div className="text-3xl">⚡</div><h1 className="text-2xl font-bold"><span className="text-white">Crick</span><span className="text-orange-400"> Clash</span></h1></div>
             <p className="text-xs text-gray-400 ml-10">ANESH Innovations</p>
           </div>
 
-          {/* USER EMAIL + PIC + LOGOUT */}
-          <div onClick={handleLogout} className="flex items-center gap-2 cursor-pointer bg-gray-800 px-3 py-2 rounded-full">
-            <img src={user.photoURL} alt="profile" className="w-8 h-8 rounded-full"/>
-            <div className="text-right">
-              <p className="text-xs text-gray-300">{user.email}</p>
-              <p className="text-[10px] text-red-400">Logout</p>
+          {/* SMALL AVATAR WITH INITIAL */}
+          <div onClick={handleLogout} className="flex items-center gap-2 cursor-pointer">
+            <div className="w-9 h-9 rounded-full bg-[#a8ff00] text-black font-bold flex items-center justify-center text-lg">
+              {user.email.charAt(0).toUpperCase()}
             </div>
           </div>
         </div>
@@ -263,4 +266,4 @@ export default function CrickClash() {
       </div>
     </div>
   );
-  }
+   }
