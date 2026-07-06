@@ -4,131 +4,74 @@ import { getAuth, signInWithPopup, signOut, onAuthStateChanged, GoogleAuthProvid
 import { getDatabase, ref, set, update, onValue, push } from 'firebase/database';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyD9BfrAh8djKof1Bu6FLG0Fz7X10NCdm6g",
+  apiKey: "AIzaSyD98FrA8bdJko1fBu6LFG0Fz7X10NCdMog",
   authDomain: "crickclash-d30fe.firebaseapp.com",
   databaseURL: "https://crickclash-d30fe-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "crickclash-d30fe",
   storageBucket: "crickclash-d30fe.firebasestorage.app",
   messagingSenderId: "595133866613",
-  appId: "1:595133866613:web:dda3f0509462310cb74e3c"
+  appId: "1:595133866613:web:dda3f0500462310cb74e3c"
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
 const googleProvider = new GoogleAuthProvider();
-const DAILY_VOTE_LIMIT = 1;
+const DAILY_VOTE_LIMIT = 5;
 
 const ALL_PLAYERS = [
-  // BATTERS - 35
-  { name: 'Virat Kohli', role: 'BATTER', votes: 0 },
-  { name: 'Sachin Tendulkar', role: 'BATTER', votes: 0 },
-  { name: 'Suryakumar Yadav', role: 'BATTER', votes: 0 },
-  { name: 'Yashasvi Jaiswal', role: 'BATTER', votes: 0 },
-  { name: 'Abhishek Sharma', role: 'BATTER', votes: 0 },
-  { name: 'Rinku Singh', role: 'BATTER', votes: 0 },
-  { name: 'KL Rahul', role: 'BATTER', votes: 0 },
-  { name: 'Ajinkya Rahane', role: 'BATTER', votes: 0 },
-  { name: 'Suresh Raina', role: 'BATTER', votes: 0 },
-  { name: 'Gautam Gambhir', role: 'BATTER', votes: 0 },
-  { name: 'Cheteshwar Pujara', role: 'BATTER', votes: 0 },
-  { name: 'Rahul Dravid', role: 'BATTER', votes: 0 },
-  { name: 'Sourav Ganguly', role: 'BATTER', votes: 0 },
-  { name: 'Mayank Agarwal', role: 'BATTER', votes: 0 },
-  { name: 'Rahul Tripathi', role: 'BATTER', votes: 0 },
-  { name: 'Hanuma Vihari', role: 'BATTER', votes: 0 },
-  { name: 'Shubman Gill', role: 'BATTER', votes: 0 },
-  { name: 'Shreyas Iyer', role: 'BATTER', votes: 0 },
-  { name: 'Ruturaj Gaikwad', role: 'BATTER', votes: 0 },
-  { name: 'Tilak Varma', role: 'BATTER', votes: 0 },
-  { name: 'Sai Sudharsan', role: 'BATTER', votes: 0 },
-  { name: 'Manish Pandey', role: 'BATTER', votes: 0 },
-  { name: 'Vaibhav Suryavanshi', role: 'BATTER', votes: 0 },
+  { name: 'Virat Kohli', role: 'BATTER', votes: 0 }, { name: 'Rohit Sharma', role: 'BATTER', votes: 0 },
+  { name: 'Sachin Tendulkar', role: 'BATTER', votes: 0 }, { name: 'Shubman Gill', role: 'BATTER', votes: 0 },
+  { name: 'Suryakumar Yadav', role: 'BATTER', votes: 0 }, { name: 'Shreyas Iyer', role: 'BATTER', votes: 0 },
+  { name: 'Yashasvi Jaiswal', role: 'BATTER', votes: 0 }, { name: 'Ruturaj Gaikwad', role: 'BATTER', votes: 0 },
+  { name: 'Abhishek Sharma', role: 'BATTER', votes: 0 }, { name: 'Tilak Varma', role: 'BATTER', votes: 0 },
+  { name: 'Rinku Singh', role: 'BATTER', votes: 0 }, { name: 'Sai Sudharsan', role: 'BATTER', votes: 0 },
+  { name: 'KL Rahul', role: 'BATTER', votes: 0 }, { name: 'Manish Pandey', role: 'BATTER', votes: 0 },
+  { name: 'Ajinkya Rahane', role: 'BATTER', votes: 0 }, { name: 'Prithvi Shaw', role: 'BATTER', votes: 0 },
+  { name: 'Suresh Raina', role: 'BATTER', votes: 0 }, { name: 'Yuvraj Singh', role: 'BATTER', votes: 0 },
+  { name: 'Gautam Gambhir', role: 'BATTER', votes: 0 }, { name: 'Virender Sehwag', role: 'BATTER', votes: 0 },
+  { name: 'Cheteshwar Pujara', role: 'BATTER', votes: 0 }, { name: 'Sarfaraz Khan', role: 'BATTER', votes: 0 },
+  { name: 'Rahul Dravid', role: 'BATTER', votes: 0 }, { name: 'VVS Laxman', role: 'BATTER', votes: 0 },
+  { name: 'Sourav Ganguly', role: 'BATTER', votes: 0 }, { name: 'Ambati Rayudu', role: 'BATTER', votes: 0 },
+  { name: 'Mayank Agarwal', role: 'BATTER', votes: 0 }, { name: 'Devdutt Padikkal', role: 'BATTER', votes: 0 },
+  { name: 'Rahul Tripathi', role: 'BATTER', votes: 0 }, { name: 'Karun Nair', role: 'BATTER', votes: 0 },
+  { name: 'Hanuma Vihari', role: 'BATTER', votes: 0 }, { name: 'Nitish Rana', role: 'BATTER', votes: 0 },
+  { name: 'Anmolpreet Singh', role: 'BATTER', votes: 0 }, { name: 'Mandeep Singh', role: 'BATTER', votes: 0 },
   { name: 'Baba Indrajith', role: 'BATTER', votes: 0 },
-  { name: 'Prithvi Shaw', role: 'BATTER', votes: 0 },
-  { name: 'Devdutt Padikkal', role: 'BATTER', votes: 0 },
-  { name: 'Sarfaraz Khan', role: 'BATTER', votes: 0 },
-  { name: 'Priyank Panchal', role: 'BATTER', votes: 0 },
-  { name: 'Abhimanyu Easwaran', role: 'BATTER', votes: 0 },
-  { name: 'Ravi Teja', role: 'BATTER', votes: 0 },
-  { name: 'Anmolpreet Singh', role: 'BATTER', votes: 0 },
-  { name: 'Venkatesh Iyer', role: 'BATTER', votes: 0 },
-  { name: 'Nitish Rana', role: 'BATTER', votes: 0 },
-  { name: 'Rajat Patidar', role: 'BATTER', votes: 0 },
-  { name: 'Shashank Singh', role: 'BATTER', votes: 0 },
-
-  // BOWLERS - 25
-  { name: 'Jasprit Bumrah', role: 'BOWLER', votes: 0 },
-  { name: 'Mohammed Shami', role: 'BOWLER', votes: 0 },
-  { name: 'Arshdeep Singh', role: 'BOWLER', votes: 0 },
-  { name: 'Mohammed Siraj', role: 'BOWLER', votes: 0 },
-  { name: 'Bhuvneshwar Kumar', role: 'BOWLER', votes: 0 },
-  { name: 'Yuzvendra Chahal', role: 'BOWLER', votes: 0 },
-  { name: 'Kuldeep Yadav', role: 'BOWLER', votes: 0 },
-  { name: 'Ravichandran Ashwin', role: 'BOWLER', votes: 0 },
-  { name: 'Umesh Yadav', role: 'BOWLER', votes: 0 },
-  { name: 'Shardul Thakur', role: 'BOWLER', votes: 0 },
-  { name: 'Deepak Chahar', role: 'BOWLER', votes: 0 },
-  { name: 'T Natarajan', role: 'BOWLER', votes: 0 },
-  { name: 'Avesh Khan', role: 'BOWLER', votes: 0 },
-  { name: 'Harshal Patel', role: 'BOWLER', votes: 0 },
-  { name: 'Prasidh Krishna', role: 'BOWLER', votes: 0 },
-  { name: 'Khaleel Ahmed', role: 'BOWLER', votes: 0 },
-  { name: 'Jaydev Unadkat', role: 'BOWLER', votes: 0 },
-  { name: 'Ankit Rajpoot', role: 'BOWLER', votes: 0 },
-  { name: 'Sandeep Sharma', role: 'BOWLER', votes: 0 },
-  { name: 'Varun Chakravarthy', role: 'BOWLER', votes: 0 },
-  { name: 'Ravi Bishnoi', role: 'BOWLER', votes: 0 },
-  { name: 'Mukesh Kumar', role: 'BOWLER', votes: 0 },
-  { name: 'Umran Malik', role: 'BOWLER', votes: 0 },
-  { name: 'Akash Deep', role: 'BOWLER', votes: 0 },
-  { name: 'Chetan Sakariya', role: 'BOWLER', votes: 0 },
-
-  // ALL-ROUNDERS - 15
-  { name: 'Hardik Pandya', role: 'ALL-ROUNDER', votes: 0 },
-  { name: 'Ravindra Jadeja', role: 'ALL-ROUNDER', votes: 0 },
-  { name: 'Washington Sundar', role: 'ALL-ROUNDER', votes: 0 },
-  { name: 'Axar Patel', role: 'ALL-ROUNDER', votes: 0 },
-  { name: 'Krunal Pandya', role: 'ALL-ROUNDER', votes: 0 },
-  { name: 'Shahbaz Ahmed', role: 'ALL-ROUNDER', votes: 0 },
-  { name: 'Irfan Pathan', role: 'ALL-ROUNDER', votes: 0 },
-  { name: 'Yusuf Pathan', role: 'ALL-ROUNDER', votes: 0 },
-  { name: 'Deepak Hooda', role: 'ALL-ROUNDER', votes: 0 },
-  { name: 'Shivam Dube', role: 'ALL-ROUNDER', votes: 0 },
-  { name: 'Lalit Yadav', role: 'ALL-ROUNDER', votes: 0 },
-  { name: 'Abhinav Manohar', role: 'ALL-ROUNDER', votes: 0 },
-  { name: 'Anukul Roy', role: 'ALL-ROUNDER', votes: 0 },
-  { name: 'Kedar Jadhav', role: 'ALL-ROUNDER', votes: 0 },
-  { name: 'Vijay Shankar', role: 'ALL-ROUNDER', votes: 0 },
-
-  // WICKET KEEPERS - 15
-  { name: 'MS Dhoni', role: 'KEEPER', votes: 0 },
-  { name: 'Rishabh Pant', role: 'KEEPER', votes: 0 },
-  { name: 'Ishan Kishan', role: 'KEEPER', votes: 0 },
-  { name: 'Jitesh Sharma', role: 'KEEPER', votes: 0 },
-  { name: 'Prabhsimran Singh', role: 'KEEPER', votes: 0 },
-  { name: 'N Jagadeesan', role: 'KEEPER', votes: 0 },
-  { name: 'Wriddhiman Saha', role: 'KEEPER', votes: 0 },
-  { name: 'Sanju Samson', role: 'KEEPER', votes: 0 },
-  { name: 'Dinesh Karthik', role: 'KEEPER', votes: 0 },
-  { name: 'Parthiv Patel', role: 'KEEPER', votes: 0 },
-  { name: 'Robin Uthappa', role: 'KEEPER', votes: 0 },
-  { name: 'Upendra Yadav', role: 'KEEPER', votes: 0 },
-  { name: 'Vishnu Vinod', role: 'KEEPER', votes: 0 },
-  { name: 'Anuj Rawat', role: 'KEEPER', votes: 0 },
-  { name: 'Kona Bharat', role: 'KEEPER', votes: 0 },
-
-  // CAPTAINS - 10
-  { name: 'Rohit Sharma', role: 'CAPTAIN', votes: 0 },
-  { name: 'MS Dhoni', role: 'CAPTAIN', votes: 0 },
-  { name: 'Virat Kohli', role: 'CAPTAIN', votes: 0 },
-  { name: 'Hardik Pandya', role: 'CAPTAIN', votes: 0 },
-  { name: 'KL Rahul', role: 'CAPTAIN', votes: 0 },
-  { name: 'Shreyas Iyer', role: 'CAPTAIN', votes: 0 },
-  { name: 'Rishabh Pant', role: 'CAPTAIN', votes: 0 },
-  { name: 'Sanju Samson', role: 'CAPTAIN', votes: 0 },
-  { name: 'Shubman Gill', role: 'CAPTAIN', votes: 0 },
-  { name: 'Ravindra Jadeja', role: 'CAPTAIN', votes: 0 }
+  { name: 'Jasprit Bumrah', role: 'BOWLER', votes: 0 }, { name: 'Mohammed Shami', role: 'BOWLER', votes: 0 },
+  { name: 'Mohammed Siraj', role: 'BOWLER', votes: 0 }, { name: 'Arshdeep Singh', role: 'BOWLER', votes: 0 },
+  { name: 'Kuldeep Yadav', role: 'BOWLER', votes: 0 }, { name: 'Yuzvendra Chahal', role: 'BOWLER', votes: 0 },
+  { name: 'Bhuvneshwar Kumar', role: 'BOWLER', votes: 0 }, { name: 'Deepak Chahar', role: 'BOWLER', votes: 0 },
+  { name: 'Umran Malik', role: 'BOWLER', votes: 0 }, { name: 'Avesh Khan', role: 'BOWLER', votes: 0 },
+  { name: 'Ravi Bishnoi', role: 'BOWLER', votes: 0 }, { name: 'Varun Chakravarthy', role: 'BOWLER', votes: 0 },
+  { name: 'Prasidh Krishna', role: 'BOWLER', votes: 0 }, { name: 'Harshal Patel', role: 'BOWLER', votes: 0 },
+  { name: 'T Natarajan', role: 'BOWLER', votes: 0 }, { name: 'Mukesh Kumar', role: 'BOWLER', votes: 0 },
+  { name: 'Zaheer Khan', role: 'BOWLER', votes: 0 }, { name: 'Irfan Pathan', role: 'BOWLER', votes: 0 },
+  { name: 'Ashish Nehra', role: 'BOWLER', votes: 0 }, { name: 'Anil Kumble', role: 'BOWLER', votes: 0 },
+  { name: 'Harbhajan Singh', role: 'BOWLER', votes: 0 }, { name: 'Javagal Srinath', role: 'BOWLER', votes: 0 },
+  { name: 'Munaf Patel', role: 'BOWLER', votes: 0 }, { name: 'RP Singh', role: 'BOWLER', votes: 0 },
+  { name: 'R Sai Kishore', role: 'BOWLER', votes: 0 },
+  { name: 'Hardik Pandya', role: 'ALL-ROUNDER', votes: 0 }, { name: 'Ravindra Jadeja', role: 'ALL-ROUNDER', votes: 0 },
+  { name: 'Axar Patel', role: 'ALL-ROUNDER', votes: 0 }, { name: 'Washington Sundar', role: 'ALL-ROUNDER', votes: 0 },
+  { name: 'Ravichandran Ashwin', role: 'ALL-ROUNDER', votes: 0 }, { name: 'Krunal Pandya', role: 'ALL-ROUNDER', votes: 0 },
+  { name: 'Deepak Hooda', role: 'ALL-ROUNDER', votes: 0 }, { name: 'Shahbaz Ahmed', role: 'ALL-ROUNDER', votes: 0 },
+  { name: 'Shivam Dube', role: 'ALL-ROUNDER', votes: 0 }, { name: 'Venkatesh Iyer', role: 'ALL-ROUNDER', votes: 0 },
+  { name: 'Kapil Dev', role: 'ALL-ROUNDER', votes: 0 }, { name: 'Ravi Shastri', role: 'ALL-ROUNDER', votes: 0 },
+  { name: 'Stuart Binny', role: 'ALL-ROUNDER', votes: 0 }, { name: 'Piyush Chawla', role: 'ALL-ROUNDER', votes: 0 },
+  { name: 'Amit Mishra', role: 'ALL-ROUNDER', votes: 0 },
+  { name: 'MS Dhoni', role: 'KEEPER', votes: 0 }, { name: 'Rishabh Pant', role: 'KEEPER', votes: 0 },
+  { name: 'Dinesh Karthik', role: 'KEEPER', votes: 0 }, { name: 'Ishan Kishan', role: 'KEEPER', votes: 0 },
+  { name: 'Sanju Samson', role: 'KEEPER', votes: 0 }, { name: 'Jitesh Sharma', role: 'KEEPER', votes: 0 },
+  { name: 'Dhruv Jurel', role: 'KEEPER', votes: 0 }, { name: 'Prabhsimran Singh', role: 'KEEPER', votes: 0 },
+  { name: 'Anuj Rawat', role: 'KEEPER', votes: 0 }, { name: 'N Jagadeesan', role: 'KEEPER', votes: 0 },
+  { name: 'Kiran More', role: 'KEEPER', votes: 0 }, { name: 'Nayan Mongia', role: 'KEEPER', votes: 0 },
+  { name: 'Rohit Sharma', role: 'CAPTAIN', votes: 0 }, { name: 'Virat Kohli', role: 'CAPTAIN', votes: 0 },
+  { name: 'MS Dhoni', role: 'CAPTAIN', votes: 0 }, { name: 'Sachin Tendulkar', role: 'CAPTAIN', votes: 0 },
+  { name: 'Sourav Ganguly', role: 'CAPTAIN', votes: 0 }, { name: 'KL Rahul', role: 'CAPTAIN', votes: 0 },
+  { name: 'Hardik Pandya', role: 'CAPTAIN', votes: 0 }, { name: 'Shreyas Iyer', role: 'CAPTAIN', votes: 0 },
+  { name: 'Shubman Gill', role: 'CAPTAIN', votes: 0 }, { name: 'Rishabh Pant', role: 'CAPTAIN', votes: 0 },
+  { name: 'Ravindra Jadeja', role: 'CAPTAIN', votes: 0 }, { name: 'Ajinkya Rahane', role: 'CAPTAIN', votes: 0 },
+  { name: 'Kapil Dev', role: 'CAPTAIN', votes: 0 },
 ];
 
 export default function CrickClash() {
@@ -268,7 +211,7 @@ export default function CrickClash() {
   if(!user){
     return (
       <div className="min-h-screen bg-gradient-to-b from-[#0a0e1a] to-[#1a1f2e] text-white flex-col items-center justify-center p-6">
-        <div className="text-center mb-10 mt-20"><div className="text-5xl mb-3"></div><h1 className="text-4xl font-bold mb-2"><span className="text-white">Crick</span><span className="text-orange-400">Clash</span></h1><p className="text-sm text-gray-400">ANESH Innovation</p></div>
+        <div className="text-center mb-10 mt-20"><div className="text-5xl mb-3">⚡</div><h1 className="text-4xl font-bold mb-2"><span className="text-white">Crick</span><span className="text-orange-400">Clash</span></h1><p className="text-sm text-gray-400">ANESH Innovation</p></div>
         <button onClick={handleGoogleLogin} className="bg-white text-black w-[85%] max-w-xs px-6 py-3 rounded-full font-semibold flex items-center justify-center gap-2 mb-16">
           <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="google" className="w-5 h-5"/>Sign In with Google
         </button>
@@ -279,7 +222,7 @@ export default function CrickClash() {
 
   const totalVotes = players.reduce((sum, p) => sum + (p.votes || 0), 0);
   const topPlayer = [...players].sort((a,b) => (b.votes||0) - (a.votes||0))[0];
-  const votesLeft = Math.max(0, DAILY_VOTE_LIMIT - userVotesToday);
+  const votesLeft = DAILY_VOTE_LIMIT - votesToday;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#0a0e1a] to-[#1a1f2e] text-white p-4">
@@ -405,4 +348,4 @@ export default function CrickClash() {
       </div>
     </div>
   );
-}
+      }
