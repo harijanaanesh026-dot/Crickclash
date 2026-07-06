@@ -279,7 +279,7 @@ export default function CrickClash() {
 
   const totalVotes = players.reduce((sum, p) => sum + (p.votes || 0), 0);
   const topPlayer = [...players].sort((a,b) => (b.votes||0) - (a.votes||0))[0];
-  const votesLeft = DAILY_VOTE_LIMIT - votesToday;
+  const votesLeft = Math.max(0, DAILY_VOTE_LIMIT - userVotesToday);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#0a0e1a] to-[#1a1f2e] text-white p-4">
