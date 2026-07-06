@@ -157,26 +157,32 @@ export default function CrickClash() {
 
   if(loading) return <div className="min-h-screen bg-[#0a0e1a] flex items-center justify-center text-white">Loading...</div>
 
-  if(!user){
+ if(!user){
     return (
-      <div className="min-h-screen bg-gradient-to-b from-[#0a0e1a] to-[#1a1f2e] text-white flex flex-col items-center justify-between p-6">
-        <div className="text-center mt-20">
-          <div className="text-6xl mb-4"></div>
-          <h1 className="text-5xl font-bold mb-2"><span className="text-white">Crick</span><span className="text-orange-400">clash</span></h1>
-          <p className="text-sm text-gray-400 mb-2">ANESH Innovation</p>
-          <p className="text-gray-400">The Ultimate Cricket Voting Platform</p>
+      <div className="min-h-screen bg-gradient-to-b from-[#0a0e1a] to-[#1a1f2e] text-white flex-col items-center justify-center p-6">
+        <div className="text-center mb-10">
+          <div className="text-5xl mb-3"></div>
+          <h1 className="text-4xl font-bold mb-2"><span className="text-white">Crick</span><span className="text-orange-400">Clash</span></h1>
+          <p className="text-sm text-gray-400 mb-1">ANESH Innovation</p>
+          <p className="text-gray-400 text-sm">The Ultimate Cricket Voting Platform</p>
         </div>
 
-        <button onClick={handleGoogleLogin} className="bg-white text-black w-full max-w-sm px-10 py-4 rounded-full font-bold text-lg shadow-lg">
+        {/* CHINNA USER FRIENDLY BUTTON */}
+        <button 
+          onClick={handleGoogleLogin} 
+          className="bg-white text-black w-[85%] max-w-xs px-6 py-3 rounded-full font-semibold text-base shadow-md flex items-center justify-center gap-2 hover:scale-105 transition mb-16"
+        >
+          <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="google" className="w-5 h-5"/>
           Sign In with Google
         </button>
 
-        <footer className="text-center text-gray-500 text-xs mb-4">
+        {/* FOOTER KONCHEM PAINA */}
+        <footer className="mt-auto text-center text-gray-500 text-xs">
           ©️ 2026 Crickclash A Production By ANESH
         </footer>
       </div>
     )
-  }
+          } 
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#0a0e1a] to-[#1a1f2e] text-white p-4">
