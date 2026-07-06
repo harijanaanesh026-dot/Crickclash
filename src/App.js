@@ -159,13 +159,21 @@ export default function CrickClash() {
 
   if(!user){
     return (
-      <div className="min-h-screen bg-gradient-to-b from-[#0a0e1a] to-[#1a1f2e] text-white flex-col items-center justify-center p-4">
-        <div className="text-5xl mb-2"></div>
-        <h1 className="text-5xl font-bold mb-1"><span className="text-white">Crickclash</span><span className="text-orange-400"></span></h1>
-        <p className="text-sm text-gray-400 mb-2">ANESH Innovation</p>
-        <p className="text-gray-400 mb-8">The Ultimate Cricket Voting Platform</p>
-        <button onClick={handleGoogleLogin} className="bg-white text-black w-full max-w-sm px-10 py-4 rounded-full font-bold text-lg">Sign In with Google</button>
-        <p className="text-xs text-gray-500 mt-10">© 2026 Crickclash A Production by ANESH</p>
+      <div className="min-h-screen bg-gradient-to-b from-[#0a0e1a] to-[#1a1f2e] text-white flex flex-col items-center justify-between p-6">
+        <div className="text-center mt-20">
+          <div className="text-6xl mb-4"></div>
+          <h1 className="text-5xl font-bold mb-2"><span className="text-white">Crick</span><span className="text-orange-400">clash</span></h1>
+          <p className="text-sm text-gray-400 mb-2">ANESH Innovation</p>
+          <p className="text-gray-400">The Ultimate Cricket Voting Platform</p>
+        </div>
+
+        <button onClick={handleGoogleLogin} className="bg-white text-black w-full max-w-sm px-10 py-4 rounded-full font-bold text-lg shadow-lg">
+          Sign In with Google
+        </button>
+
+        <footer className="text-center text-gray-500 text-xs mb-4">
+          ©️ 2026 Crickclash A Production By ANESH
+        </footer>
       </div>
     )
   }
@@ -175,11 +183,10 @@ export default function CrickClash() {
       <div className="max-w-md mx-auto">
         <div className="flex justify-between items-center mb-1">
           <div>
-            <div className="flex items-center gap-2"><div className="text-3xl"></div><h1 className="text-2xl font-bold"><span className="text-white">Crickclash</span><span className="text-orange-400"></span></h1></div>
+            <div className="flex items-center gap-2"><div className="text-3xl"></div><h1 className="text-2xl font-bold"><span className="text-white">Crick</span><span className="text-orange-400">Clash</span></h1></div>
             <p className="text-xs text-gray-400 ml-10">ANESH Innovation</p>
           </div>
 
-          {/* SMALL AVATAR WITH INITIAL */}
           <div onClick={handleLogout} className="flex items-center gap-2 cursor-pointer">
             <div className="w-9 h-9 rounded-full bg-[#a8ff00] text-black font-bold flex items-center justify-center text-lg">
               {user.email.charAt(0).toUpperCase()}
@@ -206,7 +213,7 @@ export default function CrickClash() {
             <h2 className="text-center text-4xl font-bold mb-4">Battle <span className="text-[#a8ff00]">{battleNo}</span></h2>
 
             <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
-              {['ANY', 'BATTER', 'BOWLER', 'ALL-ROUNDER', 'KEEPER', 'CAPTAIN'].map(role => (
+              {['Any', 'BATTER', 'BOWLER', 'ALL-ROUNDER', 'KEEPER', 'CAPTAIN'].map(role => (
                 <button
                   key={role}
                   onClick={() => {setFilter(role); generateBattle([...players], role)}}
@@ -262,8 +269,10 @@ export default function CrickClash() {
           </div>
         )}
 
-        <p className="text-center mt-10 text-gray-500 text-sm">© 2026 Crickclash A Production by ANESH</p>
+        <footer className="text-center mt-10 text-gray-500 text-sm">
+          ©️ 2026 Crickclash A Production By ANESH
+        </footer>
       </div>
     </div>
   );
-   }
+    }
