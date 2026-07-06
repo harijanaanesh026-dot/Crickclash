@@ -100,19 +100,24 @@ export default function CrickClash() {
 
   useEffect(() => {
     if('Notification' in window) Notification.requestPermission();
-    onAuthStateChanged(auth, (user) => {
-      setUser(user);
+    onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
       setLoading(false);
-      if(user) {
-        const today = new Date().toDateString();
-        const lastDate = localStorage.getItem('lastVoteDate');
-        if(lastDate === today) {
-          setStreak(Number(localStorage.getItem('streak') || 0));
-          setVotesToday(Number(localStorage.getItem('votesToday') || 0));
-        } else {
-          localStorage.setItem('votesToday', 0);
-          setVotesToday(0);
-        }
+      if(currentUser) {
+        const userRef = ref(db, `users/${currentUser.uid}`);
+        onValue(userRef, (snapshot) => {
+          const userData = snapshot.val();
+          const today = new Date().toDateString();
+          if(userData){
+            if(userData.lastVoteDate === today){
+              setVotesToday(userData.votesToday || 0);
+              setStreak(userData.streak || 0);
+            } else {
+              setVotesToday(0);
+              set(userRef, {...userData, votesToday: 0, lastVoteDate: today});
+            }
+          }
+        });
         loadBadges();
       }
     });
@@ -153,19 +158,28 @@ export default function CrickClash() {
     new Audio("https://www.soundjay.com/buttons/sounds/button-3.mp3").play();
     const player = players.find(p => p.id === playerId);
     await update(ref(db, `players/${playerId}`), { votes: (player.votes || 0) + 1 });
-    const newVotesToday = votesToday + 1;
-    const newTotal = Number(localStorage.getItem('totalVotes') || 0) + 1;
-    setVotesToday(newVotesToday);
-    localStorage.setItem('votesToday', newVotesToday);
-    localStorage.setItem('totalVotes', newTotal);
     const today = new Date().toDateString();
-    const lastDate = localStorage.getItem('lastVoteDate');
-    if(lastDate!== today){
-      const newStreak = Number(localStorage.getItem('streak') || 0) + 1;
+    const userRef = ref(db, `users/${user.uid}`);
+    let newStreak = streak;
+    if(localStorage.getItem('lastVoteDate')!== today){
+      newStreak = Number(localStorage.getItem('streak') || 0) + 1;
       localStorage.setItem('streak', newStreak);
       localStorage.setItem('lastVoteDate', today);
       setStreak(newStreak);
     }
+    const newVotesToday = votesToday + 1;
+    const newTotal = Number(localStorage.getItem('totalVotes') || 0) + 1;
+    await set(userRef, {
+      name: user.displayName,
+      email: user.email,
+      votesToday: newVotesToday,
+      lastVoteDate: today,
+      totalVotes: newTotal,
+      streak: newStreak
+    });
+    setVotesToday(newVotesToday);
+    localStorage.setItem('votesToday', newVotesToday);
+    localStorage.setItem('totalVotes', newTotal);
     loadBadges();
     if('Notification' in window && Notification.permission === 'granted'){
       new Notification('Vote Cast! ⚡', { body: `You voted for ${player.name}` });
@@ -197,7 +211,7 @@ export default function CrickClash() {
   if(!user){
     return (
       <div className="min-h-screen bg-gradient-to-b from-[#0a0e1a] to-[#1a1f2e] text-white flex-col items-center justify-center p-6">
-        <div className="text-center mb-10 mt-20"><div className="text-5xl mb-3"></div><h1 className="text-4xl font-bold mb-2"><span className="text-white">Crick</span><span className="text-orange-400">Clash</span></h1><p className="text-sm text-gray-400">ANESH Innovation</p></div>
+        <div className="text-center mb-10 mt-20"><div className="text-5xl mb-3">⚡</div><h1 className="text-4xl font-bold mb-2"><span className="text-white">Crick</span><span className="text-orange-400">Clash</span></h1><p className="text-sm text-gray-400">ANESH Innovation</p></div>
         <button onClick={handleGoogleLogin} className="bg-white text-black w-[85%] max-w-xs px-6 py-3 rounded-full font-semibold flex items-center justify-center gap-2 mb-16">
           <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="google" className="w-5 h-5"/>Sign In with Google
         </button>
@@ -214,7 +228,7 @@ export default function CrickClash() {
     <div className="min-h-screen bg-gradient-to-b from-[#0a0e1a] to-[#1a1f2e] text-white p-4">
       <div className="max-w-md mx-auto">
         <div className="flex justify-between items-center mb-1">
-          <div><div className="flex items-center gap-2"><div className="text-3xl"></div><h1 className="text-2xl font-bold"><span className="text-white">Crick</span><span className="text-orange-400">Clash</span></h1></div><p className="text-xs text-gray-400 ml-10">ANESH Innovation</p></div>
+          <div><div className="flex items-center gap-2"><div className="text-3xl">⚡</div><h1 className="text-2xl font-bold"><span className="text-white">Crick</span><span className="text-orange-400">Clash</span></h1></div><p className="text-xs text-gray-400 ml-10">ANESH Innovation</p></div>
           <div onClick={handleLogout} className="w-9 h-9 rounded-full bg-[#a8ff00] text-black font-bold flex items-center justify-center text-lg cursor-pointer">{user.displayName?.charAt(0).toUpperCase()}</div>
         </div>
         {badges.length > 0 && (
@@ -334,4 +348,4 @@ export default function CrickClash() {
       </div>
     </div>
   );
-  }
+}
