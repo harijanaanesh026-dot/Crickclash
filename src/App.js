@@ -1,16 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInWithPopup, signOut, onAuthStateChanged, GoogleAuthProvider } from 'firebase/auth';
 import { getDatabase, ref, set, update, onValue, push } from 'firebase/database';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyD98FrA8bdJko1fBu6LFG0Fz7X10NCdMog",
+  apiKey: "AIzaSyD9BfrAh8djKof1Bu6FLG0Fz7X10NCdm6g",
   authDomain: "crickclash-d30fe.firebaseapp.com",
   databaseURL: "https://crickclash-d30fe-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "crickclash-d30fe",
   storageBucket: "crickclash-d30fe.firebasestorage.app",
   messagingSenderId: "595133866613",
-  appId: "1:595133866613:web:dda3f0500462310cb74e3c"
+  appId: "1:595133866613:web:dda3f0509462310cb74e3c"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -20,7 +20,6 @@ const googleProvider = new GoogleAuthProvider();
 const DAILY_VOTE_LIMIT = 5;
 
 const ALL_PLAYERS = [
-  // 35 BATTERS
   { name: 'Virat Kohli', role: 'BATTER', votes: 0 }, { name: 'Rohit Sharma', role: 'BATTER', votes: 0 },
   { name: 'Sachin Tendulkar', role: 'BATTER', votes: 0 }, { name: 'Shubman Gill', role: 'BATTER', votes: 0 },
   { name: 'Suryakumar Yadav', role: 'BATTER', votes: 0 }, { name: 'Shreyas Iyer', role: 'BATTER', votes: 0 },
@@ -39,7 +38,6 @@ const ALL_PLAYERS = [
   { name: 'Hanuma Vihari', role: 'BATTER', votes: 0 }, { name: 'Nitish Rana', role: 'BATTER', votes: 0 },
   { name: 'Anmolpreet Singh', role: 'BATTER', votes: 0 }, { name: 'Mandeep Singh', role: 'BATTER', votes: 0 },
   { name: 'Baba Indrajith', role: 'BATTER', votes: 0 },
-  // 25 BOWLERS
   { name: 'Jasprit Bumrah', role: 'BOWLER', votes: 0 }, { name: 'Mohammed Shami', role: 'BOWLER', votes: 0 },
   { name: 'Mohammed Siraj', role: 'BOWLER', votes: 0 }, { name: 'Arshdeep Singh', role: 'BOWLER', votes: 0 },
   { name: 'Kuldeep Yadav', role: 'BOWLER', votes: 0 }, { name: 'Yuzvendra Chahal', role: 'BOWLER', votes: 0 },
@@ -53,7 +51,6 @@ const ALL_PLAYERS = [
   { name: 'Harbhajan Singh', role: 'BOWLER', votes: 0 }, { name: 'Javagal Srinath', role: 'BOWLER', votes: 0 },
   { name: 'Munaf Patel', role: 'BOWLER', votes: 0 }, { name: 'RP Singh', role: 'BOWLER', votes: 0 },
   { name: 'R Sai Kishore', role: 'BOWLER', votes: 0 },
-  // 15 ALL-ROUNDERS
   { name: 'Hardik Pandya', role: 'ALL-ROUNDER', votes: 0 }, { name: 'Ravindra Jadeja', role: 'ALL-ROUNDER', votes: 0 },
   { name: 'Axar Patel', role: 'ALL-ROUNDER', votes: 0 }, { name: 'Washington Sundar', role: 'ALL-ROUNDER', votes: 0 },
   { name: 'Ravichandran Ashwin', role: 'ALL-ROUNDER', votes: 0 }, { name: 'Krunal Pandya', role: 'ALL-ROUNDER', votes: 0 },
@@ -62,14 +59,12 @@ const ALL_PLAYERS = [
   { name: 'Kapil Dev', role: 'ALL-ROUNDER', votes: 0 }, { name: 'Ravi Shastri', role: 'ALL-ROUNDER', votes: 0 },
   { name: 'Stuart Binny', role: 'ALL-ROUNDER', votes: 0 }, { name: 'Piyush Chawla', role: 'ALL-ROUNDER', votes: 0 },
   { name: 'Amit Mishra', role: 'ALL-ROUNDER', votes: 0 },
-  // 12 KEEPERS
   { name: 'MS Dhoni', role: 'KEEPER', votes: 0 }, { name: 'Rishabh Pant', role: 'KEEPER', votes: 0 },
   { name: 'Dinesh Karthik', role: 'KEEPER', votes: 0 }, { name: 'Ishan Kishan', role: 'KEEPER', votes: 0 },
   { name: 'Sanju Samson', role: 'KEEPER', votes: 0 }, { name: 'Jitesh Sharma', role: 'KEEPER', votes: 0 },
   { name: 'Dhruv Jurel', role: 'KEEPER', votes: 0 }, { name: 'Prabhsimran Singh', role: 'KEEPER', votes: 0 },
   { name: 'Anuj Rawat', role: 'KEEPER', votes: 0 }, { name: 'N Jagadeesan', role: 'KEEPER', votes: 0 },
   { name: 'Kiran More', role: 'KEEPER', votes: 0 }, { name: 'Nayan Mongia', role: 'KEEPER', votes: 0 },
-  // 13 CAPTAINS
   { name: 'Rohit Sharma', role: 'CAPTAIN', votes: 0 }, { name: 'Virat Kohli', role: 'CAPTAIN', votes: 0 },
   { name: 'MS Dhoni', role: 'CAPTAIN', votes: 0 }, { name: 'Sachin Tendulkar', role: 'CAPTAIN', votes: 0 },
   { name: 'Sourav Ganguly', role: 'CAPTAIN', votes: 0 }, { name: 'KL Rahul', role: 'CAPTAIN', votes: 0 },
@@ -93,9 +88,18 @@ export default function CrickClash() {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
 
+  const loadBadges = useCallback(() => {
+    const totalVotes = Number(localStorage.getItem('totalVotes') || 0);
+    let userBadges = [];
+    if(totalVotes >= 1) userBadges.push('🏏 First Vote');
+    if(totalVotes >= 50) userBadges.push('🔥 Cricket Expert');
+    if(streak >= 7) userBadges.push('👑 Legend Streak');
+    if(totalVotes >= 200) userBadges.push('⚡ GOAT Maker');
+    setBadges(userBadges);
+  }, [streak]);
+
   useEffect(() => {
     if('Notification' in window) Notification.requestPermission();
-
     onAuthStateChanged(auth, (user) => {
       setUser(user);
       setLoading(false);
@@ -112,7 +116,6 @@ export default function CrickClash() {
         loadBadges();
       }
     });
-
     const playersRef = ref(db, 'players');
     onValue(playersRef, (snapshot) => {
       const data = snapshot.val();
@@ -126,24 +129,12 @@ export default function CrickClash() {
         set(playersRef, initialPlayers);
       }
     });
-
     const commentsRef = ref(db, 'comments');
     onValue(commentsRef, (snapshot) => {
       const data = snapshot.val();
       if(data) setComments(Object.values(data).reverse().slice(0, 20));
     });
-  }, []);
-
-  const loadBadges = () => {
-    const totalVotes = Number(localStorage.getItem('totalVotes') || 0);
-    let userBadges = [];
-    if(totalVotes >= 1) userBadges.push('🏏 First Vote');
-    if(totalVotes >= 50) userBadges.push('🔥 Cricket Expert');
-    if(streak >= 7) userBadges.push('👑 Legend Streak');
-    if(totalVotes >= 200) userBadges.push('⚡ GOAT Maker');
-    setBadges(userBadges);
-  }
-
+  }, [loadBadges]);
   const generateBattle = (playerList, role) => {
     if(playerList.length < 2) return;
     let filtered = role === 'Any'? playerList : playerList.filter(p => p.role === role);
@@ -162,13 +153,11 @@ export default function CrickClash() {
     new Audio("https://www.soundjay.com/buttons/sounds/button-3.mp3").play();
     const player = players.find(p => p.id === playerId);
     await update(ref(db, `players/${playerId}`), { votes: (player.votes || 0) + 1 });
-
     const newVotesToday = votesToday + 1;
     const newTotal = Number(localStorage.getItem('totalVotes') || 0) + 1;
     setVotesToday(newVotesToday);
     localStorage.setItem('votesToday', newVotesToday);
     localStorage.setItem('totalVotes', newTotal);
-
     const today = new Date().toDateString();
     const lastDate = localStorage.getItem('lastVoteDate');
     if(lastDate!== today){
@@ -178,11 +167,9 @@ export default function CrickClash() {
       setStreak(newStreak);
     }
     loadBadges();
-
     if('Notification' in window && Notification.permission === 'granted'){
       new Notification('Vote Cast! ⚡', { body: `You voted for ${player.name}` });
     }
-
     setBattleNo(prev => prev + 1);
     generateBattle([...players], filter);
   }
@@ -207,7 +194,6 @@ export default function CrickClash() {
   }
 
   if(loading) return <div className="min-h-screen bg-[#0a0e1a] flex items-center justify-center text-white">Loading...</div>
-
   if(!user){
     return (
       <div className="min-h-screen bg-gradient-to-b from-[#0a0e1a] to-[#1a1f2e] text-white flex-col items-center justify-center p-6">
@@ -231,25 +217,21 @@ export default function CrickClash() {
           <div><div className="flex items-center gap-2"><div className="text-3xl">⚡</div><h1 className="text-2xl font-bold"><span className="text-white">Crick</span><span className="text-orange-400">Clash</span></h1></div><p className="text-xs text-gray-400 ml-10">ANESH Innovation</p></div>
           <div onClick={handleLogout} className="w-9 h-9 rounded-full bg-[#a8ff00] text-black font-bold flex items-center justify-center text-lg cursor-pointer">{user.displayName?.charAt(0).toUpperCase()}</div>
         </div>
-
         {badges.length > 0 && (
           <div className="bg-gray-800 rounded-xl p-3 mb-4">
             <p className="text-xs text-gray-400 mb-2">Your Badges</p>
             <div className="flex gap-2 flex-wrap">{badges.map(b => <span key={b} className="bg-[#a8ff00] text-black px-3 py-1 rounded-full text-xs font-bold">{b}</span>)}</div>
           </div>
         )}
-
         <div className="bg-gray-800 rounded-xl p-3 mb-4 text-center">
           <p className="text-sm text-gray-400">Today's Votes Left</p>
           <p className="text-2xl font-bold text-[#a8ff00]">{votesLeft} / {DAILY_VOTE_LIMIT}</p>
         </div>
-
         <div className="flex justify-around mb-6 border-b border-gray-700">
           <button onClick={() => setTab('Battle')} className={`${tab === 'Battle'? 'text-[#a8ff00] border-b-2 border-[#a8ff00]' : 'text-gray-500'} font-bold pb-2`}>⚔️ Battle</button>
           <button onClick={() => setTab('Rankings')} className={`${tab === 'Rankings'? 'text-[#a8ff00] border-b-2 border-[#a8ff00]' : 'text-gray-500'} font-bold pb-2`}>🏆 Rankings</button>
           <button onClick={() => setTab('Debate')} className={`${tab === 'Debate'? 'text-[#a8ff00] border-b-2 border-[#a8ff00]' : 'text-gray-500'} font-bold pb-2`}>💬 Debate</button>
         </div>
-
         {tab === 'Battle' && (
           <>
             <div className="grid grid-cols-4 text-center mb-6">
@@ -258,17 +240,14 @@ export default function CrickClash() {
               <div><p className="text-2xl font-bold text-orange-400">{topPlayer?.name.split(' ')[0] || 'None'}</p><p className="text-xs text-gray-400">TOP CHAMP</p></div>
               <div><p className="text-2xl font-bold text-orange-400">🔥{streak}</p><p className="text-xs text-gray-400">STREAK</p></div>
             </div>
-
             <p className="text-center text-gray-400 mb-2">WHO DO YOU LIKE?</p>
             <h2 className="text-center text-4xl font-bold mb-4">Battle <span className="text-[#a8ff00]">{battleNo}</span></h2>
-
             <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
               {['Any', 'BATTER', 'BOWLER', 'ALL-ROUNDER', 'KEEPER', 'CAPTAIN'].map(role => (
                 <button key={role} onClick={() => {setFilter(role); generateBattle([...players], role)}}
                   className={`px-4 py-2 rounded-full font-bold whitespace-nowrap ${filter === role? 'bg-[#a8ff00] text-black' : 'bg-gray-800'}`}>{role}</button>
               ))}
             </div>
-
             {battle[0] && battle[1]? (
               <div>
                 <div className="flex items-center justify-center gap-3">
@@ -304,7 +283,6 @@ export default function CrickClash() {
                 </div>
               </div>
             ) : <p className="text-center">Loading...</p>}
-
             <div className="flex gap-4 mt-6">
               <button onClick={handleSkip} className="bg-gray-800 w-1/2 py-3 rounded-xl font-bold">Skip →</button>
               <button onClick={() => navigator.share({title: 'CrickClash', text: `Who will win? ${battle[0]?.name} vs ${battle[1]?.name}`})}
@@ -312,7 +290,6 @@ export default function CrickClash() {
             </div>
           </>
         )}
-
         {tab === 'Rankings' && (
           <div>
             <h2 className="text-2xl font-bold text-[#a8ff00] mb-4 text-center">🏆 Top 10 Players</h2>
@@ -323,55 +300,38 @@ export default function CrickClash() {
             ))}
           </div>
         )}
-
-         {tab === 'Debate' && (
-  <div>
-    <h2 className="text-2xl font-bold text-[#a8ff00] mb-4 text-center">💬 Comments & Debates</h2>
-
-    {/* Comment Input Box */}
-    <div className="bg-gray-800 p-3 rounded-xl mb-4">
-      <p className="text-xs text-gray-400 mb-2">Current Battle: {battle[0]?.name} vs {battle[1]?.name}</p>
-      <input
-        value={newComment}
-        onChange={(e) => setNewComment(e.target.value)}
-        placeholder="Why is your player better? 🔥"
-        className="w-full bg-gray-700 p-3 rounded-lg mb-2 text-white outline-none"
-        maxLength={100}
-      />
-      <button
-        onClick={handleComment}
-        disabled={!newComment.trim() || votesToday >= DAILY_VOTE_LIMIT}
-        className="bg-[#a8ff00] text-black w-full py-2 rounded-lg font-bold disabled:bg-gray-600 disabled:cursor-not-allowed">
-        Post Comment
-      </button>
-    </div>
-
-    {/* Comments List */}
-    <div className="space-y-3 max-h-[400px] overflow-y-auto">
-      {comments.length === 0? (
-        <p className="text-center text-gray-500 mt-10">No debates yet. Be the first! 👇</p>
-      ) : (
-        comments.map((c,i) => (
-          <div key={i} className="bg-gray-800 p-3 rounded-lg">
-            <div className="flex justify-between items-start mb-1">
-              <p className="font-bold text-sm text-[#a8ff00]">{c.user}</p>
-              <p className="text-xs text-gray-500">{new Date(c.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
+        {tab === 'Debate' && (
+          <div>
+            <h2 className="text-2xl font-bold text-[#a8ff00] mb-4 text-center">💬 Comments & Debates</h2>
+            <div className="bg-gray-800 p-3 rounded-xl mb-4">
+              <p className="text-xs text-gray-400 mb-2">Current Battle: {battle[0]?.name} vs {battle[1]?.name}</p>
+              <input value={newComment} onChange={(e) => setNewComment(e.target.value)} placeholder="Why is your player better? 🔥"
+                className="w-full bg-gray-700 p-3 rounded-lg mb-2 text-white outline-none" maxLength={100}/>
+              <button onClick={handleComment} disabled={!newComment.trim() || votesToday >= DAILY_VOTE_LIMIT}
+                className="bg-[#a8ff00] text-black w-full py-2 rounded-lg font-bold disabled:bg-gray-600 disabled:cursor-not-allowed">Post Comment</button>
             </div>
-            <p className="text-xs text-gray-400 mb-2">on {c.battle}</p>
-            <p className="text-sm">{c.text}</p>
-            <div className="flex gap-4 mt-2">
-              <button className="text-xs text-gray-400">🔥 {Math.floor(Math.random()*50)} Hype</button>
-              <button className="text-xs text-gray-400">💬 Reply</button>
+            <div className="space-y-3 max-h-[400px] overflow-y-auto">
+              {comments.length === 0? (<p className="text-center text-gray-500 mt-10">No debates yet. Be the first! 👇</p>) : (
+                comments.map((c,i) => (
+                  <div key={i} className="bg-gray-800 p-3 rounded-lg">
+                    <div className="flex justify-between items-start mb-1">
+                      <p className="font-bold text-sm text-[#a8ff00]">{c.user}</p>
+                      <p className="text-xs text-gray-500">{new Date(c.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
+                    </div>
+                    <p className="text-xs text-gray-400 mb-2">on {c.battle}</p>
+                    <p className="text-sm">{c.text}</p>
+                    <div className="flex gap-4 mt-2">
+                      <button className="text-xs text-gray-400">🔥 {Math.floor(Math.random()*50)} Hype</button>
+                      <button className="text-xs text-gray-400">💬 Reply</button>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </div>
-        ))
-      )}
-    </div>
-  </div>
-)}
-
-<footer className="text-center mt-10 text-gray-500 text-sm">©️ 2026 CrickClash A Production By ANESH</footer>
+        )}
+        <footer className="text-center mt-10 text-gray-500 text-sm">©️ 2026 CrickClash A Production By ANESH</footer>
       </div>
     </div>
   );
-}
+  }
