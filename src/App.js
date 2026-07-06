@@ -162,10 +162,10 @@ export default function CrickClash() {
       <div className="min-h-screen bg-gradient-to-b from-[#0a0e1a] to-[#1a1f2e] text-white flex-col items-center justify-center p-4">
         <div className="text-5xl mb-2"></div>
         <h1 className="text-5xl font-bold mb-1"><span className="text-white">Crickclash</span><span className="text-orange-400"></span></h1>
-        <p className="text-sm text-gray-400 mb-2">ANESH INNOVATION</p>
+        <p className="text-sm text-gray-400 mb-2">ANESH Innovation</p>
         <p className="text-gray-400 mb-8">The Ultimate Cricket Voting Platform</p>
         <button onClick={handleGoogleLogin} className="bg-white text-black w-full max-w-sm px-10 py-4 rounded-full font-bold text-lg">Sign In with Google</button>
-        <p className="text-xs text-gray-500 mt-10">© 2026 CrickClash A Production by ANESH</p>
+        <p className="text-xs text-gray-500 mt-10">© 2026 Crickclash A Production by ANESH</p>
       </div>
     )
   }
@@ -176,7 +176,7 @@ export default function CrickClash() {
         <div className="flex justify-between items-center mb-1">
           <div>
             <div className="flex items-center gap-2"><div className="text-3xl"></div><h1 className="text-2xl font-bold"><span className="text-white">Crickclash</span><span className="text-orange-400"></span></h1></div>
-            <p className="text-xs text-gray-400 ml-10">ANESH INNOVATION</p>
+            <p className="text-xs text-gray-400 ml-10">ANESH Innovation</p>
           </div>
 
           {/* SMALL AVATAR WITH INITIAL */}
@@ -262,7 +262,7 @@ export default function CrickClash() {
           </div>
         )}
 
-        <p className="text-center mt-10 text-gray-500 text-sm">© 2026 CrickClash A Production by ANESH</p>
+        <p className="text-center mt-10 text-gray-500 text-sm">© 2026 Crickclash A Production by ANESH</p>
       </div>
     </div>
   );
