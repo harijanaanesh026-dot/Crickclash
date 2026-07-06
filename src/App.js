@@ -4,12 +4,13 @@ import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signO
 
 // FIREBASE CONFIG - NEE KEYS IKKADA PETTU
 const firebaseConfig = {
-  apiKey: "NEE_API_KEY",
-  authDomain: "NEE_AUTH_DOMAIN",
-  projectId: "NEE_PROJECT_ID",
-  storageBucket: "NEE_STORAGE_BUCKET",
-  messagingSenderId: "NEE_MESSAGING_SENDER_ID",
-  appId: "NEE_APP_ID"
+  apiKey: "AIzaSyD9BfrAh8djKof1Bu6FLG0Fz7X10NCdm6g",
+  authDomain: "crickclash-d30fe.firebaseapp.com",
+  databaseURL: "https://crickclash-d30fe-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "crickclash-d30fe",
+  storageBucket: "crickclash-d30fe.firebasestorage.app",
+  messagingSenderId: "595133866613",
+  appId: "1:595133866613:web:dda3f0509462310cb74e3c"
 };
 
 const app = initializeApp(firebaseConfig);
