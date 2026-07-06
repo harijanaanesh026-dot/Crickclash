@@ -20,7 +20,6 @@ const googleProvider = new GoogleAuthProvider();
 
 // 100 PLAYERS LIST
 const ALL_PLAYERS = [
-  // BATTERS 35
   { name: 'Virat Kohli', role: 'BATTER', votes: 0 }, { name: 'Rohit Sharma', role: 'BATTER', votes: 0 },
   { name: 'KL Rahul', role: 'BATTER', votes: 0 }, { name: 'Shubman Gill', role: 'BATTER', votes: 0 },
   { name: 'Suryakumar Yadav', role: 'BATTER', votes: 0 }, { name: 'Shreyas Iyer', role: 'BATTER', votes: 0 },
@@ -39,8 +38,6 @@ const ALL_PLAYERS = [
   { name: 'Sakib Hussain', role: 'BATTER', votes: 0 }, { name: 'Baba Indrajith', role: 'BATTER', votes: 0 },
   { name: 'Rajat Patidar', role: 'BATTER', votes: 0 }, { name: 'N Jagadeesan', role: 'BATTER', votes: 0 },
   { name: 'Vijay Shankar', role: 'BATTER', votes: 0 },
-
-  // BOWLERS 30
   { name: 'Jasprit Bumrah', role: 'BOWLER', votes: 0 }, { name: 'Mohammed Shami', role: 'BOWLER', votes: 0 },
   { name: 'Mohammed Siraj', role: 'BOWLER', votes: 0 }, { name: 'Kuldeep Yadav', role: 'BOWLER', votes: 0 },
   { name: 'Yuzvendra Chahal', role: 'BOWLER', votes: 0 }, { name: 'Arshdeep Singh', role: 'BOWLER', votes: 0 },
@@ -56,8 +53,6 @@ const ALL_PLAYERS = [
   { name: 'Tushar Deshpande', role: 'BOWLER', votes: 0 }, { name: 'Shivam Mavi', role: 'BOWLER', votes: 0 },
   { name: 'Ansh Patel', role: 'BOWLER', votes: 0 }, { name: 'Rahul Chahar', role: 'BOWLER', votes: 0 },
   { name: 'R Sai Kishore', role: 'BOWLER', votes: 0 }, { name: 'Fazalhaq Farooqi', role: 'BOWLER', votes: 0 },
-
-  // ALL-ROUNDERS 15
   { name: 'Hardik Pandya', role: 'ALL-ROUNDER', votes: 0 }, { name: 'Ravindra Jadeja', role: 'ALL-ROUNDER', votes: 0 },
   { name: 'Axar Patel', role: 'ALL-ROUNDER', votes: 0 }, { name: 'Washington Sundar', role: 'ALL-ROUNDER', votes: 0 },
   { name: 'Ravichandran Ashwin', role: 'ALL-ROUNDER', votes: 0 }, { name: 'Krunal Pandya', role: 'ALL-ROUNDER', votes: 0 },
@@ -66,15 +61,11 @@ const ALL_PLAYERS = [
   { name: 'Piyush Chawla', role: 'ALL-ROUNDER', votes: 0 }, { name: 'Amit Mishra', role: 'ALL-ROUNDER', votes: 0 },
   { name: 'Jayant Yadav', role: 'ALL-ROUNDER', votes: 0 }, { name: 'Gowtham', role: 'ALL-ROUNDER', votes: 0 },
   { name: 'Kedar Jadhav', role: 'ALL-ROUNDER', votes: 0 },
-
-  // KEEPERS 10
   { name: 'MS Dhoni', role: 'KEEPER', votes: 0 }, { name: 'Dinesh Karthik', role: 'KEEPER', votes: 0 },
   { name: 'KL Rahul', role: 'KEEPER', votes: 0 }, { name: 'Rishabh Pant', role: 'KEEPER', votes: 0 },
   { name: 'Ishan Kishan', role: 'KEEPER', votes: 0 }, { name: 'Sanju Samson', role: 'KEEPER', votes: 0 },
   { name: 'Jitesh Sharma', role: 'KEEPER', votes: 0 }, { name: 'Dhruv Jurel', role: 'KEEPER', votes: 0 },
   { name: 'Prabhsimran Singh', role: 'KEEPER', votes: 0 }, { name: 'Anuj Rawat', role: 'KEEPER', votes: 0 },
-
-  // CAPTAINS 10
   { name: 'Rohit Sharma', role: 'CAPTAIN', votes: 0 }, { name: 'MS Dhoni', role: 'CAPTAIN', votes: 0 },
   { name: 'Virat Kohli', role: 'CAPTAIN', votes: 0 }, { name: 'KL Rahul', role: 'CAPTAIN', votes: 0 },
   { name: 'Hardik Pandya', role: 'CAPTAIN', votes: 0 }, { name: 'Shreyas Iyer', role: 'CAPTAIN', votes: 0 },
@@ -117,7 +108,6 @@ export default function CrickClash() {
         });
 
       } else {
-        console.log("Saving 100 players...");
         const initialPlayers = {};
         ALL_PLAYERS.forEach((p, idx) => {
           initialPlayers[idx] = {...p, id: idx };
@@ -165,13 +155,11 @@ export default function CrickClash() {
   if(!user){
     return (
       <div className="min-h-screen bg-gradient-to-b from-[#0a0e1a] to-[#1a1f2e] text-white flex-col items-center justify-center p-4">
-        <div className="text-5xl mb-2"></div>
+        <div className="text-5xl mb-2">⚡</div>
         <h1 className="text-5xl font-bold mb-1"><span className="text-white">Cricket</span><span className="text-orange-400"> Clash</span></h1>
-        <p className="text-sm text-gray-400 mb-2">The Ultimate Cricket Voting Platform</p>
-        <p className="text-gray-400 mb-8"></p>
-
+        <p className="text-sm text-gray-400 mb-2">ANESH Innovations</p>
+        <p className="text-gray-400 mb-8">WHO DO YOU LIKE?</p>
         <button onClick={handleGoogleLogin} className="bg-white text-black w-full max-w-sm px-10 py-4 rounded-full font-bold text-lg">Sign In with Google</button>
-
         <p className="text-xs text-gray-500 mt-10">© 2026 CrickClash A Production by ANESH</p>
       </div>
     )
@@ -182,10 +170,18 @@ export default function CrickClash() {
       <div className="max-w-md mx-auto">
         <div className="flex justify-between items-center mb-1">
           <div>
-            <div className="flex items-center gap-2"><div className="text-3xl">Crick</div><h1 className="text-2xl font-bold"><span className="text-white">Cricket</span><span className="text-orange-400"> Clash</span></h1></div>
+            <div className="flex items-center gap-2"><div className="text-3xl">⚡</div><h1 className="text-2xl font-bold"><span className="text-white">Crick</span><span className="text-orange-400"> Clash</span></h1></div>
             <p className="text-xs text-gray-400 ml-10">ANESH Innovations</p>
           </div>
-          <button onClick={handleLogout} className="bg-[#a8ff00] text-black px-5 py-2 rounded-full font-bold">Logout</button>
+
+          {/* USER EMAIL + PIC + LOGOUT */}
+          <div onClick={handleLogout} className="flex items-center gap-2 cursor-pointer bg-gray-800 px-3 py-2 rounded-full">
+            <img src={user.photoURL} alt="profile" className="w-8 h-8 rounded-full"/>
+            <div className="text-right">
+              <p className="text-xs text-gray-300">{user.email}</p>
+              <p className="text-[10px] text-red-400">Logout</p>
+            </div>
+          </div>
         </div>
 
         <div className="flex justify-around mb-6 border-b border-gray-700">
