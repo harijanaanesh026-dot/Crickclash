@@ -130,7 +130,10 @@ export default function CrickClash() {
   const generateBattle = (playerList, role) => {
     if(playerList.length < 2) return;
     let filtered = role === 'Any'? playerList : playerList.filter(p => p.role === role);
-    if(filtered.length < 2) return;
+    if(filtered.length < 2) {
+      setBattle([null, null]);
+      return;
+    }
     const p1 = filtered[Math.floor(Math.random() * filtered.length)];
     let p2 = filtered[Math.floor(Math.random() * filtered.length)];
     while(p1.id === p2.id) p2 = filtered[Math.floor(Math.random() * filtered.length)];
@@ -144,12 +147,12 @@ export default function CrickClash() {
     const player = players.find(p => p.id === playerId);
     await update(ref(db, `players/${playerId}`), { votes: (player.votes || 0) + 1 });
     setBattleNo(prev => prev + 1);
-    generateBattle(players, filter);
+    generateBattle([...players], filter);
   }
 
   const handleSkip = () => {
     setBattleNo(prev => prev + 1);
-    generateBattle(players, filter);
+    generateBattle([...players], filter);
   }
 
   const formatVotes = (num) => {
@@ -162,10 +165,10 @@ export default function CrickClash() {
   if(!user){
     return (
       <div className="min-h-screen bg-gradient-to-b from-[#0a0e1a] to-[#1a1f2e] text-white flex-col items-center justify-center p-4">
-        <div className="text-5xl mb-2"></div>
-        <h1 className="text-5xl font-bold mb-1"><span className="text-white">Crick</span><span className="text-orange-400">Clash</span></h1>
-        <p className="text-sm text-gray-400 mb-2">By ANESH</p>
-        <p className="text-gray-400 mb-8"></p>
+        <div className="text-5xl mb-2">⚡</div>
+        <h1 className="text-5xl font-bold mb-1"><span className="text-white">Cricket</span><span className="text-orange-400"> Clash</span></h1>
+        <p className="text-sm text-gray-400 mb-2">A Production by ANESH</p>
+        <p className="text-gray-400 mb-8">WHO DO YOU LIKE?</p>
 
         <button onClick={handleGoogleLogin} className="bg-white text-black w-full max-w-sm px-10 py-4 rounded-full font-bold text-lg">Sign In with Google</button>
 
@@ -179,8 +182,8 @@ export default function CrickClash() {
       <div className="max-w-md mx-auto">
         <div className="flex justify-between items-center mb-1">
           <div>
-            <div className="flex items-center gap-2"><div className="text-3xl"></div><h1 className="text-2xl font-bold"><span className="text-white">Crick</span><span className="text-orange-400">Clash</span></h1></div>
-            <p className="text-xs text-gray-400 ml-10">By ANESH</p>
+            <div className="flex items-center gap-2"><div className="text-3xl">⚡</div><h1 className="text-2xl font-bold"><span className="text-white">Cricket</span><span className="text-orange-400"> Clash</span></h1></div>
+            <p className="text-xs text-gray-400 ml-10">A Production by ANESH</p>
           </div>
           <button onClick={handleLogout} className="bg-[#a8ff00] text-black px-5 py-2 rounded-full font-bold">Logout</button>
         </div>
@@ -204,8 +207,14 @@ export default function CrickClash() {
             <h2 className="text-center text-4xl font-bold mb-4">Battle <span className="text-[#a8ff00]">{battleNo}</span></h2>
 
             <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
-              {['ANY', 'BATTER', 'BOWLER', 'ALL-ROUNDER', 'KEEPER', 'CAPTAIN'].map(role => (
-                <button key={role} onClick={() => {setFilter(role); generateBattle(players, role)}} className={`px-4 py-2 rounded-full font-bold whitespace-nowrap ${filter === role? 'bg-[#a8ff00] text-black' : 'bg-gray-800'}`}>{role}</button>
+              {['Any', 'BATTER', 'BOWLER', 'ALL-ROUNDER', 'KEEPER', 'CAPTAIN'].map(role => (
+                <button
+                  key={role}
+                  onClick={() => {setFilter(role); generateBattle([...players], role)}}
+                  className={`px-4 py-2 rounded-full font-bold whitespace-nowrap ${filter === role? 'bg-[#a8ff00] text-black' : 'bg-gray-800'}`}
+                >
+                  {role}
+                </button>
               ))}
             </div>
 
