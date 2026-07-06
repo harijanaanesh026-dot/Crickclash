@@ -71,7 +71,8 @@ const ALL_PLAYERS = [
   { name: 'Hardik Pandya', role: 'CAPTAIN', votes: 0 }, { name: 'Shreyas Iyer', role: 'CAPTAIN', votes: 0 },
   { name: 'Shubman Gill', role: 'CAPTAIN', votes: 0 }, { name: 'Rishabh Pant', role: 'CAPTAIN', votes: 0 },
   { name: 'Ravindra Jadeja', role: 'CAPTAIN', votes: 0 }, { name: 'Ajinkya Rahane', role: 'CAPTAIN', votes: 0 },
-  { name: 'Kapil Dev', role: 'CAPTAIN', votes: 0 },
+  { name: 'Kapil Dev', role: 'CAPTAIN', votes: 0 }, { name: 'Vaibhav Sooryavanshi ', role: 'BATTER', votes: 0 },
+];
 ];
 
 export default function CrickClash() {
@@ -211,7 +212,7 @@ export default function CrickClash() {
   if(!user){
     return (
       <div className="min-h-screen bg-gradient-to-b from-[#0a0e1a] to-[#1a1f2e] text-white flex-col items-center justify-center p-6">
-        <div className="text-center mb-10 mt-20"><div className="text-5xl mb-3">⚡</div><h1 className="text-4xl font-bold mb-2"><span className="text-white">Crick</span><span className="text-orange-400">Clash</span></h1><p className="text-sm text-gray-400">ANESH Innovation</p></div>
+        <div className="text-center mb-10 mt-20"><div className="text-5xl mb-3"></div><h1 className="text-4xl font-bold mb-2"><span className="text-white">Crick</span><span className="text-orange-400">Clash</span></h1><p className="text-sm text-gray-400">ANESH Innovation</p></div>
         <button onClick={handleGoogleLogin} className="bg-white text-black w-[85%] max-w-xs px-6 py-3 rounded-full font-semibold flex items-center justify-center gap-2 mb-16">
           <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="google" className="w-5 h-5"/>Sign In with Google
         </button>
