@@ -36,7 +36,7 @@ const ALL_PLAYERS = [
   { name: 'Mayank Agarwal', role: 'BATTER', votes: 0 }, { name: 'Devdutt Padikkal', role: 'BATTER', votes: 0 },
   { name: 'Rahul Tripathi', role: 'BATTER', votes: 0 }, { name: 'Karun Nair', role: 'BATTER', votes: 0 },
   { name: 'Hanuma Vihari', role: 'BATTER', votes: 0 }, { name: 'Nitish Rana', role: 'BATTER', votes: 0 },
-  { name: 'Vaibhav Sooryavanshi', role: 'BATTER', votes: 0 }, { name: 'Mandeep Singh', role: 'BATTER', votes: 0 },
+  { name: 'Vaibhav Suryavanshi', role: 'BATTER', votes: 0 }, { name: 'Mandeep Singh', role: 'BATTER', votes: 0 },
   { name: 'Baba Indrajith', role: 'BATTER', votes: 0 },
   { name: 'Jasprit Bumrah', role: 'BOWLER', votes: 0 }, { name: 'Mohammed Shami', role: 'BOWLER', votes: 0 },
   { name: 'Mohammed Siraj', role: 'BOWLER', votes: 0 }, { name: 'Arshdeep Singh', role: 'BOWLER', votes: 0 },
