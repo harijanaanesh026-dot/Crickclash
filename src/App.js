@@ -160,10 +160,10 @@ export default function CrickClash() {
   if(!user){
     return (
       <div className="min-h-screen bg-gradient-to-b from-[#0a0e1a] to-[#1a1f2e] text-white flex-col items-center justify-center p-4">
-        <div className="text-5xl mb-2">⚡</div>
-        <h1 className="text-5xl font-bold mb-1"><span className="text-white">Cricket</span><span className="text-orange-400"> Clash</span></h1>
-        <p className="text-sm text-gray-400 mb-2">ANESH Innovations</p>
-        <p className="text-gray-400 mb-8">WHO DO YOU LIKE?</p>
+        <div className="text-5xl mb-2"></div>
+        <h1 className="text-5xl font-bold mb-1"><span className="text-white">Crickclash</span><span className="text-orange-400"></span></h1>
+        <p className="text-sm text-gray-400 mb-2">ANESH INNOVATION</p>
+        <p className="text-gray-400 mb-8">The Ultimate Cricket Voting Platform</p>
         <button onClick={handleGoogleLogin} className="bg-white text-black w-full max-w-sm px-10 py-4 rounded-full font-bold text-lg">Sign In with Google</button>
         <p className="text-xs text-gray-500 mt-10">© 2026 CrickClash A Production by ANESH</p>
       </div>
@@ -175,8 +175,8 @@ export default function CrickClash() {
       <div className="max-w-md mx-auto">
         <div className="flex justify-between items-center mb-1">
           <div>
-            <div className="flex items-center gap-2"><div className="text-3xl">⚡</div><h1 className="text-2xl font-bold"><span className="text-white">Crick</span><span className="text-orange-400"> Clash</span></h1></div>
-            <p className="text-xs text-gray-400 ml-10">ANESH Innovations</p>
+            <div className="flex items-center gap-2"><div className="text-3xl"></div><h1 className="text-2xl font-bold"><span className="text-white">Crickclash</span><span className="text-orange-400"></span></h1></div>
+            <p className="text-xs text-gray-400 ml-10">ANESH INNOVATION</p>
           </div>
 
           {/* SMALL AVATAR WITH INITIAL */}
@@ -206,7 +206,7 @@ export default function CrickClash() {
             <h2 className="text-center text-4xl font-bold mb-4">Battle <span className="text-[#a8ff00]">{battleNo}</span></h2>
 
             <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
-              {['Any', 'BATTER', 'BOWLER', 'ALL-ROUNDER', 'KEEPER', 'CAPTAIN'].map(role => (
+              {['ANY', 'BATTER', 'BOWLER', 'ALL-ROUNDER', 'KEEPER', 'CAPTAIN'].map(role => (
                 <button
                   key={role}
                   onClick={() => {setFilter(role); generateBattle([...players], role)}}
