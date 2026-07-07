@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInWithPopup, signOut, onAuthStateChanged, GoogleAuthProvider } from 'firebase/auth';
-import { getDatabase, ref, set, update, onValue, push } from 'firebase/database';
+import { getDatabase, ref, set, update, onValue, push, get } from 'firebase/database';
 
 const firebaseConfig = {
   apiKey: "AIzaSyD9BfrAh8djKof1Bu6FLG0Fz7X10NCdm6g",
@@ -12,12 +12,14 @@ const firebaseConfig = {
   messagingSenderId: "595133866613",
   appId: "1:595133866613:web:dda3f0509462310cb74e3c"
 };
+
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
 const googleProvider = new GoogleAuthProvider();
 const DAILY_VOTE_LIMIT = 1;
 
+// PART 1
 const ALL_PLAYERS = [
   { name: 'Virat Kohli', role: 'BATTER', votes: 0 }, { name: 'Rohit Sharma', role: 'BATTER', votes: 0 },
   { name: 'Sachin Tendulkar', role: 'BATTER', votes: 0 }, { name: 'Shubman Gill', role: 'BATTER', votes: 0 },
@@ -74,7 +76,7 @@ const ALL_PLAYERS = [
 ];
 
 export default function CrickClash() {
-    const [user, setUser] = useState(null);
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [players, setPlayers] = useState([]);
   const [battle, setBattle] = useState([null, null]);
@@ -83,33 +85,33 @@ export default function CrickClash() {
   const [tab, setTab] = useState('Battle');
   const [streak, setStreak] = useState(0);
   const [votesToday, setVotesToday] = useState(0);
-  const [badges, setBadges] = useState([]);
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
+  const [totalVotes, setTotalVotes] = useState(24);
+  const [topPlayer, setTopPlayer] = useState(null);
 
-  const checkDailyReset = useCallback(() => {
-    const today = new Date().toDateString();
-    const lastDate = localStorage.getItem('lastVoteDate');
-    if (lastDate!== today) {
-      localStorage.setItem('votesToday', 0);
-      localStorage.setItem('lastVoteDate', today);
-      setVotesToday(0);
-      if(user) {
-        const userRef = ref(db, `users/${user.uid}`);
-        update(userRef, { votesToday: 0, lastVoteDate: today });
-      }
+  // BUG FIX 1: DUPLICATE PLAYER RAKUNDA STRONG LOOP
+  const generateBattle = useCallback((playerList, role) => {
+    if(playerList.length < 2) return;
+    let filtered = role === 'Any'? playerList : playerList.filter(p => p.role === role);
+    if(filtered.length < 2) { setBattle([null, null]); return; }
+
+    let p1 = filtered[Math.floor(Math.random() * filtered.length)];
+    let p2 = filtered[Math.floor(Math.random() * filtered.length)];
+
+    let attempts = 0;
+    while(p1.id === p2.id && attempts < 20) {
+      p2 = filtered[Math.floor(Math.random() * filtered.length)];
+      attempts++;
     }
-  }, );
+    setBattle([p1, p2]);
+  }, [])
 
-  const loadBadges = useCallback(() => {
-    const totalVotes = Number(localStorage.getItem('totalVotes') || 0);
-    let userBadges = [];
-    if(totalVotes >= 1) userBadges.push('🏏 First Vote');
-    if(totalVotes >= 50) userBadges.push('🔥 Cricket Expert');
-    if(streak >= 7) userBadges.push('👑 Legend Streak');
-    if(totalVotes >= 200) userBadges.push('⚡ GOAT Maker');
-    setBadges(userBadges);
-  }, [streak]);
+  const getPercentage = (p1, p2) => {
+    const total = (p1?.votes || 0) + (p2?.votes || 0);
+    if(total === 0) return 50;
+    return ((p1?.votes || 0) / total) * 100;
+  }
 
   useEffect(() => {
     if('Notification' in window) Notification.requestPermission();
@@ -117,7 +119,6 @@ export default function CrickClash() {
       setUser(currentUser);
       setLoading(false);
       if(currentUser) {
-        checkDailyReset();
         const userRef = ref(db, `users/${currentUser.uid}`);
         onValue(userRef, (snapshot) => {
           const userData = snapshot.val();
@@ -128,146 +129,108 @@ export default function CrickClash() {
               setStreak(userData.streak || 0);
             } else {
               setVotesToday(0);
-              setStreak(userData.streak || 0);
-              set(userRef, {...userData, votesToday: 0, lastVoteDate: today});
+              update(userRef, {votesToday: 0, lastVoteDate: today});
             }
           }
         });
-        loadBadges();
       }
     });
+
     const playersRef = ref(db, 'players');
     onValue(playersRef, (snapshot) => {
       const data = snapshot.val();
       if (data && Object.keys(data).length > 90) {
         const playersArray = Object.keys(data).map(key => ({ id: Number(key),...data[key] }));
         setPlayers(playersArray);
-        generateBattle(playersArray, 'Any');
+        const sorted = [...playersArray].sort((a,b) => (b.votes||0) - (a.votes||0));
+        setTopPlayer(sorted[0]);
+        setTotalVotes(playersArray.reduce((sum, p) => sum + (p.votes||0), 24));
       } else {
         const initialPlayers = {};
         ALL_PLAYERS.forEach((p, idx) => { initialPlayers[idx] = {...p, id: idx }; });
         set(playersRef, initialPlayers);
       }
     });
+
     const commentsRef = ref(db, 'comments');
     onValue(commentsRef, (snapshot) => {
       const data = snapshot.val();
       if(data) setComments(Object.values(data).reverse().slice(0, 20));
     });
-  }, [loadBadges, checkDailyReset, user]);
-    const generateBattle = (playerList, role) => {
-    if(playerList.length < 2) return;
-    let filtered = role === 'Any'? playerList : playerList.filter(p => p.role === role);
-    if(filtered.length < 2) { setBattle([null, null]); return; }
-    const p1 = filtered[Math.floor(Math.random() * filtered.length)];
-    let p2 = filtered[Math.floor(Math.random() * filtered.length)];
-    while(p1.id === p2.id) p2 = filtered[Math.floor(Math.random() * filtered.length)];
-    setBattle([p1, p2]);
-  }
+
+  }, []);
+
+  // BUG FIX 2: AUTO CALL TEESANU. Filter marchite matrame kotha battle
+  useEffect(() => {
+    if(players.length > 0) generateBattle(players, filter);
+  }, [players, filter, generateBattle])
 
   const handleGoogleLogin = () => signInWithPopup(auth, googleProvider);
   const handleLogout = () => { if(window.confirm("Logout?")) signOut(auth); }
 
-  const handleVote = async (playerId) => {
-    checkDailyReset();
-    if(votesToday >= DAILY_VOTE_LIMIT) {
-      alert("Daily vote limit reached! Come back tomorrow 12AM 🔥");
-      return;
-    }
-    new Audio("https://www.soundjay.com/buttons/sounds/button-3.mp3").play();
-    const player = players.find(p => p.id === playerId);
-    await update(ref(db, `players/${playerId}`), { votes: (player.votes || 0) + 1 });
+  // BUG FIX 3: SKIP BUTTON ONLY
+  const handleSkip = () => {
+    setBattleNo(b => b + 1);
+    generateBattle(players, filter);
+  }
+
+  const handleVote = async (votedPlayerId) => {
+    if(!user || votesToday >= DAILY_VOTE_LIMIT) return;
+    const votedPlayer = players.find(p => p.id === votedPlayerId);
+    if(!votedPlayer) return;
+
     const today = new Date().toDateString();
     const userRef = ref(db, `users/${user.uid}`);
-    let newStreak = streak;
-    const lastVoteDate = localStorage.getItem('lastVoteDate');
-    if(lastVoteDate!== today){
-      newStreak = Number(localStorage.getItem('streak') || 0) + 1;
-      localStorage.setItem('streak', newStreak);
-    }
-    const newVotesToday = votesToday + 1;
-    const newTotal = Number(localStorage.getItem('totalVotes') || 0) + 1;
-    await set(userRef, {
-      name: user.displayName, email: user.email,
-      votesToday: newVotesToday, lastVoteDate: today,
-      totalVotes: newTotal, streak: newStreak
+    const playerRef = ref(db, `players/${votedPlayerId}`);
+
+    await update(userRef, {
+      votesToday: votesToday + 1,
+      lastVoteDate: today,
+      streak: streak + 1
     });
-    setVotesToday(newVotesToday);
-    localStorage.setItem('votesToday', newVotesToday);
-    localStorage.setItem('totalVotes', newTotal);
-    localStorage.setItem('lastVoteDate', today);
-    loadBadges();
-    if('Notification' in window && Notification.permission === 'granted'){
-      new Notification('Vote Cast! ⚡', { body: `You voted for ${player.name}` });
-    }
-    setBattleNo(prev => prev + 1);
-    generateBattle([...players], filter);
+
+    const playerSnap = await get(playerRef);
+    const currentVotes = playerSnap.val()?.votes || 0;
+    await update(playerRef, { votes: currentVotes + 1 });
+
+    setVotesToday(votesToday + 1);
+    setTimeout(() => handleSkip(), 800);
   }
 
   const handleComment = async () => {
     if(!newComment.trim() ||!user) return;
-    const commentRef = ref(db, 'comments');
-    await push(commentRef, {
-      user: user.displayName, text: newComment,
-      battle: `${battle[0]?.name} vs ${battle[1]?.name}`, time: Date.now()
+    const commentsRef = ref(db, 'comments');
+    const newCommentRef = push(commentsRef);
+    await set(newCommentRef, {
+      user: user.displayName,
+      text: newComment,
+      battle: `${battle[0]?.name} vs ${battle[1]?.name}`,
+      time: Date.now()
     });
     setNewComment('');
   }
 
-  const handleSkip = () => { setBattleNo(prev => prev + 1); generateBattle([...players], filter); }
-  const getPercentage = (p1, p2) => {
-    const total = (p1?.votes || 0) + (p2?.votes || 0);
-    if(total === 0) return 50;
-    return ((p1?.votes || 0) / total) * 100;
-                                       }
-    if(loading) return <div className="min-h-screen bg-[#0a0e1a] flex items-center justify-center text-white">Loading...</div>
-  if(!user){
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-[#0a0e1a] to-[#1a1f2e] text-white flex-col items-center justify-center p-6">
-        <div className="text-center mb-10 mt-20">
-          <div className="text-5xl mb-3">🏏</div>
-          <h1 className="text-4xl font-bold mb-2"><span className="text-white">Crick</span><span className="text-orange-400">Clash</span></h1>
-          <p className="text-sm text-gray-400">ANESH Innovation</p>
-        </div>
-        <button onClick={handleGoogleLogin} className="bg-white text-black w-[85%] max-w-xs px-6 py-3 rounded-full font-semibold flex items-center justify-center gap-2 mb-16">
-          <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="google" className="w-5 h-5"/>Sign In with Google
-        </button>
-        <footer className="text-center text-gray-500 text-xs">©️ 2026 CrickClash A Production By ANESH</footer>
-      </div>
-    )
-  }
-
-  const totalVotes = players.reduce((sum, p) => sum + (p.votes || 0), 0);
-  const topPlayer = [...players].sort((a,b) => (b.votes||0) - (a.votes||0))[0];
-  const votesLeft = DAILY_VOTE_LIMIT - votesToday;
+  if(loading) return <div className="min-h-screen bg-black flex items-center justify-center text-white">Loading...</div>
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#0a0e1a] to-[#1a1f2e] text-white p-4">
-      <div className="max-w-md mx-auto">
-        <div className="flex justify-between items-center mb-1">
-          <div><div className="flex items-center gap-2"><div className="text-3xl">🏏</div><h1 className="text-2xl font-bold"><span className="text-white">Crick</span><span className="text-orange-400">Clash</span></h1></div><p className="text-xs text-gray-400 ml-10">ANESH Innovation</p></div>
-          <div onClick={handleLogout} className="w-9 h-9 rounded-full bg-[#a8ff00] text-black font-bold flex items-center justify-center text-lg cursor-pointer">{user.displayName?.charAt(0).toUpperCase()}</div>
-        </div>
+    <div className="min-h-screen bg-black text-white p-4">
+      <div className="max-w-4xl mx-auto">
+        <header className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold text-[#a8ff00]">CrickClash</h1>
+          {!user? (
+            <button onClick={handleGoogleLogin} className="bg-[#a8ff00] text-black px-4 py-2 rounded-lg font-bold">Login</button>
+          ) : (
+            <button onClick={handleLogout} className="bg-gray-800 px-4 py-2 rounded-lg font-bold">Logout</button>
+          )}
+        </header>
 
-        {badges.length > 0 && (
-          <div className="bg-gray-800 rounded-xl p-3 mb-4">
-            <p className="text-xs text-gray-400 mb-2">Your Badges</p>
-            <div className="flex gap-2 flex-wrap">{badges.map(b => <span key={b} className="bg-[#a8ff00] text-black px-3 py-1 rounded-full text-xs font-bold">{b}</span>)}</div>
-          </div>
-        )}
-
-        <div className="bg-gray-800 rounded-xl p-3 mb-4 text-center">
-          <p className="text-sm text-gray-400">Today's Votes Left</p>
-          <p className="text-2xl font-bold text-[#a8ff00]">{votesLeft} / {DAILY_VOTE_LIMIT}</p>
-          {votesLeft === 0 && <p className="text-xs text-red-400 mt-1">Resets at 12AM</p>}
-        </div>
-
-        <div className="flex justify-around mb-6 border-b border-gray-700">
+        <div className="flex gap-6 border-b border-gray-800 mb-6">
           <button onClick={() => setTab('Battle')} className={`${tab === 'Battle'? 'text-[#a8ff00] border-b-2 border-[#a8ff00]' : 'text-gray-500'} font-bold pb-2`}>⚔️ Battle</button>
           <button onClick={() => setTab('Rankings')} className={`${tab === 'Rankings'? 'text-[#a8ff00] border-b-2 border-[#a8ff00]' : 'text-gray-500'} font-bold pb-2`}>🏆 Rankings</button>
           <button onClick={() => setTab('Debate')} className={`${tab === 'Debate'? 'text-[#a8ff00] border-b-2 border-[#a8ff00]' : 'text-gray-500'} font-bold pb-2`}>💬 Debate</button>
         </div>
 
+        {/* PART 2 + 3 */}
         {tab === 'Battle' && (
           <>
             <div className="grid grid-cols-4 text-center mb-6">
@@ -280,7 +243,7 @@ export default function CrickClash() {
             <h2 className="text-center text-4xl font-bold mb-4">Battle <span className="text-[#a8ff00]">{battleNo}</span></h2>
             <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
               {['Any', 'BATTER', 'BOWLER', 'ALL-ROUNDER', 'KEEPER', 'CAPTAIN'].map(role => (
-                <button key={role} onClick={() => {setFilter(role); generateBattle([...players], role)}}
+                <button key={role} onClick={() => setFilter(role)}
                   className={`px-4 py-2 rounded-full font-bold whitespace-nowrap ${filter === role? 'bg-[#a8ff00] text-black' : 'bg-gray-800'}`}>{role}</button>
               ))}
             </div>
@@ -317,16 +280,15 @@ export default function CrickClash() {
                       style={{ width: `${getPercentage(battle[0], battle[1])}%` }}></div>
                   </div>
                 </div>
-                <div className="flex gap-4 mt-6">
-                  <button onClick={handleSkip} className="bg-gray-800 w-1/2 py-3 rounded-xl font-bold">Skip →</button>
-                  <button onClick={() => navigator.share({title: 'CrickClash', text: `Who will win? ${battle[0]?.name} vs ${battle[1]?.name}`})}
-                    className="bg-gray-800 w-1/2 py-3 rounded-xl font-bold">Share 📤</button>
-                </div>
               </div>
             ) : <p className="text-center">Loading...</p>}
+            <div className="flex gap-4 mt-6">
+              <button onClick={handleSkip} className="bg-gray-800 w-1/2 py-3 rounded-xl font-bold">Skip →</button>
+              <button onClick={() => navigator.share({title: 'CrickClash', text: `Who will win? ${battle[0]?.name} vs ${battle[1]?.name}`})}
+                className="bg-gray-800 w-1/2 py-3 rounded-xl font-bold">Share 📤</button>
+            </div>
           </>
         )}
-
         {tab === 'Rankings' && (
           <div>
             <h2 className="text-2xl font-bold text-[#a8ff00] mb-4 text-center">🏆 Top 10 Players</h2>
@@ -337,7 +299,6 @@ export default function CrickClash() {
             ))}
           </div>
         )}
-
         {tab === 'Debate' && (
           <div>
             <h2 className="text-2xl font-bold text-[#a8ff00] mb-4 text-center">💬 Comments & Debates</h2>
@@ -372,4 +333,4 @@ export default function CrickClash() {
       </div>
     </div>
   );
-      }
+    }
