@@ -167,7 +167,7 @@ export default function CrickClash() {
     return (
       <div className="min-h-screen bg-[#0a0a0f] flex-col items-center justify-center text-white p-4 relative">
         <div className="text-center">
-          <p className="text-6xl mb-2 mt-2">The Ultimate Cricket Voting Platform</p>
+          <p className="text-gray-400 mt-2 mb-10">The Ultimate Cricket Voting Platform</p>
           <h1 className="text-4xl font-bold">Crick<span className="text-orange-400">Clash</span></h1>
           <p className="text-gray-400 mt-2 mb-10">ANESH Innovation</p>
 
@@ -179,7 +179,7 @@ export default function CrickClash() {
             Sign In with Google
           </button>
         </div>
-        <footer className="absolute bottom-4 text-center text-gray-500 text-sm">
+        <footer className="text-center mt-10 text-gray-500 text-sm"> 
           © 2026 CrickClash™ | A Production By ANESH
         </footer>
       </div>
