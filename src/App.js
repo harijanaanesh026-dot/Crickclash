@@ -155,9 +155,8 @@ export default function CrickClash() {
       const data = snapshot.val();
       if(data) setComments(Object.values(data).reverse().slice(0, 20));
     });
-  }, [loadBadges, checkDailyReset]);
-
-  const generateBattle = (playerList, role) => {
+  }, [loadBadges, checkDailyReset, user]);
+    const generateBattle = (playerList, role) => {
     if(playerList.length < 2) return;
     let filtered = role === 'Any'? playerList : playerList.filter(p => p.role === role);
     if(filtered.length < 2) { setBattle([null, null]); return; }
@@ -204,7 +203,7 @@ export default function CrickClash() {
     }
     setBattleNo(prev => prev + 1);
     generateBattle([...players], filter);
-                                                       }
+  }
     const handleComment = async () => {
     if(!newComment.trim() ||!user) return;
     const commentRef = ref(db, 'comments');
@@ -374,4 +373,4 @@ export default function CrickClash() {
       </div>
     </div>
   );
-  }
+      }
