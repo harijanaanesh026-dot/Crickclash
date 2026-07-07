@@ -174,16 +174,17 @@ export default function CrickClash() {
       <div className="max-w-md mx-auto">
 
         <header className="flex justify-between items-center mb-4">
-          <div>
-            <h1 className="text-2xl font-bold">Crick<span className="text-orange-400">Clash</span></h1>
-            <p className="text-xs text-gray-400">ANESH Innovation</p>
-          </div>
-      <div className="flex items-center gap-2">
-  <img src={user.photoURL} className="w-10 h-10 rounded-full border-2 border-[#a8ff00]"/>
-  <button onClick={handleLogout} className="bg-red-600 px-3 py-2 rounded-lg font-bold text-sm">
-    Logout
-  </button>
-</div>
+  <div>
+    <h1 className="text-2xl font-bold">Crick<span className="text-orange-400">Clash</span></h1>
+    <p className="text-xs text-gray-400">ANESH Innovation</p>
+  </div>
+  <div className="flex items-center gap-2">
+    <img src={user.photoURL} className="w-10 h-10 rounded-full border-2 border-[#a8ff00]"/>
+    <button onClick={handleLogout} className="bg-red-600 px-3 py-2 rounded-lg font-bold text-sm">
+      Logout
+    </button>
+  </div>
+</header>
         <div className="bg-[#13131a] p-3 rounded-2xl mb-3">
           <p className="text-sm text-gray-400 mb-2">Your Badges</p>
           <div className="flex gap-2">
