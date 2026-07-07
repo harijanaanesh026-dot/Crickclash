@@ -280,6 +280,6 @@ className="bg-[#13131a] w-1/2 py-3 rounded-xl font-bold">Share 📤</button>
   )
 }
 
-export default CrickClash;     
+export default CrickClash;
         
 
