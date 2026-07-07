@@ -151,7 +151,7 @@ export default function CrickClash() {
     return (
       <div className="min-h-screen bg-[#0a0a0f] flex flex-col items-center justify-center text-white p-4 relative">
         <div className="text-center">
-          <p className="text-6xl mb-2">⚡</p>
+          <p className="text-6xl mb-2">The Ultimate Cricket Voting Plotform</p>
           <h1 className="text-4xl font-bold">Crick<span className="text-orange-400">Clash</span></h1>
           <p className="text-gray-400 mt-2 mb-10">ANESH Innovation</p>
 
@@ -178,11 +178,12 @@ export default function CrickClash() {
             <h1 className="text-2xl font-bold">Crick<span className="text-orange-400">Clash</span></h1>
             <p className="text-xs text-gray-400">ANESH Innovation</p>
           </div>
-          <div className="w-10 h-10 rounded-full bg-[#a8ff00] flex items-center justify-center text-black font-bold text-xl">
-            {user.displayName?.[0]}
-          </div>
-        </header>
-
+      <div className="flex items-center gap-2">
+  <img src={user.photoURL} className="w-10 h-10 rounded-full border-2 border-[#a8ff00]"/>
+  <button onClick={handleLogout} className="bg-red-600 px-3 py-2 rounded-lg font-bold text-sm">
+    Logout
+  </button>
+</div>
         <div className="bg-[#13131a] p-3 rounded-2xl mb-3">
           <p className="text-sm text-gray-400 mb-2">Your Badges</p>
           <div className="flex gap-2">
