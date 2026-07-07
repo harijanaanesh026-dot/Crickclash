@@ -96,7 +96,7 @@ export default function CrickClash() {
         setPlayers(playersArray);
         const sorted = [...playersArray].sort((a,b) => (b.votes||0) - (a.votes||0));
         setTopPlayer(sorted[0]);
-        setTotalVotes(playersArray.reduce((sum, p) => sum + (p.votes||0), 24));
+        setTotalVotes(playersArray.reduce((sum, p) => sum + (p.votes||0), 0));
       } else {
         const initialPlayers = {};
         ALL_PLAYERS.forEach((p, idx) => { initialPlayers[idx] = {...p, id: idx }; });
@@ -151,7 +151,7 @@ export default function CrickClash() {
     return (
       <div className="min-h-screen bg-[#0a0a0f] flex flex-col items-center justify-center text-white p-4 relative">
         <div className="text-center">
-          <p className="text-6xl mb-2">⚡</p>
+          <p className="text-6xl mb-2">The Ultimate Cricket Voting Platform</p>
           <h1 className="text-4xl font-bold">Crick<span className="text-orange-400">Clash</span></h1>
           <p className="text-gray-400 mt-2 mb-10">ANESH Innovation</p>
 
