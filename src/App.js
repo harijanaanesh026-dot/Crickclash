@@ -96,7 +96,7 @@ export default function CrickClash() {
         setPlayers(playersArray);
         const sorted = [...playersArray].sort((a,b) => (b.votes||0) - (a.votes||0));
         setTopPlayer(sorted[0]);
-        setTotalVotes(playersArray.reduce((sum, p) => sum + (p.votes||0), 24));
+        setTotalVotes(playersArray.reduce((sum, p) => sum + (p.votes||0), 0));
       } else {
         const initialPlayers = {};
         ALL_PLAYERS.forEach((p, idx) => { initialPlayers[idx] = {...p, id: idx }; });
