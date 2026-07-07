@@ -164,7 +164,7 @@ export default function CrickClash() {
           </button>
         </div>
         <footer className="absolute bottom-4 text-center text-gray-500 text-sm">
-          ©️ 2026 crickclash A Production By ANESH
+          © 2026 CrickClash™ | A Production By ANESH
         </footer>
       </div>
     )
@@ -271,7 +271,7 @@ className="bg-[#13131a] w-1/2 py-3 rounded-xl font-bold">Share 📤</button>
           </div>
         )}
 
-        <footer className="text-center mt-10 text-gray-500 text-sm">©️ 2026 Crickclash A Production By ANESH </footer>
+        <footer className="text-center mt-10 text-gray-500 text-sm">© 2026 CrickClash™ | A Production By ANESH</footer>
       </div>
     </div>
   );
