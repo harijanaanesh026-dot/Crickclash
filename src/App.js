@@ -162,14 +162,12 @@ export default function CrickClash() {
             </svg>
             Sign In with Google
           </button>
-<footer className="text-center text-gray-500 text-sm mt-8 py-4"> © 2026 CrickClash™ | A Production By ANESH </footer>
-</div>
-</div></div>
-        
-        </footer>
-      </div>
-    )
-      }
+       <footer className="text-center text-gray-500 text-sm mt-8 py-4">
+        © 2026 CrickClash™ | A Production By ANESH
+      </footer>
+     </div>
+   )
+  }
     return (
     <div className="min-h-screen bg-[#0a0a0f] text-white p-4">
       <div className="max-w-md mx-auto">
