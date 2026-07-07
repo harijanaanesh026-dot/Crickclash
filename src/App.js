@@ -31,7 +31,7 @@ const ALL_PLAYERS = [
   { name: 'Sanju Samson', role: 'KEEPER', votes: 0 }, { name: 'MS Dhoni', role: 'CAPTAIN', votes: 0 },
   { name: 'Virat Kohli', role: 'CAPTAIN', votes: 0 }, { name: 'Rohit Sharma', role: 'CAPTAIN', votes: 0 },
 ];
-export default function CrickClash() {
+function CrickClash() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [players, setPlayers] = useState([]);
