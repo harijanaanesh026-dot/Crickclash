@@ -248,8 +248,12 @@ export default function CrickClash() {
 
                 <div className="flex gap-4 mt-6">
                   <button onClick={handleSkip} className="bg-[#13131a] w-1/2 py-3 rounded-xl font-bold">Skip →</button>
-                  <button onClick={() => navigator.share({title: 'CrickClash', text: `Who will win? ${battle[0]?.name} vs ${battle[1]?.name}`})}
-                    className="bg-[#13131a] w-1/2 py-3 rounded-xl font-bold">Share 📤</button>
+                  <button onClick={() => navigator.share({
+  title: 'CrickClash', 
+  text: `Who will win? ${battle[0]?.name} vs ${battle[1]?.name}`,
+  url: window.location.href
+})}
+className="bg-[#13131a] w-1/2 py-3 rounded-xl font-bold">Share 📤</button>
                 </div>
               </div>
             ) : <p className="text-center">Loading...</p>}
