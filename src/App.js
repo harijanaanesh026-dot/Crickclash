@@ -258,18 +258,22 @@ className="bg-[#13131a] w-1/2 py-3 rounded-xl font-bold">Share 📤</button>
           </>
         )}
 
-        {tab === 'Rankings' && (
+                {tab === 'Rankings' && (
           <div>
-            <h2 className="text-2xl font-bold text-[#a8ff00] mb-4 text-center">🏆 Top 10 Players</h2>
+            <h2 className="text-2xl font-bold text-center text-[#a8ff00] mb-4">🏆 Top 10 Players</h2>
             {[...players].sort((a,b) => (b.votes||0) - (a.votes||0)).slice(0,10).map((p,i) => (
-              <div key={p.id} className="bg-[#13131a] p-3 rounded-lg mb-2 flex justify-between">
-                <span>{i+1}. {p.name}</span><span className="text-[#a8ff00]">{p.votes||0} votes</span>
+              <div key={p.id} className="bg-[#1a1d29] p-3 rounded-lg mb-2 flex justify-between">
+                <span>{i+1}. {p.name}</span>
+                <span className="text-[#a8ff00]">{p.votes || 0} votes</span>
               </div>
             ))}
           </div>
         )}
 
-        <footer className="text-center mt-10 text-gray-500 text-sm"> © 2026 CrickClash™ | A Production By ANESH </footer>
+        <footer className="text-center text-gray-500 text-sm mt-8 py-4">© 2026 CrickClash™ | A Production By ANESH</footer>
+      </div>
     </div>
-  );
-              }
+  )
+}
+
+export default CrickClash;
