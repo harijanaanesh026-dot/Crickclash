@@ -20,18 +20,19 @@ const googleProvider = new GoogleAuthProvider();
 const DAILY_VOTE_LIMIT = 1;
 
 const ALL_PLAYERS = [
-  { name: 'Virat Kohli', role: 'BATTER', votes: 0 }, { name: 'Rohit Sharma', role: 'BATTER', votes: 0 },
-  { name: 'Sachin Tendulkar', role: 'BATTER', votes: 0 }, { name: 'Shubman Gill', role: 'BATTER', votes: 0 },
-  { name: 'Suryakumar Yadav', role: 'BATTER', votes: 0 }, { name: 'KL Rahul', role: 'BATTER', votes: 0 },
-  { name: 'Jasprit Bumrah', role: 'BOWLER', votes: 0 }, { name: 'Mohammed Shami', role: 'BOWLER', votes: 0 },
-  { name: 'Mohammed Siraj', role: 'BOWLER', votes: 0 }, { name: 'Kuldeep Yadav', role: 'BOWLER', votes: 0 },
-  { name: 'Hardik Pandya', role: 'ALL-ROUNDER', votes: 0 }, { name: 'Ravindra Jadeja', role: 'ALL-ROUNDER', votes: 0 },
-  { name: 'Axar Patel', role: 'ALL-ROUNDER', votes: 0 }, { name: 'Washington Sundar', role: 'ALL-ROUNDER', votes: 0 },
-  { name: 'MS Dhoni', role: 'KEEPER', votes: 0 }, { name: 'Rishabh Pant', role: 'KEEPER', votes: 0 },
-  { name: 'Sanju Samson', role: 'KEEPER', votes: 0 }, { name: 'MS Dhoni', role: 'CAPTAIN', votes: 0 },
-  { name: 'Virat Kohli', role: 'CAPTAIN', votes: 0 }, { name: 'Rohit Sharma', role: 'CAPTAIN', votes: 0 },
+  { id: 0, name: 'Virat Kohli', role: 'BATTER', votes: 0 }, { id: 1, name: 'Rohit Sharma', role: 'BATTER', votes: 0 },
+  { id: 2, name: 'Sachin Tendulkar', role: 'BATTER', votes: 0 }, { id: 3, name: 'Shubman Gill', role: 'BATTER', votes: 0 },
+  { id: 4, name: 'Suryakumar Yadav', role: 'BATTER', votes: 0 }, { id: 5, name: 'KL Rahul', role: 'BATTER', votes: 0 },
+  { id: 6, name: 'Jasprit Bumrah', role: 'BOWLER', votes: 0 }, { id: 7, name: 'Mohammed Shami', role: 'BOWLER', votes: 0 },
+  { id: 8, name: 'Mohammed Siraj', role: 'BOWLER', votes: 0 }, { id: 9, name: 'Kuldeep Yadav', role: 'BOWLER', votes: 0 },
+  { id: 10, name: 'Hardik Pandya', role: 'ALL-ROUNDER', votes: 0 }, { id: 11, name: 'Ravindra Jadeja', role: 'ALL-ROUNDER', votes: 0 },
+  { id: 12, name: 'Axar Patel', role: 'ALL-ROUNDER', votes: 0 }, { id: 13, name: 'Washington Sundar', role: 'ALL-ROUNDER', votes: 0 },
+  { id: 14, name: 'MS Dhoni', role: 'KEEPER', votes: 0 }, { id: 15, name: 'Rishabh Pant', role: 'KEEPER', votes: 0 },
+  { id: 16, name: 'Sanju Samson', role: 'KEEPER', votes: 0 }, { id: 17, name: 'MS Dhoni', role: 'CAPTAIN', votes: 0 },
+  { id: 18, name: 'Virat Kohli', role: 'CAPTAIN', votes: 0 }, { id: 19, name: 'Rohit Sharma', role: 'CAPTAIN', votes: 0 },
 ];
-function CrickClash() {
+
+export default function CrickClash() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [players, setPlayers] = useState([]);
@@ -44,6 +45,7 @@ function CrickClash() {
   const [totalVotes, setTotalVotes] = useState(24);
   const [topPlayer, setTopPlayer] = useState(null);
   const [badges, setBadges] = useState([]);
+  const [showProfile, setShowProfile] = useState(false); // LOGOUT DROPDOWN STATE
 
   // BUG FIX: DUPLICATE PLAYER RAKUNDA
   const generateBattle = useCallback((playerList, role) => {
@@ -64,8 +66,9 @@ function CrickClash() {
     const total = (p1?.votes || 0) + (p2?.votes || 0);
     if(total === 0) return 50;
     return ((p1?.votes || 0) / total) * 100;
-      }
-    useEffect(() => {
+  }
+
+  useEffect(() => {
     onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       setLoading(false);
@@ -96,10 +99,10 @@ function CrickClash() {
         setPlayers(playersArray);
         const sorted = [...playersArray].sort((a,b) => (b.votes||0) - (a.votes||0));
         setTopPlayer(sorted[0]);
-        setTotalVotes(playersArray.reduce((sum, p) => sum + (p.votes||0), 0));
+        setTotalVotes(playersArray.reduce((sum, p) => sum + (p.votes||0), 24));
       } else {
         const initialPlayers = {};
-        ALL_PLAYERS.forEach((p, idx) => { initialPlayers[idx] = {...p, id: idx }; });
+        ALL_PLAYERS.forEach((p) => { initialPlayers[p.id] = p; });
         set(playersRef, initialPlayers);
       }
     });
@@ -110,8 +113,20 @@ function CrickClash() {
     if(players.length > 0) generateBattle(players, filter);
   }, [players, filter, generateBattle])
 
+  // CLICK OUTSIDE CLOSE PROFILE
+  useEffect(() => {
+    const close = () => setShowProfile(false);
+    document.addEventListener('click', close);
+    return () => document.removeEventListener('click', close);
+  }, []);
+
   const handleGoogleLogin = () => signInWithPopup(auth, googleProvider);
-  const handleLogout = () => { if(window.confirm("Logout?")) signOut(auth); }
+  const handleLogout = async () => {
+    if(window.confirm("Logout avvadaniki sure na?")) {
+      await signOut(auth);
+      setShowProfile(false);
+    }
+  }
 
   const handleSkip = () => {
     setBattleNo(b => b + 1);
@@ -144,14 +159,15 @@ function CrickClash() {
     setVotesToday(votesToday + 1);
     setBadges(newBadges);
     setTimeout(() => handleSkip(), 800);
-                                        }
-    if(loading) return <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center text-white">Loading...</div>
+  }
+
+  if(loading) return <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center text-white">Loading...</div>
 
   if(!user) {
     return (
-      <div className="min-h-screen bg-[#0a0a0f] flex flex-col items-center justify-center text-white p-4 relative">
+      <div className="min-h-screen bg-[#0a0a0f] flex-col items-center justify-center text-white p-4 relative">
         <div className="text-center">
-          <p className="text-6xl mb-2 mb-10">The Ultimate Cricket Voting Platform</p>
+          <p className="text-6xl mb-2 mt-2">The Ultimate Cricket Voting Platform</p>
           <h1 className="text-4xl font-bold">Crick<span className="text-orange-400">Clash</span></h1>
           <p className="text-gray-400 mt-2 mb-10">ANESH Innovation</p>
 
@@ -164,12 +180,13 @@ function CrickClash() {
           </button>
         </div>
         <footer className="absolute bottom-4 text-center text-gray-500 text-sm">
-         © 2026 CrickClash™ | A Production By ANESH 
+          © 2026 CrickClash™ | A Production By ANESH
         </footer>
       </div>
     )
-              }
-    return (
+  }
+
+  return (
     <div className="min-h-screen bg-[#0a0a0f] text-white p-4">
       <div className="max-w-md mx-auto">
 
@@ -178,8 +195,33 @@ function CrickClash() {
             <h1 className="text-2xl font-bold">Crick<span className="text-orange-400">Clash</span></h1>
             <p className="text-xs text-gray-400">ANESH Innovation</p>
           </div>
-          <div className="w-10 h-10 rounded-full bg-[#a8ff00] flex items-center justify-center text-black font-bold text-xl">
-            {user.displayName?.[0]}
+
+          {/* LOGOUT DROPDOWN */}
+          <div className="relative">
+            <button
+              onClick={(e) => { e.stopPropagation(); setShowProfile(!showProfile)}}
+              className="w-10 h-10 rounded-full bg-[#a8ff00] flex items-center justify-center text-black font-bold text-xl"
+            >
+              {user.displayName?.[0] || 'U'}
+            </button>
+
+            {showProfile && (
+              <div
+                onClick={(e) => e.stopPropagation()}
+                className="absolute right-0 mt-2 w-44 bg-[#1A1A1A] border border-[#333] rounded-xl shadow-2xl z-50"
+              >
+                <div className="px-4 py-3 border-b border-[#333]">
+                  <p className="text-white text-sm font-semibold">{user.displayName}</p>
+                  <p className="text-gray-400 text-xs truncate">{user.email}</p>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="w-full text-left px-4 py-3 text-red-400 hover:bg-[#222] rounded-b-xl"
+                >
+                  Logout
+                </button>
+              </div>
+            )}
           </div>
         </header>
 
@@ -248,32 +290,30 @@ function CrickClash() {
                   <button onClick={handleSkip} className="bg-[#13131a] w-1/2 py-3 rounded-xl font-bold">Skip →</button>
                   <button onClick={() => navigator.share({
   title: 'CrickClash', 
-  text: `Want To Your Favourite Player To Win? Cast Your Vote Now${battle[0]?.name} vs ${battle[1]?.name}`,
+  text: `Want To Your Favourite Player To Win? Cast Your Vote Now${battle[0].name} vs ${battle[1].name}`,
   url: window.location.href
-})}
-className="bg-[#13131a] w-1/2 py-3 rounded-xl font-bold">Share 📤</button>
+})}>
+Share 📤
+</button>
                 </div>
               </div>
             ) : <p className="text-center">Loading...</p>}
           </>
         )}
 
-                {tab === 'Rankings' && (
+        {tab === 'Rankings' && (
           <div>
-            <h2 className="text-2xl font-bold text-center text-[#a8ff00] mb-4">🏆 Top 10 Players</h2>
+            <h2 className="text-2xl font-bold text-[#a8ff00] mb-4 text-center">🏆 Top 10 Players</h2>
             {[...players].sort((a,b) => (b.votes||0) - (a.votes||0)).slice(0,10).map((p,i) => (
-              <div key={p.id} className="bg-[#1a1d29] p-3 rounded-lg mb-2 flex justify-between">
-                <span>{i+1}. {p.name}</span>
-                <span className="text-[#a8ff00]">{p.votes || 0} votes</span>
+              <div key={p.id} className="bg-[#13131a] p-3 rounded-lg mb-2 flex justify-between">
+                <span>{i+1}. {p.name}</span><span className="text-[#a8ff00]">{p.votes||0} votes</span>
               </div>
             ))}
           </div>
         )}
 
-        <footer className="text-center text-gray-500 text-sm mt-8 py-4">© 2026 CrickClash™ | A Production By ANESH</footer>
+        <footer className="text-center mt-10 text-gray-500 text-sm"> © 2026 CrickClash™ | A Production By ANESH </footer>
       </div>
     </div>
-  )
-}
-
-export default CrickClash;
+  );
+                                 }
