@@ -75,7 +75,7 @@ const ALL_PLAYERS = [
 ];
 
 export default function CrickClash() {
-  const [user, setUser] = useState(null);
+    const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [players, setPlayers] = useState([]);
   const [battle, setBattle] = useState([null, null]);
@@ -204,7 +204,8 @@ export default function CrickClash() {
     setBattleNo(prev => prev + 1);
     generateBattle([...players], filter);
   }
-    const handleComment = async () => {
+
+  const handleComment = async () => {
     if(!newComment.trim() ||!user) return;
     const commentRef = ref(db, 'comments');
     await push(commentRef, {
@@ -219,9 +220,8 @@ export default function CrickClash() {
     const total = (p1?.votes || 0) + (p2?.votes || 0);
     if(total === 0) return 50;
     return ((p1?.votes || 0) / total) * 100;
-  }
-
-  if(loading) return <div className="min-h-screen bg-[#0a0e1a] flex items-center justify-center text-white">Loading...</div>
+                                       }
+    if(loading) return <div className="min-h-screen bg-[#0a0e1a] flex items-center justify-center text-white">Loading...</div>
   if(!user){
     return (
       <div className="min-h-screen bg-gradient-to-b from-[#0a0e1a] to-[#1a1f2e] text-white flex-col items-center justify-center p-6">
@@ -373,5 +373,4 @@ export default function CrickClash() {
       </div>
     </div>
   );
-}
-    
+      }
