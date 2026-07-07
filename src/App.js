@@ -84,12 +84,11 @@ export default function CrickClash() {
   const [tab, setTab] = useState('Battle');
   const [streak, setStreak] = useState(0);
   const [votesToday, setVotesToday] = useState(0);
-  const [totalVotes, setTotalVotes] = useState(24);
+  const [totalVotes, setTotalVotes] = useState(0);
   const [topPlayer, setTopPlayer] = useState(null);
   const [badges, setBadges] = useState([]);
-  const [showProfile, setShowProfile] = useState(false); // LOGOUT DROPDOWN STATE
+  const [showProfile, setShowProfile] = useState(false);
 
-  // BUG FIX: DUPLICATE PLAYER RAKUNDA
   const generateBattle = useCallback((playerList, role) => {
     if(playerList.length < 2) return;
     let filtered = role === 'Any'? playerList : playerList.filter(p => p.role === role);
@@ -116,19 +115,29 @@ export default function CrickClash() {
       setLoading(false);
       if(currentUser) {
         const userRef = ref(db, `users/${currentUser.uid}`);
+        const statsRef = ref(db, `stats`);
+
         onValue(userRef, (snapshot) => {
           const userData = snapshot.val();
-          const today = new Date().toDateString();
+          const today = new Date().toISOString().split('T')[0];
+
           if(userData){
             if(userData.lastVoteDate === today){
               setVotesToday(userData.votesToday || 0);
-              setStreak(userData.streak || 0);
-              setBadges(userData.badges || []);
             } else {
               setVotesToday(0);
               update(userRef, {votesToday: 0, lastVoteDate: today});
             }
+            setStreak(userData.streak || 0);
+            setBadges(userData.badges || []);
+          } else {
+            set(userRef, {votesToday: 0, lastVoteDate: today, streak: 0, badges: []});
           }
+        });
+
+        onValue(statsRef, (snapshot) => {
+          const statsData = snapshot.val();
+          setTotalVotes(statsData?.totalVotes || 0);
         });
       }
     });
@@ -141,21 +150,18 @@ export default function CrickClash() {
         setPlayers(playersArray);
         const sorted = [...playersArray].sort((a,b) => (b.votes||0) - (a.votes||0));
         setTopPlayer(sorted[0]);
-        setTotalVotes(playersArray.reduce((sum, p) => sum + (p.votes||0), 0));
       } else {
         const initialPlayers = {};
-        ALL_PLAYERS.forEach((p) => { initialPlayers[p.id] = p; });
+        ALL_PLAYERS.forEach((p, index) => { initialPlayers[index] = {...p, id: index}; });
         set(playersRef, initialPlayers);
       }
     });
   }, []);
 
-  // BUG FIX: AUTO CALL TEESAM. Filter change aythe matrame kotha battle
   useEffect(() => {
     if(players.length > 0) generateBattle(players, filter);
   }, [players, filter, generateBattle])
 
-  // CLICK OUTSIDE CLOSE PROFILE
   useEffect(() => {
     const close = () => setShowProfile(false);
     document.addEventListener('click', close);
@@ -175,14 +181,26 @@ export default function CrickClash() {
     generateBattle(players, filter);
   }
 
+  const handleShare = () => {
+    const text = `Who will win? ${battle[0]?.name} vs ${battle[1]?.name} on CrickClash!`;
+    const url = window.location.href;
+    if (navigator.share) {
+      navigator.share({title: 'CrickClash', text: text, url: url});
+    } else {
+      navigator.clipboard.writeText(`${text} ${url}`);
+      alert("Link Copied!");
+    }
+  }
+
   const handleVote = async (votedPlayerId) => {
     if(!user || votesToday >= DAILY_VOTE_LIMIT) return;
     const votedPlayer = players.find(p => p.id === votedPlayerId);
     if(!votedPlayer) return;
 
-    const today = new Date().toDateString();
+    const today = new Date().toISOString().split('T')[0];
     const userRef = ref(db, `users/${user.uid}`);
     const playerRef = ref(db, `players/${votedPlayerId}`);
+    const statsRef = ref(db, `stats`);
 
     const newBadges = [...badges];
     if(votesToday === 0 &&!badges.includes('First Vote')) newBadges.push('First Vote');
@@ -198,6 +216,10 @@ export default function CrickClash() {
     const currentVotes = playerSnap.val()?.votes || 0;
     await update(playerRef, { votes: currentVotes + 1 });
 
+    const statsSnap = await get(statsRef);
+    const currentTotal = statsSnap.val()?.totalVotes || 0;
+    await update(statsRef, { totalVotes: currentTotal + 1 });
+
     setVotesToday(votesToday + 1);
     setBadges(newBadges);
     setTimeout(() => handleSkip(), 800);
@@ -207,23 +229,18 @@ export default function CrickClash() {
 
   if(!user) {
     return (
-      <div className="min-h-screen bg-[#0a0a0f] flex-col items-center justify-center text-white p-4 relative">
+      <div className="min-h-screen bg-[#0a0a0f] flex flex-col items-center justify-center text-white p-4 relative">
         <div className="text-center">
           <p className="text-gray-400 mt-2 mb-10">The Ultimate Cricket Voting Platform</p>
           <h1 className="text-4xl font-bold">Crick<span className="text-orange-400">Clash</span></h1>
           <p className="text-gray-400 mt-2 mb-10">ANESH Innovation</p>
-
           <button onClick={handleGoogleLogin}
             className="bg-white text-black px-8 py-4 rounded-full font-bold flex items-center gap-3 shadow-lg hover:scale-105 transition mx-auto">
-            <svg className="w-6 h-6" viewBox="0 0 48 48">
-              <path fill="#FFC107" d="M43.6 20.5h-1.9V20H24v8h11.3c-1.6 4.3-5.9 7.5-11.3 7.5-6.6 0-12-5.4-12-12s5.4-12 12-12c2.6 0 5 1 6.9 2.7l6.1-6.1C29.6 4.1 27 3 24 3c-9.4 0-17 7.6-17 17s7.6 17 17 17c9.4 0 17-7.6 17-17 0-1.2-.1-2.3-.4-3.5z"/>
-            </svg>
+            <svg className="w-6 h-6" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5h-1.9V20H24v8h11.3c-1.6 4.3-5.9 7.5-11.3 7.5-6.6 0-12-5.4-12-12s5.4-12 12-12c2.6 0 5 1 6.9 2.7l6.1-6.1C29.6 4.1 27 3 24 3c-9.4 0-17 7.6-17 17s7.6 17 17 17c9.4 0 17-7.6 17-17 0-1.2-.1-2.3-.4-3.5z"/></svg>
             Sign In with Google
           </button>
         </div>
-        <footer className="text-center mt-10 text-gray-500 text-sm"> 
-          © 2026 CrickClash™ | A Production By ANESH
-        </footer>
+        <footer className="text-center mt-10 text-gray-500 text-sm"> © 2026 CrickClash™ | A Production By ANESH </footer>
       </div>
     )
   }
@@ -231,37 +248,16 @@ export default function CrickClash() {
   return (
     <div className="min-h-screen bg-[#0a0a0f] text-white p-4">
       <div className="max-w-md mx-auto">
-
         <header className="flex justify-between items-center mb-4">
-          <div>
-            <h1 className="text-2xl font-bold">Crick<span className="text-orange-400">Clash</span></h1>
-            <p className="text-xs text-gray-400">ANESH Innovation</p>
-          </div>
-
-          {/* LOGOUT DROPDOWN */}
+          <div><h1 className="text-2xl font-bold">Crick<span className="text-orange-400">Clash</span></h1><p className="text-xs text-gray-400">ANESH Innovation</p></div>
           <div className="relative">
-            <button
-              onClick={(e) => { e.stopPropagation(); setShowProfile(!showProfile)}}
-              className="w-10 h-10 rounded-full bg-[#a8ff00] flex items-center justify-center text-black font-bold text-xl"
-            >
+            <button onClick={(e) => { e.stopPropagation(); setShowProfile(!showProfile)}} className="w-10 h-10 rounded-full bg-[#a8ff00] flex items-center justify-center text-black font-bold text-xl">
               {user.displayName?.[0] || 'U'}
             </button>
-
             {showProfile && (
-              <div
-                onClick={(e) => e.stopPropagation()}
-                className="absolute right-0 mt-2 w-44 bg-[#1A1A1A] border border-[#333] rounded-xl shadow-2xl z-50"
-              >
-                <div className="px-4 py-3 border-b border-[#333]">
-                  <p className="text-white text-sm font-semibold">{user.displayName}</p>
-                  <p className="text-gray-400 text-xs truncate">{user.email}</p>
-                </div>
-                <button
-                  onClick={handleLogout}
-                  className="w-full text-left px-4 py-3 text-red-400 hover:bg-[#222] rounded-b-xl"
-                >
-                  Logout
-                </button>
+              <div onClick={(e) => e.stopPropagation()} className="absolute right-0 mt-2 w-44 bg-[#1A1A1A] border-[#333] rounded-xl shadow-2xl z-50">
+                <div className="px-4 py-3 border-b border-[#333]"><p className="text-white text-sm font-semibold">{user.displayName}</p><p className="text-gray-400 text-xs truncate">{user.email}</p></div>
+                <button onClick={handleLogout} className="w-full text-left px-4 py-3 text-red-400 hover:bg-[#222] rounded-b-xl">Logout</button>
               </div>
             )}
           </div>
@@ -276,7 +272,7 @@ export default function CrickClash() {
         </div>
 
         <div className="bg-[#13131a] p-4 rounded-2xl mb-4 text-center">
-          <p className="text-gray-400 text-sm">Today's Votes Left</p>
+          <p className="text-gray-400 text-sm">Today's Votes Left - Resets at 12 AM</p>
           <p className="text-4xl font-bold text-[#a8ff00]">{DAILY_VOTE_LIMIT - votesToday} / {DAILY_VOTE_LIMIT}</p>
         </div>
 
@@ -290,7 +286,7 @@ export default function CrickClash() {
             <div className="grid grid-cols-4 text-center mb-6">
               <div><p className="text-2xl font-bold text-orange-400">{totalVotes}</p><p className="text-xs text-gray-400">TOTAL VOTES</p></div>
               <div><p className="text-2xl font-bold text-orange-400">{battleNo-1}</p><p className="text-xs text-gray-400">BATTLES</p></div>
-              <div><p className="text-2xl font-bold text-orange-400">{topPlayer?.name.split(' ')[0] || 'None'}</p><p className="text-xs text-gray-400">TOP CHAMP</p></div>
+              <div><p className="text-2xl font-bold text-orange-400 truncate">{topPlayer?.name.split(' ')[0] || 'None'}</p><p className="text-xs text-gray-400">TOP CHAMP</p></div>
               <div><p className="text-2xl font-bold text-orange-400">🔥{streak}</p><p className="text-xs text-gray-400">STREAK</p></div>
             </div>
 
@@ -299,8 +295,7 @@ export default function CrickClash() {
 
             <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
               {['Any', 'BATTER', 'BOWLER', 'ALL-ROUNDER', 'KEEPER', 'CAPTAIN'].map(role => (
-                <button key={role} onClick={() => setFilter(role)}
-                  className={`px-4 py-2 rounded-full font-bold whitespace-nowrap ${filter === role? 'bg-[#a8ff00] text-black' : 'bg-[#13131a]'}`}>{role}</button>
+                <button key={role} onClick={() => setFilter(role)} className={`px-4 py-2 rounded-full font-bold whitespace-nowrap ${filter === role? 'bg-[#a8ff00] text-black' : 'bg-[#13131a]'}`}>{role}</button>
               ))}
             </div>
 
@@ -311,8 +306,7 @@ export default function CrickClash() {
                     <span className="bg-red-900 text-red-300 px-3 py-1 rounded-full text-xs font-bold">{battle[0].role}</span>
                     <h3 className="text-xl font-bold mt-3">{battle[0].name}</h3>
                     <p className="text-[#a8ff00] font-bold">{battle[0].votes || 0} votes</p>
-                    <button onClick={() => handleVote(battle[0].id)} disabled={votesToday >= DAILY_VOTE_LIMIT}
-                      className={`w-full py-3 rounded-xl font-bold mt-2 ${votesToday >= DAILY_VOTE_LIMIT? 'bg-gray-700 cursor-not-allowed' : 'bg-[#a8ff00] text-black'}`}>
+                    <button onClick={() => handleVote(battle[0].id)} disabled={votesToday >= DAILY_VOTE_LIMIT} className={`w-full py-3 rounded-xl font-bold mt-2 ${votesToday >= DAILY_VOTE_LIMIT? 'bg-gray-700 cursor-not-allowed' : 'bg-[#a8ff00] text-black'}`}>
                       {votesToday >= DAILY_VOTE_LIMIT? 'LIMIT REACHED' : 'VOTE'}
                     </button>
                   </div>
@@ -321,22 +315,15 @@ export default function CrickClash() {
                     <span className="bg-blue-900 text-blue-300 px-3 py-1 rounded-full text-xs font-bold">{battle[1].role}</span>
                     <h3 className="text-xl font-bold mt-3">{battle[1].name}</h3>
                     <p className="text-[#a8ff00] font-bold">{battle[1].votes || 0} votes</p>
-                    <button onClick={() => handleVote(battle[1].id)} disabled={votesToday >= DAILY_VOTE_LIMIT}
-                      className={`w-full py-3 rounded-xl font-bold mt-2 ${votesToday >= DAILY_VOTE_LIMIT? 'bg-gray-700 cursor-not-allowed' : 'bg-[#a8ff00] text-black'}`}>
+                    <button onClick={() => handleVote(battle[1].id)} disabled={votesToday >= DAILY_VOTE_LIMIT} className={`w-full py-3 rounded-xl font-bold mt-2 ${votesToday >= DAILY_VOTE_LIMIT? 'bg-gray-700 cursor-not-allowed' : 'bg-[#a8ff00] text-black'}`}>
                       {votesToday >= DAILY_VOTE_LIMIT? 'LIMIT REACHED' : 'VOTE'}
                     </button>
                   </div>
                 </div>
 
                 <div className="flex gap-4 mt-6">
-                  <button onClick={handleSkip} className="bg-[#13131a] w-1/2 py-3 rounded-xl font-bold">Skip →</button>
-                  <button onClick={() => navigator.share({
-  title: 'CrickClash', 
-  text: `Want To Your Favourite Player To Win? Cast Your Vote Now${battle[0].name} vs ${battle[1].name}`,
-  url: window.location.href
-})}>
-Share 📤
-</button>
+                  <button onClick={handleSkip} className="bg-[#23232b] w-1/2 py-3 rounded-xl font-bold border-[#333] hover:bg-[#2a2a33] flex items-center justify-center gap-2">⏭️ Skip</button>
+                  <button onClick={handleShare} className="bg-[#23232b] w-1/2 py-3 rounded-xl font-bold border-[#333] hover:bg-[#2a2a33] flex items-center justify-center gap-2">📤 Share</button>
                 </div>
               </div>
             ) : <p className="text-center">Loading...</p>}
@@ -358,4 +345,4 @@ Share 📤
       </div>
     </div>
   );
-                                 }
+   }
