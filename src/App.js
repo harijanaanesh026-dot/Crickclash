@@ -151,7 +151,7 @@ export default function CrickClash() {
     return (
       <div className="min-h-screen bg-[#0a0a0f] flex flex-col items-center justify-center text-white p-4 relative">
         <div className="text-center">
-          <p className="text-6xl mb-2">The Ultimate Cricket Voting Platform</p>
+          <p className="text-6xl mb-2 mb-10">The Ultimate Cricket Voting Platform</p>
           <h1 className="text-4xl font-bold">Crick<span className="text-orange-400">Clash</span></h1>
           <p className="text-gray-400 mt-2 mb-10">ANESH Innovation</p>
 
@@ -164,7 +164,7 @@ export default function CrickClash() {
           </button>
         </div>
         <footer className="absolute bottom-4 text-center text-gray-500 text-sm">
-          ©️ 2026 crickclash A Production By ANESH
+         © 2026 CrickClash™ | A Production By ANESH 
         </footer>
       </div>
     )
@@ -246,8 +246,12 @@ export default function CrickClash() {
 
                 <div className="flex gap-4 mt-6">
                   <button onClick={handleSkip} className="bg-[#13131a] w-1/2 py-3 rounded-xl font-bold">Skip →</button>
-                  <button onClick={() => navigator.share({title: 'CrickClash', text: `Who will win? ${battle[0]?.name} vs ${battle[1]?.name}`})}
-                    className="bg-[#13131a] w-1/2 py-3 rounded-xl font-bold">Share 📤</button>
+                  <button onClick={() => navigator.share({
+  title: 'CrickClash', 
+  text: `Want To Your Favourite Player To Win? Cast Your Vote Now${battle[0]?.name} vs ${battle[1]?.name}`,
+  url: window.location.href
+})}
+className="bg-[#13131a] w-1/2 py-3 rounded-xl font-bold">Share 📤</button>
                 </div>
               </div>
             ) : <p className="text-center">Loading...</p>}
@@ -265,8 +269,7 @@ export default function CrickClash() {
           </div>
         )}
 
-        <footer className="text-center mt-10 text-gray-500 text-sm">©️ 2026 CrickClash A Production By ANESH Innovation</footer>
-      </div>
+        <footer className="text-center mt-10 text-gray-500 text-sm"> © 2026 CrickClash™ | A Production By ANESH </footer>
     </div>
   );
               }
