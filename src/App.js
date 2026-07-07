@@ -250,7 +250,7 @@ export default function CrickClash() {
                   <button onClick={handleSkip} className="bg-[#13131a] w-1/2 py-3 rounded-xl font-bold">Skip →</button>
                   <button onClick={() => navigator.share({
   title: 'CrickClash', 
-  text: `Who will win? ${battle[0]?.name} vs ${battle[1]?.name}`,
+  text: `Want Your Favourite to Win? Cast Your Vote Now.${battle[0]?.name} vs ${battle[1]?.name}`,
   url: window.location.href
 })}
 className="bg-[#13131a] w-1/2 py-3 rounded-xl font-bold">Share 📤</button>
