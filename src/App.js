@@ -331,15 +331,33 @@ export default function CrickClash() {
         )}
 
         {tab === 'Rankings' && (
-          <div>
-            <h2 className="text-2xl font-bold text-[#a8ff00] mb-4 text-center">🏆 Top 10 Players</h2>
-            {[...players].sort((a,b) => (b.votes||0) - (a.votes||0)).slice(0,10).map((p,i) => (
-              <div key={p.id} className="bg-[#13131a] p-3 rounded-lg mb-2 flex justify-between">
-                <span>{i+1}. {p.name}</span><span className="text-[#a8ff00]">{p.votes||0} votes</span>
-              </div>
-            ))}
-          </div>
-        )}
+  <div>
+    <h2 className="text-2xl font-bold text-[#a8ff00] mb-4 text-center">🏆 Top 10 Players</h2>
+    {
+      // STEP 1: Same name players ni merge cheyadam
+      Object.values(
+        players.reduce((acc, player) => {
+          if (acc[player.name]) {
+            acc[player.name].votes += player.votes || 0; // votes kalupadam
+          } else {
+            acc[player.name] = { ...player }; // kotha player
+          }
+          return acc;
+        }, {})
+      )
+      // STEP 2: Votes tho sort cheyadam
+      .sort((a,b) => (b.votes||0) - (a.votes||0))
+      // STEP 3: Top 10 teesukovadam
+      .slice(0,10)
+      .map((p,i) => (
+        <div key={p.name} className="bg-[#13131a] p-3 rounded-lg mb-2 flex justify-between items-center">
+          <span>{i+1}. {p.name}</span>
+          <span className="text-[#a8ff00] font-bold">{p.votes||0} votes</span>
+        </div>
+      ))
+    }
+  </div>
+)}
 
         <footer className="text-center mt-10 text-gray-500 text-sm"> © 2026 CrickClash™ | A Production By ANESH </footer>
       </div>
