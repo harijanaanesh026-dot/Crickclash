@@ -195,7 +195,7 @@ export default function CrickClash() {
   }
 
   const handleShare = () => {
-    const text = `WHO'S YOUR Favourite? ${battle[0]?.name} vs ${battle[1]?.name} Vote on CrickClash!`;
+    const text = `Who's Your Favourite? ${battle[0]?.name} vs ${battle[1]?.name} Vote on CrickClash!`;
     const url = window.location.href;
     if (navigator.share) {
       navigator.share({title: 'CrickClash', text: text, url: url});
@@ -244,7 +244,7 @@ export default function CrickClash() {
     return (
       <div className="min-h-screen bg-[#0a0a0f] flex flex-col items-center justify-center text-white p-4 relative">
         <div className="text-center">
-          <p className="text-gray-400 mt-2 mb-10">The Ultimate Cricket Voting Platform</p>
+          <p className="text-gray-400 mt-2 mb-10">Connecting Cricket Fans Through Voting</p>
           <h1 className="text-4xl font-bold">Crick<span className="text-orange-400">Clash</span></h1>
           <p className="text-gray-400 mt-2 mb-10"> ANESH'S Innovation</p>
           <button onClick={handleGoogleLogin}
