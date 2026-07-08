@@ -195,7 +195,7 @@ export default function CrickClash() {
   }
 
   const handleShare = () => {
-    const text = `Who will win? ${battle[0]?.name} vs ${battle[1]?.name} on CrickClash!`;
+    const text = `WHO'S YOUR Favourite? ${battle[0]?.name} vs ${battle[1]?.name} Vote on CrickClash!`;
     const url = window.location.href;
     if (navigator.share) {
       navigator.share({title: 'CrickClash', text: text, url: url});
