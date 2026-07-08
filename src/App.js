@@ -49,7 +49,6 @@ const ALL_PLAYERS = [
   { id: "devdutt-padikkal", name: 'Devdutt Padikkal', role: 'BATTER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313112.6.jpg' },
   { id: "rinku-singh", name: 'Rinku Singh', role: 'BATTER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/369400/369452.6.jpg' },
   { id: "ruturaj-gaikwad", name: 'Ruturaj Gaikwad', role: 'BATTER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313113.6.jpg' },
-
   // BOWLERS
   { id: "jasprit-bumrah", name: 'Jasprit Bumrah', role: 'BOWLER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313114.6.jpg' },
   { id: "bhuvneshwar-kumar", name: 'Bhuvneshwar Kumar', role: 'BOWLER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313115.6.jpg' },
@@ -62,7 +61,6 @@ const ALL_PLAYERS = [
   { id: "harbhajan-singh", name: 'Harbhajan Singh', role: 'BOWLER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313121.6.jpg' },
   { id: "yuzvendra-chahal", name: 'Yuzvendra Chahal', role: 'BOWLER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313122.6.jpg' },
   { id: "harshal-patel", name: 'Harshal Patel', role: 'BOWLER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/369400/369454.6.jpg' },
-
   // ALL-ROUNDERS
   { id: "hardik-pandya-ar", name: 'Hardik Pandya', role: 'ALL-ROUNDER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313123.6.jpg' },
   { id: "krunal-pandya", name: 'Krunal Pandya', role: 'ALL-ROUNDER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313124.6.jpg' },
@@ -73,7 +71,6 @@ const ALL_PLAYERS = [
   { id: "anil-kumble", name: 'Anil Kumble', role: 'ALL-ROUNDER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313128.6.jpg' },
   { id: "shivam-dube", name: 'Shivam Dube', role: 'ALL-ROUNDER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/369400/369455.6.jpg' },
   { id: "axar-patel", name: 'Axar Patel', role: 'ALL-ROUNDER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313129.6.jpg' },
-
   // KEEPERS
   { id: "ms-dhoni-kp", name: 'MS Dhoni', role: 'KEEPER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313130.6.jpg' },
   { id: "rishabh-pant-kp", name: 'Rishabh Pant', role: 'KEEPER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313131.6.jpg' },
@@ -81,7 +78,6 @@ const ALL_PLAYERS = [
   { id: "dinesh-karthik", name: 'Dinesh Karthik', role: 'KEEPER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313133.6.jpg' },
   { id: "prabhsimran-singh", name: 'Prabhsimran Singh', role: 'KEEPER', votes: 0, image: 'https://assets.iplt20.com/ipl/IPLHeadshot2025/28406.png' },
   { id: "sanju-samson", name: 'Sanju Samson', role: 'KEEPER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313134.6.jpg' },
-
   // CAPTAINS
   { id: "virat-kohli-cap", name: 'Virat Kohli', role: 'CAPTAIN', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313101.6.jpg' },
   { id: "rohit-sharma-cap", name: 'Rohit Sharma', role: 'CAPTAIN', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313103.6.jpg' },
@@ -109,8 +105,6 @@ export default function CrickClash() {
   const [topPlayer, setTopPlayer] = useState(null);
   const [badges, setBadges] = useState([]);
   const [showProfile, setShowProfile] = useState(false);
-
-  // PHONE OTP STATES
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
   const [showOTP, setShowOTP] = useState(false);
@@ -130,13 +124,6 @@ export default function CrickClash() {
     setBattle([p1, p2]);
   }, [])
 
-  const getPercentage = (p1, p2) => {
-    const total = (p1?.votes || 0) + (p2?.votes || 0);
-    if(total === 0) return 50;
-    return ((p1?.votes || 0) / total) * 100;
-  }
-
-  // PHONE LOGIN
   const setupRecaptcha = () => {
     if(!window.recaptchaVerifier) {
       window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', { 'size': 'invisible' });
@@ -170,7 +157,7 @@ export default function CrickClash() {
     const playerSnap = await get(playerRef); await update(playerRef, { votes: (playerSnap.val()?.votes || 0) + 1 });
     const statsSnap = await get(statsRef); await update(statsRef, { totalVotes: (statsSnap.val()?.totalVotes || 0) + 1 });
     setVotesToday(votesToday + 1); setBadges(newBadges); setTimeout(() => handleSkip(), 800);
-  }
+                   }
   useEffect(() => {
     onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser); setLoading(false);
@@ -207,14 +194,14 @@ export default function CrickClash() {
 
   if(!user) {
     return (
-      <div className="min-h-screen bg-[#0a0a0f] flex flex-col items-center justify-center text-white p-4">
-        <div className="text-center w-full max-w-sm">
+      <div className="min-h-screen bg-[#0a0a0f] flex-col items-center justify-center text-white p-4">
+        <div className="text-center w-full max-w-sm mx-auto">
           <h1 className="text-4xl font-bold">Crick<span className="text-orange-400">Clash</span></h1>
           <p className="text-gray-400 mt-2 mb-10">The Ultimate Cricket Voting Platform</p>
           <button onClick={handleGoogleLogin} disabled={authLoading} className="w-full bg-white text-black px-8 py-4 rounded-full font-bold mb-4">Sign In with Google</button>
           <p className="text-gray-500 mb-4">OR</p>
           {!showOTP? (
-            <div><input type="number" placeholder="Enter 10 Digit Mobile" value={phone} onChange={(e) => setPhone(e.target.value)} maxLength={10} className="w-full bg-[#1A1A1A] border border-gray-700 rounded-full px-6 py-4 mb-3 text-white"/>
+            <div><input type="number" placeholder="Enter 10 Digit Mobile" value={phone} onChange={(e) => setPhone(e.target.value)} maxLength={10} className="w-full bg-[#1A1A1A] border-gray-700 rounded-full px-6 py-4 mb-3 text-white"/>
             <button onClick={sendOTP} disabled={authLoading} className="w-full bg-[#34A853] text-white px-8 py-4 rounded-full font-bold">GET OTP</button></div>
           ) : (
             <div><input type="number" placeholder="Enter 6 Digit OTP" value={otp} onChange={(e) => setOtp(e.target.value)} maxLength={6} className="w-full bg-[#1A1A1A] border border-gray-700 rounded-full px-6 py-4 mb-3 text-white"/>
@@ -277,7 +264,7 @@ export default function CrickClash() {
             ))}
           </div>
         )}
-        <footer className="text-center mt-10 text-gray-500 text-sm"> © 2026 CrickClash™ </footer>
+        <footer className="text-center mt-10 text-gray-500 text-sm"> © 2026 CrickClash™ | A Production By ANESH </footer>
       </div>
     </div>
   );
