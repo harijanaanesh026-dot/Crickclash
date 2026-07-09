@@ -104,7 +104,7 @@ export default function CrickClash() {
 
   const generateBattle = useCallback((playerList, role) => {
     if(playerList.length < 2) return;
-    let filtered = role === 'Any'? playerList : playerList.filter(p => p.role === role);
+    let filtered = role === 'ANY'? playerList : playerList.filter(p => p.role === role);
     if(filtered.length < 2) { setBattle([null, null]); return; }
     let p1 = filtered[Math.floor(Math.random() * filtered.length)];
     let p2 = filtered[Math.floor(Math.random() * filtered.length)];
