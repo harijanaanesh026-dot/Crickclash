@@ -57,11 +57,6 @@ export default function CrickClash() {
   const [confirmationResult, setConfirmationResult] = useState(null);
   const [showOtpInput, setShowOtpInput] = useState(false);
 
-  useEffect(() => {
-    if (!window.recaptchaVerifier) {
-      window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', { 'size': 'invisible' });
-    }
-  }, []);
 
   const sendOtp = async () => {
     if(phoneNumber.length!== 10) return alert("Enter valid 10 digit number")
