@@ -104,7 +104,7 @@ export default function CrickClash() {
 
   const generateBattle = useCallback((playerList, role) => {
     if(playerList.length < 2) return;
-    let filtered = role === 'ANY'? playerList : playerList.filter(p => p.role === role);
+    let filtered = role === 'Any'? playerList : playerList.filter(p => p.role === role);
     if(filtered.length < 2) { setBattle([null, null]); return; }
     let p1 = filtered[Math.floor(Math.random() * filtered.length)];
     let p2 = filtered[Math.floor(Math.random() * filtered.length)];
@@ -306,7 +306,7 @@ export default function CrickClash() {
             <h2 className="text-center text-4xl font-bold mb-4">Battle <span className="text-[#a8ff00]">{battleNo}</span></h2>
 
             <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
-              {['ANY', 'BATTER', 'BOWLER', 'ALL-ROUNDER', 'KEEPER', 'CAPTAIN'].map(role => (
+              {['Any', 'BATTER', 'BOWLER', 'ALL-ROUNDER', 'KEEPER', 'CAPTAIN'].map(role => (
                 <button key={role} onClick={() => setFilter(role)} className={`px-4 py-2 rounded-full font-bold whitespace-nowrap ${filter === role? 'bg-[#a8ff00] text-black' : 'bg-[#13131a]'}`}>{role}</button>
               ))}
             </div>
