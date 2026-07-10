@@ -361,12 +361,27 @@ export default function CrickClash() {
       .sort((a,b) => (b.votes||0) - (a.votes||0))
       // STEP 3: Top 10 teesukovadam
       .slice(0,10)
-      .map((p,i) => (
-        <div key={p.name} className="bg-[#13131a] p-3 rounded-lg mb-2 flex justify-between items-center">
-          <span>{i+1}. {p.name}</span>
-          <span className="text-[#a8ff00] font-bold">{p.votes||0} votes</span>
+      .map((p,i) => {
+    const percentage = totalVotes > 0 ? ((p.votes || 0) / totalVotes * 100).toFixed(1) : 0;
+    return (
+        <div key={p.i} className="bg-[#13131a] p-3 rounded-lg mb-2">
+            <div className="flex justify-between items-center mb-1">
+                <span className="font-bold">{i+1}. {p.name}</span>
+                <span className="text-[#a8ff00] font-bold text-sm">{percentage}%</span>
+            </div>
+            <div className="flex justify-between items-center text-xs text-gray-400 mb-2">
+                <span>{p.votes||0} votes</span>
+            </div>
+            {/* Progress Bar */}
+            <div className="w-full bg-gray-700 rounded-full h-2">
+                <div 
+                    className="bg-[#a8ff00] h-2 rounded-full" 
+                    style={{width: `${percentage}%`}}
+                ></div>
+            </div>
         </div>
-      ))
+    )
+})
     }
   </div>
 )}
