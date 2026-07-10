@@ -301,7 +301,7 @@ export default function CrickClash() {
           Crick<span className="text-orange-400">Clash</span>
         </h1>
         <p className="text-gray-400 mt-2 mb-10 text-base">
-          Want your favourite player at #1? Vote now!
+          Want your favourite player at #1? Then vote now!
         </p>
         
         <button onClick={handleGoogleLogin}
