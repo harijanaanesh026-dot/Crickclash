@@ -107,6 +107,8 @@ export default function CrickClash() {
   const [debateText, setDebateText] = useState('');
   const [votedPlayer, setVotedPlayer] = useState(null);
   const [showDebateBox, setShowDebateBox] = useState(false);
+  const [likedDebates, setLikedDebates] = useState([]);
+  const [showSharePopup, setShowSharePopup] = useState(false);
 
   const generateBattle = useCallback((playerList, role) => {
     if(playerList.length < 2) return;
@@ -121,12 +123,6 @@ export default function CrickClash() {
     }
     setBattle([p1, p2]);
   }, [])
-
-  const getPercentage = (p1, p2) => {
-    const total = (p1?.votes || 0) + (p2?.votes || 0);
-    if(total === 0) return 50;
-    return ((p1?.votes || 0) / total) * 100;
-  }
 
   useEffect(() => {
     onAuthStateChanged(auth, (currentUser) => {
@@ -176,7 +172,6 @@ export default function CrickClash() {
       }
     });
 
-    // Fetch debates
     const debatesRef = ref(db, 'debates');
     onValue(debatesRef, (snapshot) => {
       const data = snapshot.val();
@@ -279,13 +274,26 @@ export default function CrickClash() {
 
     setDebateText('');
     setShowDebateBox(false);
-    setTimeout(() => handleSkip(), 500);
-            }
+    setShowSharePopup(true); // NEW: Share popup
+    setTimeout(() => {setShowSharePopup(false); handleSkip();}, 3000);
+  }
+
+  // NEW: Like debate function
+  const handleLikeDebate = async (debateId) => {
+    if(likedDebates.includes(debateId)) return;
+
+    const debateRef = ref(db, `debates/${debateId}`);
+    const debateSnap = await get(debateRef);
+    const currentLikes = debateSnap.val()?.likes || 0;
+
+    await update(debateRef, { likes: currentLikes + 1 });
+    setLikedDebates([...likedDebates, debateId]);
+        }
     if(loading) return <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center text-white">Loading...</div>
 
   if(!user) {
     return (
-      <div className="min-h-screen bg-[#0a0a0f] flex flex-col items-center justify-center text-white p-4 relative">
+      <div className="min-h-screen bg-[#0a0a0f] flex-col items-center justify-center text-white p-4 relative">
         <div className="text-center">
           <h1 className="text-4xl font-bold">Crick<span className="text-orange-400">Clash</span></h1>
           <p className="text-gray-400 mt-2 mb-10">Want your favourite player at #1? Vote now!</p>
@@ -331,14 +339,12 @@ export default function CrickClash() {
           <p className="text-4xl font-bold text-[#a8ff00]">{DAILY_VOTE_LIMIT - votesToday} / {DAILY_VOTE_LIMIT}</p>
         </div>
 
-        {/* 3 TABS */}
         <div className="flex justify-around border-b border-gray-800 mb-4">
           <button onClick={() => setTab('Battle')} className={`pb-2 font-bold ${tab === 'Battle'? 'text-[#a8ff00] border-b-2 border-[#a8ff00]' : 'text-gray-500'}`}>⚔️ Battle</button>
           <button onClick={() => setTab('Rankings')} className={`pb-2 font-bold ${tab === 'Rankings'? 'text-[#a8ff00] border-b-2 border-[#a8ff00]' : 'text-gray-500'}`}>🏆 Rankings</button>
           <button onClick={() => setTab('Debates')} className={`pb-2 font-bold ${tab === 'Debates'? 'text-[#a8ff00] border-b-2 border-[#a8ff00]' : 'text-gray-500'}`}>💬 Debates</button>
         </div>
 
-        {/* BATTLE TAB */}
         {tab === 'Battle' && (
           <>
             <div className="grid grid-cols-4 text-center mb-6">
@@ -423,9 +429,9 @@ export default function CrickClash() {
                   return acc;
                 }, {})
               )
-             .sort((a,b) => (b.votes||0) - (a.votes||0))
-             .slice(0,10)
-             .map((p,i) => {
+            .sort((a,b) => (b.votes||0) - (a.votes||0))
+            .slice(0,10)
+            .map((p,i) => {
                 const percentage = totalVotes > 0? ((p.votes || 0) / totalVotes * 100).toFixed(1) : 0;
                 return (
                     <div key={p.name} className="bg-[#13131a] p-3 rounded-lg mb-2">
@@ -451,7 +457,7 @@ export default function CrickClash() {
           </div>
         )}
 
-        {/* DEBATES TAB */}
+        {/* DEBATES TAB WITH LIKE BUTTON */}
         {tab === 'Debates' && (
           <div>
             {debates.length === 0? (
@@ -464,9 +470,29 @@ export default function CrickClash() {
                     <span className="bg-[#a8ff00] text-black px-2 py-1 rounded-full text-xs font-bold">{d.playerName}</span>
                   </div>
                   <p className="text-white mb-2">"{d.text}"</p>
-                  <div className="flex justify-between text-xs text-gray-400">
+                  <div className="flex justify-between text-xs text-gray-400 mb-3">
                     <span>by {d.userName}</span>
                     <span>{new Date(d.timestamp).toLocaleDateString()}</span>
+                  </div>
+
+                  {/* NEW: Like + Share buttons */}
+                  <div className="flex gap-4 pt-3 border-t border-[#23232b]">
+                    <button
+                      onClick={() => handleLikeDebate(d.id)}
+                      disabled={likedDebates.includes(d.id)}
+                      className={`flex items-center gap-1 font-bold ${likedDebates.includes(d.id)? 'text-red-500' : 'text-gray-400 hover:text-red-400'}`}
+                    >
+                      ❤️ {d.likes || 0}
+                    </button>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(`"${d.text}" - ${d.playerName} fan on CrickClash`);
+                        alert("Debate Copied!");
+                      }}
+                      className="flex items-center gap-1 font-bold text-gray-400 hover:text-[#a8ff00]"
+                    >
+                      📤 Share
+                    </button>
                   </div>
                 </div>
               ))
@@ -474,8 +500,38 @@ export default function CrickClash() {
           </div>
         )}
 
+        {/* NEW: SHARE AFTER VOTE POPUP */}
+        {showSharePopup && (
+          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+            <div className="bg-[#13131a] p-6 rounded-2xl text-center max-w-sm mx-4">
+              <h3 className="text-2xl font-bold mb-2">Vote Casted! 🔥</h3>
+              <p className="text-gray-400 mb-4">Tell your friends you voted for <span className="text-[#a8ff00]">{votedPlayer?.name}</span></p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    const text = `I voted for ${votedPlayer?.name} on CrickClash! Who's your pick?`;
+                    const url = window.location.href;
+                    if(navigator.share) navigator.share({text, url});
+                    else navigator.clipboard.writeText(`${text} ${url}`);
+                    setShowSharePopup(false);
+                  }}
+                  className="flex-1 bg-[#a8ff00] text-black py-3 rounded-xl font-bold"
+                >
+                  📤 Share
+                </button>
+                <button
+                  onClick={() => {setShowSharePopup(false); handleSkip();}}
+                  className="flex-1 bg-[#23232b] py-3 rounded-xl font-bold"
+                >
+                  Skip
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         <footer className="text-center mt-10 text-gray-500 text-sm"> © 2026 CrickClash™ | A Production By ANESH </footer>
       </div>
     </div>
   );
-    }
+}
