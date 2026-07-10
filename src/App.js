@@ -292,20 +292,33 @@ export default function CrickClash() {
     if(loading) return <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center text-white">Loading...</div>
 
   if(!user) {
-    return (
-      <div className="min-h-screen bg-[#0a0a0f] flex-col items-center justify-center text-white p-4 relative">
-        <div className="text-center">
-          <h1 className="text-4xl font-bold">Crick<span className="text-orange-400">Clash</span></h1>
-          <p className="text-gray-400 mt-2 mb-10">Want your favourite player at #1? Vote now!</p>
-          <button onClick={handleGoogleLogin}
-            className="bg-white text-black px-8 py-4 rounded-full font-bold flex items-center gap-3 shadow-lg hover:scale-105 transition mx-auto">
-            <svg className="w-6 h-6" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5h-1.9V20H24v8h11.3c-1.6 4.3-5.9 7.5-11.3 7.5-6.6 0-12-5.4-12-12s5.4-12 12-12c2.6 0 5 1 6.9 2.7l6.1-6.1C29.6 4.1 27 3 24 3c-9.4 0-17 7.6-17 17s7.6 17 17 17c9.4 0 17-7.6 17-17 0-1.2-.1-2.3-.4-3.5z"/></svg>
-            Sign In with Google
-          </button>
-        </div>
-        <footer className="text-center mt-10 text-gray-500 text-sm"> © 2026 CrickClash™ | A Production By ANESH </footer>
+  return (
+    <div className="min-h-screen bg-[#0a0a0f] flex flex-col items-center justify-center text-white p-4">
+      
+      {/* Center Content */}
+      <div className="text-center flex-1 flex flex-col items-center justify-center">
+        <h1 className="text-5xl font-bold mb-2">
+          Crick<span className="text-orange-400">Clash</span>
+        </h1>
+        <p className="text-gray-400 mt-2 mb-10 text-base">
+          Want your favourite player at #1? Vote now!
+        </p>
+        
+        <button onClick={handleGoogleLogin}
+          className="bg-white text-black px-8 py-4 rounded-full font-bold flex items-center gap-3 shadow-lg hover:scale-105 transition">
+          <svg className="w-6 h-6" viewBox="0 0 48 48">
+            <path fill="#FFC107" d="M43.6 20.5h-1.9V20H24v8h11.3c-1.6 4.3-5.9 7.5-11.3 7.5-6.6 0-12-5.4-12-12s5.4-12 12-12c2.6 0 5 1 6.9 2.7l6.1-6.1C29.6 4.1 27 3 24 3c-9.4 0-17 7.6-17 17s7.6 17 17 17c9.4 0 17-7.6 17-17 0-1.2-.1-2.3-.4-3.5z"/>
+          </svg>
+          Sign In with Google
+        </button>
       </div>
-    )
+
+      {/* Footer - Bottom ki fix */}
+      <footer className="text-center text-gray-500 text-sm pb-4"> 
+        © 2026 CrickClash™ | A Production By ANESH 
+      </footer>
+    </div>
+  )
   }
 
   return (
