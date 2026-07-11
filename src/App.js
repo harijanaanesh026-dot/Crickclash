@@ -13,7 +13,7 @@ const firebaseConfig = {
   appId: "1:595133866613:web:dda3f0509462310cb74e3c"
 };
 
-const GEMINI_API_KEY = "AQ.Ab8RN6JX4ccjHi8cIA29RPyxOjXJBd4_eSNI_rYIbRCDmtGKEg"; // <-- Nee Key
+const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
