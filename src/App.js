@@ -325,7 +325,7 @@ export default function CrickClash() {
     <div className="min-h-screen bg-[#0a0a0f] text-white p-4">
       <div className="max-w-md mx-auto">
         <header className="flex justify-between items-center mb-4">
-          <div><h1 className="text-2xl font-bold">Crick<span className="text-orange-400">Clash</span></h1><p className="text-xs text-gray-400">Founder & CEO</p></div>
+          <div><h1 className="text-2xl font-bold">Crick<span className="text-orange-400">Clash</span></h1><p className="text-xs text-gray-400">ANESH Innovation</p></div>
           <div className="relative">
             <button onClick={(e) => { e.stopPropagation(); setShowProfile(!showProfile)}} className="w-10 h-10 rounded-full bg-[#a8ff00] flex items-center justify-center text-black font-bold text-xl">
               {user.displayName?.[0] || 'U'}
