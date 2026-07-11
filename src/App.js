@@ -410,7 +410,6 @@ export default function CrickClash() {
       {/* FOOTER */}
       <footer className="text-center mt-10 pb-6 text-gray-500 text-sm border-t border-gray-800 pt-4">
         <p>© 2026 CrickClash™ | A Production By ANESH</p>
-        <p className="text-xs mt-1">All player images from ESPNcricinfo & IPLT20</p>
       </footer>
     </div>
   );
