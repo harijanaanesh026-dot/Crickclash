@@ -13,7 +13,7 @@ const firebaseConfig = {
   appId: "1:595133866613:web:dda3f0509462310cb74e3c"
 };
 
-const GEMINI_API_KEY = "AQ.Ab8RN6JX4ccjHi8cIA29RPy..."; // nee full key ikkada
+const GEMINI_API_KEY = "AQ.Ab8RN6JX4ccjHi8cIA29RPyxOjXJBd4_eSNI_rYIbRCDmtGKEg"; // <-- Nee Key
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
@@ -21,7 +21,7 @@ const db = getDatabase(app);
 const googleProvider = new GoogleAuthProvider();
 const DAILY_VOTE_LIMIT = 1;
 
-// FULL PLAYER LIST - 50+ PLAYERS
+// FULL PLAYER LIST - 57 PLAYERS
 const ALL_PLAYERS = [
   // BATTERS
   { id: "virat-kohli-bat", name: 'Virat Kohli', role: 'BATTER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313101.6.jpg' },
@@ -91,14 +91,13 @@ const ALL_PLAYERS = [
   { id: "ravindra-jadeja-cap", name: 'Ravindra Jadeja', role: 'CAPTAIN', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313126.6.jpg' }
 ];
 
-// AI Helper Functions
+// AI Helper Functions - FIXED
 async function getAIInsight(p1, p2) {
-  if(!GEMINI_API_KEY || GEMINI_API_KEY ===  "AQ.Ab8RN6JX4ccjHi8cIA29RPy") return "Add Gemini API key to enable AI";
   const prompt = `Compare ${p1.name} (${p1.role}) vs ${p2.name} (${p2.role}) in cricket. Give 1 short savage insight under 18 words.`;
   try {
     const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] })
+      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
     });
     const data = await res.json();
     return data.candidates[0].content.parts[0].text;
@@ -106,12 +105,11 @@ async function getAIInsight(p1, p2) {
 }
 
 async function getAIPrediction(p1, p2) {
-  if(!GEMINI_API_KEY || GEMINI_API_KEY ===  "AQ.Ab8RN6JX4ccjHi8cIA29RPy ") return "50%";
   const prompt = `Predict win chance between ${p1.name} and ${p2.name}. Return only percentage for ${p1.name} like "62%"`;
   try {
     const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] })
+      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
     });
     const data = await res.json();
     return data.candidates[0].content.parts[0].text;
@@ -254,7 +252,7 @@ export default function CrickClash() {
 
   if(!user) {
     return (
-      <div className="min-h-screen bg-[#0a0a0f] flex flex-col items-center justify-center text-white p-4 relative">
+      <div className="min-h-screen bg-[#0a0a0f] flex-col items-center justify-center text-white p-4 relative">
         <div className="text-center">
           <h1 className="text-4xl font-bold">Crick<span className="text-orange-400">Clash</span></h1>
           <p className="text-gray-400 mt-2 mb-10">AI-Powered Cricket Voting. 1 Vote = 1 GOAT</p>
@@ -302,7 +300,7 @@ export default function CrickClash() {
         <div className="flex justify-around border-b border-gray-800 mb-4">
           <button onClick={() => setTab('Battle')} className={`pb-2 font-bold ${tab === 'Battle'? 'text-[#a8ff00] border-b-2 border-[#a8ff00]' : 'text-gray-500'}`}>⚔️ Battle</button>
           <button onClick={() => setTab('Rankings')} className={`pb-2 font-bold ${tab === 'Rankings'? 'text-[#a8ff00] border-b-2 border-[#a8ff00]' : 'text-gray-500'}`}>🏆 Rankings</button>
-          <button onClick={() => setTab('Debates')} className={`pb-2 font-bold ${tab === 'Debates'? 'text-[#a8ff00] border-b-2 border-[#a8ff00]' : 'text-gray-500'}`}>💬 Debates</button> {/* AI Tab Add */}
+          <button onClick={() => setTab('Debates')} className={`pb-2 font-bold ${tab === 'Debates'? 'text-[#a8ff00] border-b-2 border-[#a8ff00]' : 'text-gray-500'}`}>💬 AI Debates</button>
         </div>
 
         {tab === 'Battle' && (
@@ -313,7 +311,7 @@ export default function CrickClash() {
               <div>
                 <p className="text-2xl font-bold text-orange-400 truncate">{topPlayer?.name.split(' ')[0] || 'None'}</p>
                 <p className="text-xs text-gray-400">TOP CHAMP</p>
-                <p className="text-xs text-green-400">AI: {aiPrediction}</p> {/* AI Prediction */}
+                <p className="text-xs text-green-400">AI: {aiPrediction}</p>
               </div>
               <div><p className="text-2xl font-bold text-orange-400">🔥{streak}</p><p className="text-xs text-gray-400">STREAK</p></div>
             </div>
@@ -377,9 +375,9 @@ export default function CrickClash() {
                   return acc;
                 }, {})
               )
-            .sort((a,b) => (b.votes||0) - (a.votes||0))
-            .slice(0,10)
-            .map((p,i) => {
+           .sort((a,b) => (b.votes||0) - (a.votes||0))
+           .slice(0,10)
+           .map((p,i) => {
                 const percentage = totalVotes > 0? ((p.votes || 0) / totalVotes * 100).toFixed(1) : 0;
                 return (
                   <div key={p.name} className="bg-[#13131a] p-3 rounded-lg mb-2">
@@ -419,4 +417,4 @@ export default function CrickClash() {
       </div>
     </div>
   );
-    }
+              }
