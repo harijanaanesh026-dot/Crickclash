@@ -313,7 +313,6 @@ export default function CrickClash() {
               <div>
                 <p className="text-2xl font-bold text-orange-400 truncate">{topPlayer?.name.split(' ')[0] || 'None'}</p>
                 <p className="text-xs text-gray-400">TOP CHAMP</p>
-                <p className="text-xs text-green-400">AI: {aiPrediction}</p>
               </div>
               <div><p className="text-2xl font-bold text-orange-400">🔥{streak}</p><p className="text-xs text-gray-400">STREAK</p></div>
             </div>
