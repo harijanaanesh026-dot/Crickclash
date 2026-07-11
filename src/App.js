@@ -41,7 +41,6 @@ const ALL_PLAYERS = [
   { id: "devdutt-padikkal", name: 'Devdutt Padikkal', role: 'BATTER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313112.6.jpg' },
   { id: "rinku-singh", name: 'Rinku Singh', role: 'BATTER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/369400/369452.6.jpg' },
   { id: "ruturaj-gaikwad", name: 'Ruturaj Gaikwad', role: 'BATTER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313113.6.jpg' },
-
   // BOWLERS
   { id: "jasprit-bumrah", name: 'Jasprit Bumrah', role: 'BOWLER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313114.6.jpg' },
   { id: "bhuvneshwar-kumar", name: 'Bhuvneshwar Kumar', role: 'BOWLER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313115.6.jpg' },
@@ -54,7 +53,6 @@ const ALL_PLAYERS = [
   { id: "harbhajan-singh", name: 'Harbhajan Singh', role: 'BOWLER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313121.6.jpg' },
   { id: "yuzvendra-chahal", name: 'Yuzvendra Chahal', role: 'BOWLER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313122.6.jpg' },
   { id: "harshal-patel", name: 'Harshal Patel', role: 'BOWLER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/369400/369454.6.jpg' },
-
   // ALL-ROUNDERS
   { id: "hardik-pandya-ar", name: 'Hardik Pandya', role: 'ALL-ROUNDER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313123.6.jpg' },
   { id: "krunal-pandya", name: 'Krunal Pandya', role: 'ALL-ROUNDER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313124.6.jpg' },
@@ -65,7 +63,6 @@ const ALL_PLAYERS = [
   { id: "anil-kumble", name: 'Anil Kumble', role: 'ALL-ROUNDER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313128.6.jpg' },
   { id: "shivam-dube", name: 'Shivam Dube', role: 'ALL-ROUNDER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/369400/369455.6.jpg' },
   { id: "axar-patel", name: 'Axar Patel', role: 'ALL-ROUNDER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313129.6.jpg' },
-
   // KEEPERS
   { id: "ms-dhoni-kp", name: 'MS Dhoni', role: 'KEEPER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313130.6.jpg' },
   { id: "rishabh-pant-kp", name: 'Rishabh Pant', role: 'KEEPER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313131.6.jpg' },
@@ -73,7 +70,6 @@ const ALL_PLAYERS = [
   { id: "dinesh-karthik", name: 'Dinesh Karthik', role: 'KEEPER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313133.6.jpg' },
   { id: "prabhsimran-singh", name: 'Prabhsimran Singh', role: 'KEEPER', votes: 0, image: 'https://assets.iplt20.com/ipl/IPLHeadshot2025/28406.png' },
   { id: "sanju-samson", name: 'Sanju Samson', role: 'KEEPER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313134.6.jpg' },
-
   // CAPTAINS
   { id: "virat-kohli-cap", name: 'Virat Kohli', role: 'CAPTAIN', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313101.6.jpg' },
   { id: "rohit-sharma-cap", name: 'Rohit Sharma', role: 'CAPTAIN', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313103.6.jpg' },
@@ -86,7 +82,7 @@ const ALL_PLAYERS = [
   { id: "rishabh-pant-cap", name: 'Rishabh Pant', role: 'CAPTAIN', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313131.6.jpg' },
   { id: "shubman-gill-cap", name: 'Shubman Gill', role: 'CAPTAIN', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/352400/352496.6.jpg' },
   { id: "ravindra-jadeja-cap", name: 'Ravindra Jadeja', role: 'CAPTAIN', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313126.6.jpg' }
-]
+];
 
 export default function CrickClash() {
   const [user, setUser] = useState(null);
@@ -122,7 +118,7 @@ export default function CrickClash() {
     setBattle([p1, p2]);
     setSelectedPlayer("");
     setReason("");
-  }, [])
+  }, []);
 
   useEffect(() => {
     onAuthStateChanged(auth, (currentUser) => {
@@ -162,20 +158,19 @@ export default function CrickClash() {
 
     const debatesRef = ref(db, 'debates');
     onValue(debatesRef, (snapshot) => { if(snapshot.val()){ setDebates(Object.values(snapshot.val()).reverse()); } });
-
   }, []);
 
-  useEffect(() => { if(players.length > 0) generateBattle(players, filter); }, [players, filter, generateBattle])
+  useEffect(() => { if(players.length > 0) generateBattle(players, filter); }, [players, filter, generateBattle]);
 
   const handleGoogleLogin = () => signInWithPopup(auth, googleProvider);
-  const handleLogout = async () => { if(window.confirm("Logout avvalana?")) { await signOut(auth); setShowProfile(false); } }
-  const handleSkip = () => { setBattleNo(b => b + 1); generateBattle(players, filter); }
+  const handleLogout = async () => { if(window.confirm("Logout avvalana?")) { await signOut(auth); setShowProfile(false); } };
+  const handleSkip = () => { setBattleNo(b => b + 1); generateBattle(players, filter); };
   const handleShare = () => {
     const text = `Who's Your Favourite? ${battle[0]?.name} vs ${battle[1]?.name} Vote on CrickClash!`;
     const url = window.location.href;
     if (navigator.share) { navigator.share({title: 'CrickClash', text: text, url: url}); }
     else { navigator.clipboard.writeText(`${text} ${url}`); alert("Link Copied!"); }
-  }
+  };
 
   const submitDebate = async () => {
     if(!user){ alert("Login avvali"); handleGoogleLogin(); return; }
@@ -187,17 +182,17 @@ export default function CrickClash() {
       likes: 0, likedBy: [], comments: [], timestamp: Date.now()
     });
     setShowDebate(false); setReason(""); setSelectedPlayer("");
-  }
+  };
 
   const submitComment = async (debateId) => {
     if(!user){ handleGoogleLogin(); return; }
     if(replyText.trim().length < 2) return;
     const debateRef = ref(db, `debates/${debateId}`);
     const snap = await get(debateRef); const debate = snap.val();
-    const newComment = { id: Date.now(), user: user.displayName, text: replyText, timestamp: Date.now() }
+    const newComment = { id: Date.now(), user: user.displayName, text: replyText, timestamp: Date.now() };
     await update(debateRef, { comments: [...(debate.comments || []), newComment] });
     setReplyText(""); setReplyingTo(null);
-  }
+  };
 
   const likeDebate = async (debateId) => {
     if(!user){ handleGoogleLogin(); return; }
@@ -206,10 +201,9 @@ export default function CrickClash() {
     const likedBy = debate.likedBy || [];
     if(likedBy.includes(user.uid)) return;
     await update(debateRef, { likes: (debate.likes || 0) + 1, likedBy: [...likedBy, user.uid] });
-  }
+  };
 
   const handleVote = async (votedPlayerId) => {
-    // LOGIN CHECK
     if(!user){
       alert("🔒 Vote veyadaniki Google login avvali!");
       await signInWithPopup(auth, googleProvider);
@@ -226,7 +220,7 @@ export default function CrickClash() {
     const statsRef = ref(db, `stats`);
 
     const newBadges = [...badges];
-    if(votesToday === 0 &&!badges.includes('First Vote')) newBadges.push('First Vote');
+    if(votesToday === 0 && !badges.includes('First Vote')) newBadges.push('First Vote');
 
     await update(userRef, { votesToday: votesToday + 1, lastVoteDate: today, streak: streak + 1, badges: newBadges });
     const playerSnap = await get(playerRef);
@@ -238,8 +232,8 @@ export default function CrickClash() {
     setBadges(newBadges);
     setBattleNo(battleNo + 1);
     generateBattle(players, filter);
-                                                                                     }
-    if(loading) return <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center text-white">Loading...</div>
+  };
+    if(loading) return <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center text-white">Loading...</div>;
 
   return (
     <div className="min-h-screen bg-[#0a0a0f] text-white flex flex-col">
@@ -306,7 +300,7 @@ export default function CrickClash() {
               <div>
                 <div className="flex items-center justify-center gap-2">
                   <div className="bg-gradient-to-b from-[#1e3a5f] to-[#0a0e1a] p-4 rounded-2xl w-1/2 text-center">
-                    <img src={battle[0].image} className="w-20 h-20 rounded-full mx-auto mb-2 object-cover"/>
+                    <img src={battle[0].image} className="w-20 h-20 rounded-full mx-auto mb-2 object-cover" alt={battle[0].name}/>
                     <span className="bg-red-900 text-red-300 px-3 py-1 rounded-full text-xs font-bold">{battle[0].role}</span>
                     <h3 className="text-xl font-bold mt-3">{battle[0].name}</h3>
                     <p className="text-[#a8ff00] font-bold">{battle[0].votes || 0} votes</p>
@@ -316,7 +310,7 @@ export default function CrickClash() {
                   </div>
                   <span className="text-3xl font-bold text-orange-400">VS</span>
                   <div className="bg-gradient-to-b from-[#4a1e5f] to-[#0a0e1a] p-4 rounded-2xl w-1/2 text-center">
-                    <img src={<battle[1].image} className="w-20 h-20 rounded-full mx-auto mb-2 object-cover"/>
+                    <img src={battle[1].image} className="w-20 h-20 rounded-full mx-auto mb-2 object-cover" alt={battle[1].name}/>
                     <span className="bg-blue-900 text-blue-300 px-3 py-1 rounded-full text-xs font-bold">{battle[1].role}</span>
                     <h3 className="text-xl font-bold mt-3">{battle[1].name}</h3>
                     <p className="text-[#a8ff00] font-bold">{battle[1].votes || 0} votes</p>
@@ -350,7 +344,7 @@ export default function CrickClash() {
                 return (
                   <div key={p.name} className="bg-[#13131a] p-3 rounded-xl mb-3 flex items-center gap-3">
                     <span className="text-xl font-bold text-[#a8ff00]">#{i+1}</span>
-                    <img src={p.image} className="w-12 h-12 rounded-full object-cover"/>
+                    <img src={p.image} className="w-12 h-12 rounded-full object-cover" alt={p.name}/>
                     <div className="flex-1">
                       <div className="flex justify-between"><span className="font-bold">{p.name}</span><span className="text-[#a8ff00] font-bold text-sm">{percentage}%</span></div>
                       <div className="flex justify-between text-xs text-gray-400 mb-1"><span>{p.votes||0} votes</span><span>{p.role}</span></div>
@@ -382,7 +376,7 @@ export default function CrickClash() {
                       <button onClick={()=>setSelectedPlayer(battle[0]?.name)} className={`flex-1 p-2 rounded-lg text-sm font-bold ${selectedPlayer===battle[0]?.name? "bg-[#a8ff00] text-black" : "bg-[#23232b]"}`}>{battle[0]?.name}</button>
                       <button onClick={()=>setSelectedPlayer(battle[1]?.name)} className={`flex-1 p-2 rounded-lg text-sm font-bold ${selectedPlayer===battle[1]?.name? "bg-[#a8ff00] text-black" : "bg-[#23232b]"}`}>{battle[1]?.name}</button>
                     </div>
-                    <textarea placeholder="Write your reason..." value={reason} onChange={(e)=>setReason(e.target.value)} className="w-full h-20 bg-[#13131a] text-white p-2 rounded-lg border border-[#333] text-sm"/>
+                    <textarea placeholder="Write your reason..." value={reason} onChange={(e)=>setReason(e.target.value)} className="w-full h-20 bg-[#13131a] text-white p-2 rounded-lg border-[#333] text-sm"/>
                     <button onClick={submitDebate} className="w-full mt-2 bg-[#a8ff00] text-black font-bold py-2 rounded-lg">Post Debate</button>
                   </div>
                   <p className="text-sm text-gray-400 mb-2">Community Debates:</p>
@@ -420,4 +414,4 @@ export default function CrickClash() {
       </footer>
     </div>
   );
-              }
+                      }
