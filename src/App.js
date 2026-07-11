@@ -252,8 +252,8 @@ export default function CrickClash() {
 
   if(!user) {
     return (
-      <div className="min-h-screen bg-[#0a0a0f] flex-col items-center justify-center text-white p-4 relative">
-        <div className="text-center">
+      <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center text-white p-4 relative">
+        <div className="text-center w-full">
           <h1 className="text-4xl font-bold">Crick<span className="text-orange-400">Clash</span></h1>
           <p className="text-gray-400 mt-2 mb-10">AI-Powered Cricket Voting. 1 Vote = 1 GOAT</p>
           <button onClick={handleGoogleLogin} className="bg-white text-black px-8 py-4 rounded-full font-bold flex items-center gap-3 shadow-lg hover:scale-105 transition mx-auto">
@@ -261,10 +261,12 @@ export default function CrickClash() {
             Sign In with Google
           </button>
         </div>
-        <footer className="text-center mt-10 text-gray-500 text-sm"> © 2026 CrickClash™ | A Production By ANESH </footer>
+        <footer className="absolute bottom-4 left-0 right-0 text-center text-gray-500 text-sm"> 
+          © 2026 CrickClash™ | A Production By ANESH 
+        </footer>
       </div>
     )
-  }
+              }
 
   return (
     <div className="min-h-screen bg-[#0a0a0f] text-white p-4">
