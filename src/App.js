@@ -163,7 +163,7 @@ export default function CrickClash() {
   useEffect(() => { if(players.length > 0) generateBattle(players, filter); }, [players, filter, generateBattle]);
 
   const handleGoogleLogin = () => signInWithPopup(auth, googleProvider);
-  const handleLogout = async () => { if(window.confirm("Logout avvalana?")) { await signOut(auth); setShowProfile(false); } };
+  const handleLogout = async () => { if(window.confirm("Are you sure you want logout?")) { await signOut(auth); setShowProfile(false); } };
   const handleSkip = () => { setBattleNo(b => b + 1); generateBattle(players, filter); };
   const handleShare = () => {
     const text = `Who's Your Favourite? ${battle[0]?.name} vs ${battle[1]?.name} Vote on CrickClash!`;
@@ -173,8 +173,8 @@ export default function CrickClash() {
   };
 
   const submitDebate = async () => {
-    if(!user){ alert("Login avvali"); handleGoogleLogin(); return; }
-    if(!selectedPlayer || reason.trim().length < 3) { alert("Player select cheyi + reason rayi"); return; }
+    if(!user){ alert("Login required"); handleGoogleLogin(); return; }
+    if(!selectedPlayer || reason.trim().length < 3) { alert("Select a player write a reason"); return; }
     const debateRef = push(ref(db, 'debates'));
     await set(debateRef, {
       id: debateRef.key, battleId: `battle-${battleNo}`, battlePlayers: `${battle[0]?.name} vs ${battle[1]?.name}`,
@@ -205,7 +205,7 @@ export default function CrickClash() {
 
   const handleVote = async (votedPlayerId) => {
     if(!user){
-      alert("🔒 Vote veyadaniki Google login avvali!");
+      alert("Google login required to vote");
       await signInWithPopup(auth, googleProvider);
       return;
     }
