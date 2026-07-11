@@ -255,7 +255,7 @@ export default function CrickClash() {
       <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center text-white p-4 relative">
         <div className="text-center w-full">
           <h1 className="text-4xl font-bold">Crick<span className="text-orange-400">Clash</span></h1>
-          <p className="text-gray-400 mt-2 mb-10">AI-Powered Cricket Voting. 1 Vote = 1 GOAT</p>
+          <p className="text-gray-400 mt-2 mb-10">AI-Powered Cricket Voting Platform</p>
           <button onClick={handleGoogleLogin} className="bg-white text-black px-8 py-4 rounded-full font-bold flex items-center gap-3 shadow-lg hover:scale-105 transition mx-auto">
             <svg className="w-6 h-6" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5h-1.9V20H24v8h11.3c-1.6 4.3-5.9 7.5-11.3 7.5-6.6 0-12-5.4-12-12s5.4-12 12-12c2.6 0 5 1 6.9 2.7l6.1-6.1C29.6 4.1 27 3 24 3c-9.4 0-17 7.6-17 17s7.6 17 17 17c9.4 0 17-7.6 17-17 0-1.2-.1-2.3-.4-3.5z"/></svg>
             Sign In with Google
@@ -272,7 +272,7 @@ export default function CrickClash() {
     <div className="min-h-screen bg-[#0a0a0f] text-white p-4">
       <div className="max-w-md mx-auto">
         <header className="flex justify-between items-center mb-4">
-          <div><h1 className="text-2xl font-bold">Crick<span className="text-orange-400">Clash</span></h1><p className="text-xs text-gray-400">Founder & CEO</p></div>
+          <div><h1 className="text-2xl font-bold">Crick<span className="text-orange-400">Clash</span></h1><p className="text-xs text-gray-400">ANESH Innovation</p></div>
           <div className="relative">
             <button onClick={(e) => { e.stopPropagation(); setShowProfile(!showProfile)}} className="w-10 h-10 rounded-full bg-[#a8ff00] flex items-center justify-center text-black font-bold text-xl">
               {user.displayName?.[0] || 'U'}
@@ -336,7 +336,7 @@ export default function CrickClash() {
                     <h3 className="text-xl font-bold mt-3">{battle[0].name}</h3>
                     <p className="text-[#a8ff00] font-bold">{battle[0].votes || 0} votes</p>
                     <button onClick={() => handleVote(battle[0].id)} disabled={votesToday >= DAILY_VOTE_LIMIT} className={`w-full py-3 rounded-xl font-bold mt-2 ${votesToday >= DAILY_VOTE_LIMIT? 'bg-gray-700 cursor-not-allowed' : 'bg-[#a8ff00] text-black'}`}>
-                      {votesToday >= DAILY_VOTE_LIMIT? 'Voted ✓' : 'VOTE'}
+                      {votesToday >= DAILY_VOTE_LIMIT? 'Limit Reached' : 'VOTE'}
                     </button>
                   </div>
                   <span className="text-3xl font-bold text-orange-400">VS</span>
@@ -346,7 +346,7 @@ export default function CrickClash() {
                     <h3 className="text-xl font-bold mt-3">{battle[1].name}</h3>
                     <p className="text-[#a8ff00] font-bold">{battle[1].votes || 0} votes</p>
                     <button onClick={() => handleVote(battle[1].id)} disabled={votesToday >= DAILY_VOTE_LIMIT} className={`w-full py-3 rounded-xl font-bold mt-2 ${votesToday >= DAILY_VOTE_LIMIT? 'bg-gray-700 cursor-not-allowed' : 'bg-[#a8ff00] text-black'}`}>
-                      {votesToday >= DAILY_VOTE_LIMIT? 'Voted ✓' : 'VOTE'}
+                      {votesToday >= DAILY_VOTE_LIMIT? 'Limit Reached' : 'VOTE'}
                     </button>
                   </div>
                 </div>
