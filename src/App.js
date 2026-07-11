@@ -305,7 +305,7 @@ export default function CrickClash() {
                     <h3 className="text-xl font-bold mt-3">{battle[0].name}</h3>
                     <p className="text-[#a8ff00] font-bold">{battle[0].votes || 0} votes</p>
                     <button onClick={() => handleVote(battle[0].id)} disabled={user && votesToday >= DAILY_VOTE_LIMIT} className={`w-full py-3 rounded-xl font-bold mt-2 ${!user? 'bg-blue-500' : votesToday >= DAILY_VOTE_LIMIT? 'bg-gray-700 cursor-not-allowed' : 'bg-[#a8ff00] text-black'}`}>
-                      {!user? 'LOGIN & VOTE' : votesToday >= DAILY_VOTE_LIMIT? 'LIMIT DONE' : 'VOTE'}
+                      {!user? 'VOTE' : votesToday >= DAILY_VOTE_LIMIT? 'LIMIT DONE' : 'VOTE'}
                     </button>
                   </div>
                   <span className="text-3xl font-bold text-orange-400">VS</span>
@@ -315,7 +315,7 @@ export default function CrickClash() {
                     <h3 className="text-xl font-bold mt-3">{battle[1].name}</h3>
                     <p className="text-[#a8ff00] font-bold">{battle[1].votes || 0} votes</p>
                     <button onClick={() => handleVote(battle[1].id)} disabled={user && votesToday >= DAILY_VOTE_LIMIT} className={`w-full py-3 rounded-xl font-bold mt-2 ${!user? 'bg-blue-500' : votesToday >= DAILY_VOTE_LIMIT? 'bg-gray-700 cursor-not-allowed' : 'bg-[#a8ff00] text-black'}`}>
-                      {!user? 'LOGIN & VOTE' : votesToday >= DAILY_VOTE_LIMIT? 'LIMIT DONE' : 'VOTE'}
+                      {!user? 'VOTE' : votesToday >= DAILY_VOTE_LIMIT? 'LIMIT DONE' : 'VOTE'}
                     </button>
                   </div>
                 </div>
