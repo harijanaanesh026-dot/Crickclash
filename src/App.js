@@ -167,7 +167,7 @@ export default function CrickClash() {
   useEffect(() => { if(players.length > 0) generateBattle(players, filter); }, [players, filter, generateBattle]);
 
   const handleGoogleLogin = () => signInWithPopup(auth, googleProvider);
-  const handleLogout = async () => { if(window.confirm("Logout avvadaaniki sure na?")) { await signOut(auth); setShowProfile(false); } };
+  const handleLogout = async () => { if(window.confirm("Are you sure you want logout?")) { await signOut(auth); setShowProfile(false); } };
   const handleSkip = () => { setBattleNo(b => b + 1); generateBattle(players, filter); };
   const handleShare = () => {
     const text = `Who's Your Favourite? ${battle[0]?.name} vs ${battle[1]?.name} Vote on CrickClash!`;
@@ -191,7 +191,7 @@ export default function CrickClash() {
   };
 
   const handleVote = async (votedPlayerId) => {
-    if(!user){ alert("Vote cheyadaniki Google login kavali"); await signInWithPopup(auth, googleProvider); return; }
+    if(!user){ alert("Google login required to vote"); await signInWithPopup(auth, googleProvider); return; }
     if(votesToday >= DAILY_VOTE_LIMIT) return alert(`Roju ${DAILY_VOTE_LIMIT} vote maatrame!`);
     const votedPlayer = players.find(p => p.id === votedPlayerId);
     if(!votedPlayer) return;
