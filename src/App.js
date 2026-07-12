@@ -83,6 +83,7 @@ const ALL_PLAYERS = [
   { id: "shubman-gill-cap", name: 'Shubman Gill', role: 'CAPTAIN', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/352400/352496.6.jpg' },
   { id: "ravindra-jadeja-cap", name: 'Ravindra Jadeja', role: 'CAPTAIN', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313126.6.jpg' }
 ];
+
 export default function CrickClash() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -120,7 +121,7 @@ export default function CrickClash() {
     setBattle([p1, p2]);
     setSelectedPlayer("");
     setReason("");
-  }, );
+  }, []);
 
   useEffect(() => {
     onAuthStateChanged(auth, (currentUser) => {
@@ -135,10 +136,10 @@ export default function CrickClash() {
             if(userData.lastVoteDate === today){ setVotesToday(userData.votesToday || 0); }
             else { setVotesToday(0); update(userRef, {votesToday: 0, lastVoteDate: today}); }
             setStreak(userData.streak || 0);
-            setBadges(userData.badges || );
-            setBattleHistory(userData.history || );
-            setFollowing(userData.following || );
-          } else { set(userRef, {votesToday: 0, lastVoteDate: today, streak: 0, badges:, history:, following: }); }
+            setBadges(userData.badges || []);
+            setBattleHistory(userData.history || []);
+            setFollowing(userData.following || []);
+          } else { set(userRef, {votesToday: 0, lastVoteDate: today, streak: 0, badges:[], history:[], following: []}); }
         });
       }
     });
@@ -161,7 +162,7 @@ export default function CrickClash() {
 
     const debatesRef = ref(db, 'debates');
     onValue(debatesRef, (snapshot) => { if(snapshot.val()){ setDebates(Object.values(snapshot.val()).reverse()); } });
-  }, );
+  }, []);
 
   useEffect(() => { if(players.length > 0) generateBattle(players, filter); }, [players, filter, generateBattle]);
 
@@ -176,7 +177,7 @@ export default function CrickClash() {
   };
 
   const updateStreak = async () => {
-    if(!user) return {newStreak: 0, newBadges: };
+    if(!user) return {newStreak: 0, newBadges: []};
     const userRef = ref(db, `users/${user.uid}`);
     const today = new Date().toISOString().split('T')[0];
     const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
@@ -184,7 +185,7 @@ export default function CrickClash() {
     const data = snap.val() || {};
     let newStreak = 1;
     if(data.lastVoteDate === yesterday) newStreak = (data.streak || 0) + 1;
-    let newBadges = [...(data.badges || )];
+    let newBadges = [...(data.badges || [])];
     if([3,7,30].includes(newStreak) &&!newBadges.includes(`${newStreak} Day Streak`)){ newBadges.push(`${newStreak} Day Streak`); }
     return {newStreak, newBadges};
   };
@@ -222,7 +223,7 @@ export default function CrickClash() {
       id: debateRef.key, battleId: `battle-${battleNo}`, battlePlayers: `${battle[0]?.name} vs ${battle[1]?.name}`,
       player: selectedPlayer, playerName: players.find(p=>p.id===selectedPlayer)?.name, reason: reason,
       user: user.displayName || "Anonymous", userId: user.uid, userPhoto: user.photoURL,
-      likes: 0, likedBy:, comments:, timestamp: Date.now()
+      likes: 0, likedBy:[], comments:[], timestamp: Date.now()
     });
     setShowDebate(false); setReason(""); setSelectedPlayer("");
   };
@@ -233,7 +234,7 @@ export default function CrickClash() {
     const debateRef = ref(db, `debates/${debateId}`);
     const snap = await get(debateRef); const debate = snap.val();
     const newComment = { id: Date.now(), user: user.displayName, userPhoto: user.photoURL, text: replyText, timestamp: Date.now() };
-    await update(debateRef, { comments: [...(debate.comments || ), newComment] });
+    await update(debateRef, { comments: [...(debate.comments || []), newComment] });
     setReplyText(""); setReplyingTo(null);
   };
 
@@ -241,7 +242,7 @@ export default function CrickClash() {
     if(!user){ handleGoogleLogin(); return; }
     const debateRef = ref(db, `debates/${debateId}`);
     const snap = await get(debateRef); const debate = snap.val();
-    const likedBy = debate.likedBy || ;
+    const likedBy = debate.likedBy || [];
     if(likedBy.includes(user.uid)) return;
     await update(debateRef, { likes: (debate.likes || 0) + 1, likedBy: [...likedBy, user.uid] });
   };
@@ -390,7 +391,7 @@ export default function CrickClash() {
       {/* DEBATE POPUP */}
       {showDebate && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#13131a] p-6 rounded-2xl w-full max-w-md border-[#333] max-h-[80vh] overflow-y-auto">
+          <div className="bg-[#13131a] p-6 rounded-2xl w-full max-w-md border-[#333] max-h-[90vh] overflow-y-auto">
             <h3 className="text-xl font-bold mb-4 text-white">Battle {battleNo} Debate 🔥</h3>
             {!user? (
               <div className="text-center"><p className="mb-4 text-gray-400">Debate cheyadaniki login avvali</p><button onClick={handleGoogleLogin} className="w-full bg-blue-500 text-white font-bold py-3 rounded-lg">LOGIN WITH GOOGLE</button><button onClick={()=>setShowDebate(false)} className="w-full mt-2 bg-[#23232b] py-2 rounded-xl font-bold">Cancel</button></div>
@@ -402,7 +403,7 @@ export default function CrickClash() {
                     <button onClick={()=>setSelectedPlayer(battle[0]?.id)} className={`flex-1 p-2 rounded-lg text-sm font-bold ${selectedPlayer===battle[0]?.id? "bg-[#a8ff00] text-black" : "bg-[#23232b]"}`}>{battle[0]?.name}</button>
                     <button onClick={()=>setSelectedPlayer(battle[1]?.id)} className={`flex-1 p-2 rounded-lg text-sm font-bold ${selectedPlayer===battle[1]?.id? "bg-[#a8ff00] text-black" : "bg-[#23232b]"}`}>{battle[1]?.name}</button>
                   </div>
-                  <textarea placeholder="Write your reason..." value={reason} onChange={(e)=>setReason(e.target.value)} className="w-full h-20 bg-[#13131a] text-white p-2 rounded-lg border-[#333] text-sm"/>
+                  <textarea placeholder="Write your reason..." value={reason} onChange={(e)=>setReason(e.target.value)} className="w-full h-20 bg-[#13131a] text-white p-2 rounded-lg border border-[#333] text-sm"/>
                   <button onClick={submitDebate} className="w-full mt-2 bg-[#a8ff00] text-black font-bold py-2 rounded-lg">Post Debate</button>
                 </div>
                 <p className="text-sm text-gray-400 mb-2">Community Debates:</p>
@@ -414,7 +415,7 @@ export default function CrickClash() {
                     <div className="flex gap-4 mt-2"><button onClick={() => likeDebate(d.id)} className="text-xs text-gray-400 hover:text-[#a8ff00]">👍 {d.likes || 0}</button><button onClick={() => setReplyingTo(d.id)} className="text-xs text-gray-400 hover:text-[#a8ff00]">💬 Reply</button></div>
                     <div className="ml-3 mt-2 border-l-2 border-[#333] pl-2">
                       {(d.comments || []).map(c => (<div key={c.id} className="flex items-center gap-1 text-xs mb-1"><img src={c.userPhoto} className="w-4 h-4 rounded-full" /><b className="text-[#a8ff00]">{c.user}:</b><span className="text-gray-300">{c.text}</span></div>))}
-                      {replyingTo === d.id && (<div className="flex gap-1 mt-2"><input value={replyText} onChange={(e)=>setReplyText(e.target.value)} placeholder="Write reply..." className="flex-1 bg-[#13131a] text-xs p-1 rounded border-[#333] focus:outline-none focus:border-[#a8ff00]"/><button onClick={()=>submitComment(d.id)} className="bg-[#a8ff00] text-black px-3 rounded text-xs font-bold">Send</button></div>)}
+                      {replyingTo === d.id && (<div className="flex gap-1 mt-2"><input value={replyText} onChange={(e)=>setReplyText(e.target.value)} placeholder="Write reply..." className="flex-1 bg-[#13131a] text-xs p-1 rounded border border-[#333] focus:outline-none focus:border-[#a8ff00]"/><button onClick={()=>submitComment(d.id)} className="bg-[#a8ff00] text-black px-3 rounded text-xs font-bold">Send</button></div>)}
                     </div>
                   </div>
                 ))}
