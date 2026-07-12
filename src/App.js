@@ -260,7 +260,7 @@ export default function CrickClash() {
     <div className="min-h-screen bg-[#0a0a0f] text-white flex flex-col">
       <div className="max-w-md mx-auto w-full flex-1 p-4">
         <header className="flex justify-between items-center mb-4">
-          <div><h1 className="text-2xl font-bold">Crick<span className="text-[#FF7A00]">Clash</span></h1><p className="text-white font-bold text-xl">ANESH <span className="text-[#a8ff00]">Innovation</span></p></div>
+          <div><h1 className="text-2xl font-bold">Crick<span className="text-[#FF7A00]">Clash</span></h1><p className="text-white font-bold ">ANESH Innovation</p></div>
           <div className="relative">
             {user? (
               <img src={user.photoURL} onClick={() => setShowProfile(!showProfile)} className="w-10 h-10 rounded-full border-2 border-[#a8ff00] cursor-pointer" />
