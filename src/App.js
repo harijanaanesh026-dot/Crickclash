@@ -133,7 +133,7 @@ export default function CrickClash() {
   useEffect(() => { if(players.length > 0) generateBattle(players, filter); }, [players, filter, generateBattle]);
 
   const handleGoogleLogin = () => signInWithPopup(auth, googleProvider);
-  const handleLogout = async () => { if(window.confirm("Logout avvadaaniki sure na?")) { await signOut(auth); setShowProfile(false); } };
+  const handleLogout = async () => { if(window.confirm("Are you sure you want logout?")) { await signOut(auth); setShowProfile(false); } };
   const handleSkip = () => { setBattleNo(b => b + 1); generateBattle(players, filter); };
   const handleShare = () => {
     const text = `Who's Your Favourite? ${battle[0]?.name} vs ${battle[1]?.name} Vote on CrickClash!`;
@@ -296,7 +296,7 @@ export default function CrickClash() {
                   ))}
                 </div>
                 <div className="flex gap-2 mt-4">
-                  <button onClick={() => user? setShowDebate(true) : handleGoogleLogin()} className="flex-1 bg-orange-500 text-black font-bold py-3 rounded-xl">{user? '🔥 Debate' : '🔒 Login to Debate'}</button>
+                  <button onClick={() => user? setShowDebate(true) : handleGoogleLogin()} className="flex-1 bg-orange-500 text-black font-bold py-3 rounded-xl">{user? '🔥 Debate' : 'Login to Debate'}</button>
                   <button onClick={handleShare} className="flex-1 bg-[#23232b] py-3 rounded-xl font-bold">📤 Share</button>
                 </div>
                 <button onClick={handleSkip} className="bg-[#23232b] w-full py-3 rounded-xl font-bold mt-3">⏭️ Skip Battle</button>
