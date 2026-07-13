@@ -1,5 +1,3 @@
-import React from 'react';
-
 export default function BattleCard({ battle, onVote, onSkip, onShare, user, votesToday, DAILY_VOTE_LIMIT }) {
   const [player1, player2] = battle;
 
@@ -33,9 +31,7 @@ export default function BattleCard({ battle, onVote, onSkip, onShare, user, vote
       <button onClick={onSkip} className="bg-[#23232b] w-full py-3 rounded-xl font-bold mt-3 hover:bg-[#2e2e38]">⏭️ Skip Battle</button>
     </div>
   );
-  }
-import React from 'react';
-
+                }
 export default function UserStats({ user, badges, votesToday, DAILY_VOTE_LIMIT, tab, setTab, totalVotes, battleNo, topPlayer, streak, filter, setFilter }) {
   const roles = ['Any', 'BATTER', 'BOWLER', 'ALL-ROUNDER', 'KEEPER', 'CAPTAIN'];
 
@@ -83,7 +79,7 @@ export default function UserStats({ user, badges, votesToday, DAILY_VOTE_LIMIT, 
       )}
     </>
   );
-          }
+                                                                  }
 import React, { useState, useEffect, useCallback } from 'react';
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInWithPopup, signOut, onAuthStateChanged, GoogleAuthProvider } from 'firebase/auth';
@@ -254,4 +250,4 @@ export default function CrickClash() {
       </footer>
     </div>
   );
-}
+  }
