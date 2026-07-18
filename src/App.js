@@ -20,26 +20,26 @@ const googleProvider = new GoogleAuthProvider();
 const DAILY_VOTE_LIMIT = 1;
 
 const ALL_PLAYERS = [
-  { id: "virat-kohli-bat", name: 'Virat Kohli', role: 'BATTER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313101.6.jpg' },
-  { id: "sachin-tendulkar-bat", name: 'Sachin Tendulkar', role: 'BATTER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313102.6.jpg' },
-  { id: "rohit-sharma-bat", name: 'Rohit Sharma', role: 'BATTER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313103.6.jpg' },
-  { id: "shubman-gill-bat", name: 'Shubman Gill', role: 'BATTER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/352400/352496.6.jpg' },
-  { id: "suryakumar-yadav", name: 'Suryakumar Yadav', role: 'BATTER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313105.6.jpg' },
-  { id: "rahul-dravid-bat", name: 'Rahul Dravid', role: 'BATTER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313118.6.jpg' },
-  { id: "jasprit-bumrah", name: 'Jasprit Bumrah', role: 'BOWLER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313114.6.jpg' },
-  { id: "bhuvneshwar-kumar", name: 'Bhuvneshwar Kumar', role: 'BOWLER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313115.6.jpg' },
-  { id: "mohammed-shami", name: 'Mohammed Shami', role: 'BOWLER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313116.6.jpg' },
-  { id: "mohammed-siraj", name: 'Mohammed Siraj', role: 'BOWLER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/333400/333469.6.jpg' },
-  { id: "hardik-pandya-ar", name: 'Hardik Pandya', role: 'ALL-ROUNDER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313123.6.jpg' },
-  { id: "ravindra-jadeja-ar", name: 'Ravindra Jadeja', role: 'ALL-ROUNDER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313126.6.jpg' },
-  { id: "ravichandran-ashwin", name: 'Ravichandran Ashwin', role: 'ALL-ROUNDER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313127.6.jpg' },
-  { id: "ms-dhoni-kp", name: 'MS Dhoni', role: 'KEEPER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313130.6.jpg' },
-  { id: "rishabh-pant-kp", name: 'Rishabh Pant', role: 'KEEPER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313131.6.jpg' },
-  { id: "sanju-samson", name: 'Sanju Samson', role: 'KEEPER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313134.6.jpg' },
-  { id: "virat-kohli-cap", name: 'Virat Kohli', role: 'CAPTAIN', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313101.6.jpg' },
-  { id: "rohit-sharma-cap", name: 'Rohit Sharma', role: 'CAPTAIN', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313103.6.jpg' },
-  { id: "ms-dhoni-cap", name: 'MS Dhoni', role: 'CAPTAIN', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313130.6.jpg' },
-  { id: "rahul-dravid-cap", name: 'Rahul Dravid', role: 'CAPTAIN', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313118.6.jpg' },
+  { id: "virat-kohli-bat", name: 'Virat Kohli', role: 'BATTER', votes: 0, image: 'https://static.iplt20.com/players/284/164.png' },
+  { id: "sachin-tendulkar-bat", name: 'Sachin Tendulkar', role: 'BATTER', votes: 0, image: 'https://bcciplayerimages.s3.ap-south-1.amazonaws.com/ipl/IPLHeadshot2023/1.png' },
+  { id: "rohit-sharma-bat", name: 'Rohit Sharma', role: 'BATTER', votes: 0, image: 'https://static.iplt20.com/players/107/107.png' },
+  { id: "shubman-gill-bat", name: 'Shubman Gill', role: 'BATTER', votes: 0, image: 'https://static.iplt20.com/players/154/3763.png' },
+  { id: "suryakumar-yadav", name: 'Suryakumar Yadav', role: 'BATTER', votes: 0, image: 'https://static.iplt20.com/players/130/108.png' },
+  { id: "rahul-dravid-bat", name: 'Rahul Dravid', role: 'BATTER', votes: 0, image: 'https://bcciplayerimages.s3.ap-south-1.amazonaws.com/ipl/IPLHeadshot2023/1.png' },
+  { id: "jasprit-bumrah", name: 'Jasprit Bumrah', role: 'BOWLER', votes: 0, image: 'https://static.iplt20.com/players/130/1124.png' },
+  { id: "bhuvneshwar-kumar", name: 'Bhuvneshwar Kumar', role: 'BOWLER', votes: 0, image: 'https://static.iplt20.com/players/130/140.png' },
+  { id: "mohammed-shami", name: 'Mohammed Shami', role: 'BOWLER', votes: 0, image: 'https://static.iplt20.com/players/130/91.png' },
+  { id: "mohammed-siraj", name: 'Mohammed Siraj', role: 'BOWLER', votes: 0, image: 'https://static.iplt20.com/players/130/3840.png' },
+  { id: "hardik-pandya-ar", name: 'Hardik Pandya', role: 'ALL-ROUNDER', votes: 0, image: 'https://static.iplt20.com/players/130/2972.png' },
+  { id: "ravindra-jadeja-ar", name: 'Ravindra Jadeja', role: 'ALL-ROUNDER', votes: 0, image: 'https://static.iplt20.com/players/130/9.png' },
+  { id: "ravichandran-ashwin", name: 'Ravichandran Ashwin', role: 'ALL-ROUNDER', votes: 0, image: 'https://static.iplt20.com/players/130/8.png' },
+  { id: "ms-dhoni-kp", name: 'MS Dhoni', role: 'KEEPER', votes: 0, image: 'https://static.iplt20.com/players/130/1.png' },
+  { id: "rishabh-pant-kp", name: 'Rishabh Pant', role: 'KEEPER', votes: 0, image: 'https://static.iplt20.com/players/130/2975.png' },
+  { id: "sanju-samson", name: 'Sanju Samson', role: 'KEEPER', votes: 0, image: 'https://static.iplt20.com/players/130/3764.png' },
+  { id: "virat-kohli-cap", name: 'Virat Kohli', role: 'CAPTAIN', votes: 0, image: 'https://static.iplt20.com/players/284/164.png' },
+  { id: "rohit-sharma-cap", name: 'Rohit Sharma', role: 'CAPTAIN', votes: 0, image: 'https://static.iplt20.com/players/107/107.png' },
+  { id: "ms-dhoni-cap", name: 'MS Dhoni', role: 'CAPTAIN', votes: 0, image: 'https://static.iplt20.com/players/130/1.png' },
+  { id: "rahul-dravid-cap", name: 'Rahul Dravid', role: 'CAPTAIN', votes: 0, image: 'https://bcciplayerimages.s3.ap-south-1.amazonaws.com/ipl/IPLHeadshot2023/1.png' },
 ];
 
 export default function CrickClash() {
@@ -65,6 +65,7 @@ export default function CrickClash() {
   const [reactions, setReactions] = useState({fire:0, goat:0, shock:0, fire100:0});
   const [votedReaction, setVotedReaction] = useState(null);
   const [calendar, setCalendar] = useState([]);
+  const [showNextButton, setShowNextButton] = useState(false); // NEW: Auto skip aapadaniki
 
   const getToday = () => new Date().toISOString().split('T')[0];
     // TIMER
@@ -151,6 +152,7 @@ export default function CrickClash() {
       attempts++;
     }
     setBattle([p1, p2]);
+    setShowNextButton(false); // NEW: kotha battle vaste button hide chey
   }, []);
 
   const handleGoogleLogin = () => signInWithPopup(auth, googleProvider);
@@ -179,7 +181,7 @@ export default function CrickClash() {
   };
 
   const handleVote = async (votedPlayerId) => {
-    if(!user){ alert("Google login required to vote"); await signInWithPopup(auth, googleProvider); return; }
+    if(!user){ alert("First Google Login chey bro!"); await signInWithPopup(auth, googleProvider); return; }
     const voteLimit = DAILY_VOTE_LIMIT + extraVotes;
     if(votesToday >= voteLimit) return alert(`Roju ${voteLimit} vote maatrame! Reset in ${timeLeft}`);
 
@@ -203,8 +205,7 @@ export default function CrickClash() {
     await update(ref(db, 'meta/totalVotes'), increment(1));
 
     setVotesToday(votesToday + 1); setBadges(finalBadges); setStreak(newStreak);
-    setBattleNo(battleNo + 1);
-    setTimeout(() => generateBattle(players, filter), 500);
+    setShowNextButton(true); // NEW: Automatic skip aapi, button chupinchu
 
     // PREDICTION REWARD
     const winner = (battle[0].votes > battle[1].votes)? battle[0].name : battle[1].name;
@@ -273,9 +274,9 @@ export default function CrickClash() {
         @keyframes pop { 0%{transform:scale(1)} 50%{transform:scale(1.15)} 100%{transform:scale(1)} }
         @keyframes float { 0%{transform:translateY(0)} 50%{transform:translateY(-10px)} 100%{transform:translateY(0)} }
         @keyframes glow { 0%{box-shadow:0 0 5px #a8ff00} 50%{box-shadow:0 0 20px #a8ff00} 100%{box-shadow:0 0 5px #a8ff00} }
-      .vote-pop { animation: pop 0.5s ease; }
-      .float { animation: float 2s ease-in-out infinite; }
-      .glow { animation: glow 1.5s infinite; }
+     .vote-pop { animation: pop 0.5s ease; }
+     .float { animation: float 2s ease-in-out infinite; }
+     .glow { animation: glow 1.5s infinite; }
       `}</style>
 
       <div className="max-w-md mx-auto w-full flex-1 p-4">
@@ -365,7 +366,12 @@ export default function CrickClash() {
                 <div className="flex items-center justify-center gap-2">
                   {[battle[0], battle[1]].map(p => (
                     <div key={p.id} className={`bg-gradient-to-b from-[#1e3a5f] to-[#0a0e1a] p-4 rounded-2xl w-1/2 text-center transition hover:scale-105 ${voteAnim === p.id? 'vote-pop' : ''}`}>
-                      <img src={p.image} className="w-20 h-20 rounded-full mx-auto mb-2 object-cover border-2 border-[#a8ff00]" alt={p.name}/>
+                      <img
+                        src={p.image}
+                        onError={(e) => e.target.src = 'https://via.placeholder.com/80?text=Player'}
+                        className="w-20 h-20 rounded-full mx-auto mb-2 object-cover border-2 border-[#a8ff00]"
+                        alt={p.name}
+                      />
                       <span className={`px-3 py-1 rounded-full text-xs font-bold ${p.role==='KEEPER'?'bg-red-900':p.role==='CAPTAIN'?'bg-blue-900':p.role==='BATTER'?'bg-red-800':'bg-blue-800'}`}>{p.role}</span>
                       <h3 className="text-xl font-bold mt-3">{p.name}</h3>
                       <p className="text-[#a8ff00] font-bold">{p.votes || 0} votes</p>
@@ -388,6 +394,19 @@ export default function CrickClash() {
                   <button onClick={handleShareResult} className="flex-1 bg-[#23232b] py-3 rounded-xl font-bold hover:bg-[#2e2e38] transition">📤 Share Battle</button>
                   <button onClick={handleSkip} className="flex-1 bg-[#23232b] py-3 rounded-xl font-bold hover:bg-[#2e2e38] transition">⏭️ Skip</button>
                 </div>
+
+                {/* 6. NEW: NEXT BATTLE BUTTON - VOTE CHESAKA MATREME VASTUNDI */}
+                {showNextButton && (
+                  <button
+                    onClick={() => {
+                      setBattleNo(b => b + 1);
+                      generateBattle(players, filter);
+                    }}
+                    className="w-full bg-[#a8ff00] text-black py-4 rounded-xl font-bold text-lg mt-4 hover:bg-[#9ae600] transition"
+                  >
+                    NEXT BATTLE →
+                  </button>
+                )}
               </div>
             ) : <p className="text-center">Loading Players...</p>}
           </>
@@ -401,7 +420,7 @@ export default function CrickClash() {
                 return (
                   <div key={p.name} className="bg-[#13131a] p-3 rounded-xl mb-3 flex items-center gap-3 hover:bg-[#1a1a24] transition">
                     <span className="text-xl font-bold text-[#a8ff00]">#{i+1}</span>
-                    <img src={p.image} className="w-12 h-12 rounded-full object-cover" alt={p.name}/>
+                    <img src={p.image} onError={(e) => e.target.src = 'https://via.placeholder.com/48?text=P'} className="w-12 h-12 rounded-full object-cover" alt={p.name}/>
                     <div className="flex-1"><div className="flex justify-between"><span className="font-bold">{p.name}</span><span className="text-[#a8ff00] font-bold text-sm">{percentage}%</span></div><div className="flex justify-between text-xs text-gray-400 mb-1"><span>{p.votes||0} votes</span><span>{p.role}</span></div><div className="w-full bg-gray-700 rounded-full h-2"><div className="bg-[#a8ff00] h-2 rounded-full transition-all duration-500" style={{width: `${percentage}%`}}></div></div></div>
                   </div>
                 )
