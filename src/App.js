@@ -17,7 +17,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
 const googleProvider = new GoogleAuthProvider();
-const DAILY_VOTE_LIMIT = 10;
+const DAILY_VOTE_LIMIT = 5;
 
 const ALL_PLAYERS = [
   { id: "virat-kohli-bat", name: 'Virat Kohli', role: 'BATTER', votes: 0, image: 'https://static.iplt20.com/players/284/164.png' },
@@ -122,7 +122,7 @@ export default function CrickClash() {
       ALL_PLAYERS.forEach(p => { resetPlayers[p.id] = {...p, votes: 0}; });
       await set(ref(db, 'players'), resetPlayers);
       await set(metaRef, { lastResetDate: today });
-      await set(ref(db, 'totalVotes'), 0); // ROOT LO RESET
+      await set(ref(db, 'totalVotes'), 0);
     }
   }, []);
 
@@ -191,7 +191,7 @@ export default function CrickClash() {
     // INSTANT UI UPDATE
     setPlayers(prev => prev.map(p => p.id === votedPlayerId? {...p, votes: (p.votes || 0) + 1} : p));
     setTotalVotes(prev => prev + 1);
-    setBattle(prevBattle => prevBattle.map(p => p.id === votedPlayerId? {...p, votes: (p.votes || 0) + 1} : p));
+    setBattle(prevBattle => prevBattle.map(p => p && p.id === votedPlayerId? {...p, votes: (p.votes || 0) + 1} : p));
 
     const {newStreak, newBadges} = await updateStreak();
     const finalBadges = [...newBadges];
@@ -202,7 +202,7 @@ export default function CrickClash() {
 
     await update(userRef, { votesToday: votesToday + 1, lastVoteDate: today, streak: newStreak, badges: finalBadges, history: newHistory });
 
-    // FIREBASE UPDATE - ROOT LO
+    // FIREBASE UPDATE
     await update(ref(db, `players/${votedPlayerId}/votes`), increment(1));
     await update(ref(db, 'totalVotes'), increment(1));
 
@@ -250,11 +250,22 @@ export default function CrickClash() {
     });
 
     const playersRef = ref(db, 'players');
-    const totalVotesRef = ref(db, 'totalVotes'); // ROOT REFERENCE
+    const totalVotesRef = ref(db, 'totalVotes');
+
+    // KEY FIX: DB LO PLAYERS LEKAPOTHE CREATE CHEY
+    get(playersRef).then((snapshot) => {
+      if (!snapshot.exists()) {
+        console.log("First time: Creating players in DB");
+        const initialPlayers = {};
+        ALL_PLAYERS.forEach((p) => { initialPlayers[p.id] = {...p}; });
+        set(playersRef, initialPlayers);
+        set(ref(db, 'totalVotes'), 0);
+      }
+    });
 
     onValue(playersRef, (snapshot) => {
       const data = snapshot.val();
-      if (data && Object.keys(data).length > 10) {
+      if (data) {
         const playersArray = Object.keys(data).map(key => ({ id: key,...data[key] }));
         setPlayers(playersArray);
         const sorted = [...playersArray].sort((a,b) => (b.votes||0) - (a.votes||0));
@@ -276,8 +287,8 @@ export default function CrickClash() {
       <style>{`
         @keyframes pop { 0%{transform:scale(1)} 50%{transform:scale(1.15)} 100%{transform:scale(1)} }
         @keyframes glow { 0%{box-shadow:0 0 5px #a8ff00} 50%{box-shadow:0 0 20px #a8ff00} 100%{box-shadow:0 0 5px #a8ff00} }
-.vote-pop { animation: pop 0.5s ease; }
-.glow { animation: glow 1.5s infinite; }
+       .vote-pop { animation: pop 0.5s ease; }
+       .glow { animation: glow 1.5s infinite; }
       `}</style>
 
       <div className="max-w-md mx-auto w-full flex-1 p-4">
@@ -352,7 +363,7 @@ export default function CrickClash() {
 
             {battle[0] && battle[1]? (
               <div>
-                <div className="bg-[#1A1A1A] p-3 rounded-xl mb-3 min-h-">
+                <div className="bg-[#1A1A1A] p-3 rounded-xl mb-3">
                   <p className="text-xs text-gray-400 mb-2">Who will win?</p>
                   <div className="flex gap-2">
                     <button onClick={() => setPrediction(battle[0].name)} className={`flex-1 py-2 rounded-lg text-sm font-bold ${userPrediction === battle[0].name? 'bg-[#a8ff00] text-black' : 'bg-[#222]'}`}>{battle[0].name.split(' ')[0]}</button>
@@ -451,4 +462,4 @@ export default function CrickClash() {
       </footer>
     </div>
   );
-              }
+}
