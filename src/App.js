@@ -17,7 +17,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
 const googleProvider = new GoogleAuthProvider();
-const DAILY_VOTE_LIMIT = 5;
+const DAILY_VOTE_LIMIT = 10;
 
 const ALL_PLAYERS = [
   { id: "virat-kohli-bat", name: 'Virat Kohli', role: 'BATTER', votes: 0, image: 'https://static.iplt20.com/players/284/164.png' },
@@ -68,7 +68,8 @@ export default function CrickClash() {
   const [showNextButton, setShowNextButton] = useState(false);
 
   const getToday = () => new Date().toISOString().split('T')[0];
-    useEffect(() => {
+
+  useEffect(() => {
     const updateTimer = () => {
       const now = new Date();
       const tomorrow = new Date();
@@ -188,7 +189,6 @@ export default function CrickClash() {
     const today = getToday();
     const userRef = ref(db, `users/${user.uid}`);
 
-    // INSTANT UI UPDATE
     setPlayers(prev => prev.map(p => p.id === votedPlayerId? {...p, votes: (p.votes || 0) + 1} : p));
     setTotalVotes(prev => prev + 1);
     setBattle(prevBattle => prevBattle.map(p => p && p.id === votedPlayerId? {...p, votes: (p.votes || 0) + 1} : p));
@@ -201,8 +201,6 @@ export default function CrickClash() {
     const newHistory = [historyEntry,...battleHistory].slice(0, 50);
 
     await update(userRef, { votesToday: votesToday + 1, lastVoteDate: today, streak: newStreak, badges: finalBadges, history: newHistory });
-
-    // FIREBASE UPDATE
     await update(ref(db, `players/${votedPlayerId}/votes`), increment(1));
     await update(ref(db, 'totalVotes'), increment(1));
 
@@ -243,6 +241,8 @@ export default function CrickClash() {
             setUserCoins(userData.coins || 0);
             setCalendar(userData.calendar || []);
           } else {
+            setVotesToday(0);
+            setExtraVotes(0);
             set(userRef, {votesToday: 0, extraVotes: 0, lastVoteDate: today, streak: 0, badges:[], history:[], coins: 0, calendar: []});
           }
         });
@@ -252,10 +252,8 @@ export default function CrickClash() {
     const playersRef = ref(db, 'players');
     const totalVotesRef = ref(db, 'totalVotes');
 
-    // KEY FIX: DB LO PLAYERS LEKAPOTHE CREATE CHEY
     get(playersRef).then((snapshot) => {
       if (!snapshot.exists()) {
-        console.log("First time: Creating players in DB");
         const initialPlayers = {};
         ALL_PLAYERS.forEach((p) => { initialPlayers[p.id] = {...p}; });
         set(playersRef, initialPlayers);
@@ -268,8 +266,8 @@ export default function CrickClash() {
       if (data) {
         const playersArray = Object.keys(data).map(key => ({ id: key,...data[key] }));
         setPlayers(playersArray);
-        const sorted = [...playersArray].sort((a,b) => (b.votes||0) - (a.votes||0));
-        setTopPlayer(sorted[0]);
+        const sorted = [...playersArray].filter(p => p.votes > 0).sort((a,b) => (b.votes||0) - (a.votes||0));
+        setTopPlayer(sorted[0] || null);
       }
     });
 
@@ -287,8 +285,8 @@ export default function CrickClash() {
       <style>{`
         @keyframes pop { 0%{transform:scale(1)} 50%{transform:scale(1.15)} 100%{transform:scale(1)} }
         @keyframes glow { 0%{box-shadow:0 0 5px #a8ff00} 50%{box-shadow:0 0 20px #a8ff00} 100%{box-shadow:0 0 5px #a8ff00} }
-       .vote-pop { animation: pop 0.5s ease; }
-       .glow { animation: glow 1.5s infinite; }
+     .vote-pop { animation: pop 0.5s ease; }
+     .glow { animation: glow 1.5s infinite; }
       `}</style>
 
       <div className="max-w-md mx-auto w-full flex-1 p-4">
@@ -349,7 +347,7 @@ export default function CrickClash() {
             <div className="grid grid-cols-4 text-center mb-6">
               <div><p className="text-2xl font-bold text-orange-400">{totalVotes}</p><p className="text-xs text-gray-400">TOTAL</p></div>
               <div><p className="text-2xl font-bold text-orange-400">{battleNo-1}</p><p className="text-xs text-gray-400">BATTLES</p></div>
-              <div><p className="text-2xl font-bold text-orange-400 truncate">{topPlayer?.name.split(' ')[0] || 'None'}</p><p className="text-xs text-gray-400">TOP</p></div>
+              <div><p className="text-2xl font-bold text-orange-400 truncate">{topPlayer?.name.split(' ')[0] || '-'}</p><p className="text-xs text-gray-400">TOP</p></div>
               <div><p className="text-2xl font-bold text-orange-400">🔥{streak}</p><p className="text-xs text-gray-400">STREAK</p></div>
             </div>
             <p className="text-center text-gray-400 mb-2">WHO DO YOU LIKE?</p>
@@ -374,7 +372,7 @@ export default function CrickClash() {
                 <div className="flex items-center justify-center gap-2">
                   {[battle[0], battle[1]].map(p => {
                     const battleTotalVotes = (battle[0]?.votes || 0) + (battle[1]?.votes || 0);
-                    const percentage = battleTotalVotes > 0? ((p.votes || 0) / battleTotalVotes * 100).toFixed(1) : 50;
+                    const percentage = battleTotalVotes > 0? ((p.votes || 0) / battleTotalVotes * 100).toFixed(1) : 0;
                     return (
                     <div key={p.id} className={`bg-gradient-to-b from-[#1e3a5f] to-[#0a0e1a] p-4 rounded-2xl w-1/2 text-center transition hover:scale-105 ${voteAnim === p.id? 'vote-pop' : ''}`}>
                       <img
@@ -405,7 +403,7 @@ export default function CrickClash() {
                 </div>
 
                 <div className="flex gap-2">
-                  <button onClick={handleShareResult} className="flex-1 bg-[#23232b] py-3 rounded-xl font-bold hover:bg-[#2e2e38] transition">📤 Share</button>
+                  <button onClick={handleShareResult} className="flex-1 bg-[#23232b] py-3 rounded-xl font-bold hover:bg-[#2e2e38] transition">📤 Share Battle</button>
                   <button onClick={handleSkip} className="flex-1 bg-[#23232b] py-3 rounded-xl font-bold hover:bg-[#2e2e38] transition">⏭️ Skip</button>
                 </div>
 
@@ -462,4 +460,4 @@ export default function CrickClash() {
       </footer>
     </div>
   );
-}
+              }
