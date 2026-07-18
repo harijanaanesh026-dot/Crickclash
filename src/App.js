@@ -175,6 +175,7 @@ export default function CrickClash() {
     return {newStreak, newBadges};
   };
 
+  // MAIN FIX: INSTANT VOTE UPDATE
   const handleVote = async (votedPlayerId) => {
     if(!user){ alert("First Google Login chey bro!"); await signInWithPopup(auth, googleProvider); return; }
     const voteLimit = DAILY_VOTE_LIMIT + extraVotes;
@@ -188,6 +189,11 @@ export default function CrickClash() {
     const today = getToday();
     const userRef = ref(db, `users/${user.uid}`);
 
+    // 1. UI LO INSTANT +1
+    setPlayers(prev => prev.map(p => p.id === votedPlayerId? {...p, votes: (p.votes || 0) + 1} : p));
+    setTotalVotes(prev => prev + 1);
+    setBattle(prevBattle => prevBattle.map(p => p.id === votedPlayerId? {...p, votes: (p.votes || 0) + 1} : p));
+
     const {newStreak, newBadges} = await updateStreak();
     const finalBadges = [...newBadges];
     if(votesToday === 0 &&!finalBadges.includes('First Vote')) finalBadges.push('First Vote');
@@ -196,13 +202,15 @@ export default function CrickClash() {
     const newHistory = [historyEntry,...battleHistory].slice(0, 50);
 
     await update(userRef, { votesToday: votesToday + 1, lastVoteDate: today, streak: newStreak, badges: finalBadges, history: newHistory });
+
+    // 2. FIREBASE LO KUDA SAVE
     await update(ref(db, `players/${votedPlayerId}/votes`), increment(1));
     await update(ref(db, 'meta/totalVotes'), increment(1));
 
     setVotesToday(votesToday + 1); setBadges(finalBadges); setStreak(newStreak);
     setShowNextButton(true);
 
-    const winner = (battle[0].votes > battle[1].votes)? battle[0].name : battle[1].name;
+    const winner = ((battle[0].votes || 0) > (battle[1].votes || 0))? battle[0].name : battle[1].name;
     if(userPrediction === winner){
       const newCoins = userCoins + 10;
       await update(ref(db, `users/${user.uid}`), {coins: newCoins});
@@ -261,14 +269,14 @@ export default function CrickClash() {
   }, [checkAndResetDaily]);
 
   useEffect(() => { if(players.length > 0) generateBattle(players, filter); }, [players, filter, generateBattle]);
-      if(loading) return <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center text-white">Loading...</div>;
+    if(loading) return <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center text-white">Loading...</div>;
     return (
     <div className="min-h-screen bg-[#0a0a0f] text-white flex-col">
       <style>{`
         @keyframes pop { 0%{transform:scale(1)} 50%{transform:scale(1.15)} 100%{transform:scale(1)} }
         @keyframes glow { 0%{box-shadow:0 0 5px #a8ff00} 50%{box-shadow:0 0 20px #a8ff00} 100%{box-shadow:0 0 5px #a8ff00} }
-   .vote-pop { animation: pop 0.5s ease; }
-   .glow { animation: glow 1.5s infinite; }
+  .vote-pop { animation: pop 0.5s ease; }
+  .glow { animation: glow 1.5s infinite; }
       `}</style>
 
       <div className="max-w-md mx-auto w-full flex-1 p-4">
@@ -292,7 +300,7 @@ export default function CrickClash() {
 
         {user && (
           <>
-            <div className="bg-[#13131a] p-3 rounded-2xl mb-3 border border-[#222]">
+            <div className="bg-[#13131a] p-3 rounded-2xl mb-3 border-[#222]">
               <div className="flex justify-between text-sm mb-2"><span>🔥 {streak} Day Streak</span><span className="text-gray-400">Resets in {timeLeft}</span></div>
               <div className="flex gap-1 justify-between">
                 {[...Array(7)].map((_,i) => (
@@ -326,6 +334,7 @@ export default function CrickClash() {
 
         {tab === 'Battle' && (
           <>
+            {/* TOTAL VOTES CHUPINCHADAM */}
             <div className="grid grid-cols-4 text-center mb-6">
               <div><p className="text-2xl font-bold text-orange-400">{totalVotes}</p><p className="text-xs text-gray-400">TOTAL</p></div>
               <div><p className="text-2xl font-bold text-orange-400">{battleNo-1}</p><p className="text-xs text-gray-400">BATTLES</p></div>
@@ -353,7 +362,6 @@ export default function CrickClash() {
 
                 <div className="flex items-center justify-center gap-2">
                   {[battle[0], battle[1]].map(p => {
-                    // NEW: IDDARI TOTAL VOTES + PERCENTAGE CALC
                     const battleTotalVotes = (battle[0]?.votes || 0) + (battle[1]?.votes || 0);
                     const percentage = battleTotalVotes > 0? ((p.votes || 0) / battleTotalVotes * 100).toFixed(1) : 50;
                     return (
@@ -367,7 +375,7 @@ export default function CrickClash() {
                       <span className={`px-3 py-1 rounded-full text-xs font-bold ${p.role==='KEEPER'?'bg-red-900':p.role==='CAPTAIN'?'bg-blue-900':p.role==='BATTER'?'bg-red-800':'bg-blue-800'}`}>{p.role}</span>
                       <h3 className="text-xl font-bold mt-3">{p.name}</h3>
 
-                      {/* NEW: PERCENTAGE + PROGRESS BAR */}
+                      {/* PERCENTAGE + VOTES + BAR */}
                       <p className="text-[#a8ff00] font-bold text-lg">{percentage}%</p>
                       <p className="text-xs text-gray-400">{p.votes || 0} votes</p>
                       <div className="w-full bg-gray-700 rounded-full h-2 mt-1 mb-2">
