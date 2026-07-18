@@ -121,8 +121,8 @@ export default function CrickClash() {
       const resetPlayers = {};
       ALL_PLAYERS.forEach(p => { resetPlayers[p.id] = {...p, votes: 0}; });
       await set(ref(db, 'players'), resetPlayers);
-      await set(metaRef, { lastResetDate: today, totalVotes: 0 });
-      setTotalVotes(0);
+      await set(metaRef, { lastResetDate: today });
+      await set(ref(db, 'totalVotes'), 0); // ROOT LO RESET
     }
   }, []);
 
@@ -175,7 +175,6 @@ export default function CrickClash() {
     return {newStreak, newBadges};
   };
 
-  // MAIN FIX: INSTANT VOTE UPDATE
   const handleVote = async (votedPlayerId) => {
     if(!user){ alert("First Google Login chey bro!"); await signInWithPopup(auth, googleProvider); return; }
     const voteLimit = DAILY_VOTE_LIMIT + extraVotes;
@@ -189,7 +188,7 @@ export default function CrickClash() {
     const today = getToday();
     const userRef = ref(db, `users/${user.uid}`);
 
-    // 1. UI LO INSTANT +1
+    // INSTANT UI UPDATE
     setPlayers(prev => prev.map(p => p.id === votedPlayerId? {...p, votes: (p.votes || 0) + 1} : p));
     setTotalVotes(prev => prev + 1);
     setBattle(prevBattle => prevBattle.map(p => p.id === votedPlayerId? {...p, votes: (p.votes || 0) + 1} : p));
@@ -203,9 +202,9 @@ export default function CrickClash() {
 
     await update(userRef, { votesToday: votesToday + 1, lastVoteDate: today, streak: newStreak, badges: finalBadges, history: newHistory });
 
-    // 2. FIREBASE LO KUDA SAVE
+    // FIREBASE UPDATE - ROOT LO
     await update(ref(db, `players/${votedPlayerId}/votes`), increment(1));
-    await update(ref(db, 'meta/totalVotes'), increment(1));
+    await update(ref(db, 'totalVotes'), increment(1));
 
     setVotesToday(votesToday + 1); setBadges(finalBadges); setStreak(newStreak);
     setShowNextButton(true);
@@ -251,6 +250,8 @@ export default function CrickClash() {
     });
 
     const playersRef = ref(db, 'players');
+    const totalVotesRef = ref(db, 'totalVotes'); // ROOT REFERENCE
+
     onValue(playersRef, (snapshot) => {
       const data = snapshot.val();
       if (data && Object.keys(data).length > 10) {
@@ -258,14 +259,14 @@ export default function CrickClash() {
         setPlayers(playersArray);
         const sorted = [...playersArray].sort((a,b) => (b.votes||0) - (a.votes||0));
         setTopPlayer(sorted[0]);
-        setTotalVotes(sorted.reduce((sum, p) => sum + (p.votes||0), 0));
-      } else {
-        const initialPlayers = {};
-        ALL_PLAYERS.forEach((p) => { initialPlayers[p.id] = {...p}; });
-        set(playersRef, initialPlayers);
-        set(ref(db, 'meta'), { lastResetDate: getToday(), totalVotes: 0 });
       }
     });
+
+    onValue(totalVotesRef, (snapshot) => {
+      const tv = snapshot.val();
+      if(tv!== null) setTotalVotes(tv || 0);
+    });
+
   }, [checkAndResetDaily]);
 
   useEffect(() => { if(players.length > 0) generateBattle(players, filter); }, [players, filter, generateBattle]);
@@ -275,8 +276,8 @@ export default function CrickClash() {
       <style>{`
         @keyframes pop { 0%{transform:scale(1)} 50%{transform:scale(1.15)} 100%{transform:scale(1)} }
         @keyframes glow { 0%{box-shadow:0 0 5px #a8ff00} 50%{box-shadow:0 0 20px #a8ff00} 100%{box-shadow:0 0 5px #a8ff00} }
-  .vote-pop { animation: pop 0.5s ease; }
-  .glow { animation: glow 1.5s infinite; }
+.vote-pop { animation: pop 0.5s ease; }
+.glow { animation: glow 1.5s infinite; }
       `}</style>
 
       <div className="max-w-md mx-auto w-full flex-1 p-4">
@@ -334,7 +335,6 @@ export default function CrickClash() {
 
         {tab === 'Battle' && (
           <>
-            {/* TOTAL VOTES CHUPINCHADAM */}
             <div className="grid grid-cols-4 text-center mb-6">
               <div><p className="text-2xl font-bold text-orange-400">{totalVotes}</p><p className="text-xs text-gray-400">TOTAL</p></div>
               <div><p className="text-2xl font-bold text-orange-400">{battleNo-1}</p><p className="text-xs text-gray-400">BATTLES</p></div>
@@ -374,14 +374,11 @@ export default function CrickClash() {
                       />
                       <span className={`px-3 py-1 rounded-full text-xs font-bold ${p.role==='KEEPER'?'bg-red-900':p.role==='CAPTAIN'?'bg-blue-900':p.role==='BATTER'?'bg-red-800':'bg-blue-800'}`}>{p.role}</span>
                       <h3 className="text-xl font-bold mt-3">{p.name}</h3>
-
-                      {/* PERCENTAGE + VOTES + BAR */}
                       <p className="text-[#a8ff00] font-bold text-lg">{percentage}%</p>
                       <p className="text-xs text-gray-400">{p.votes || 0} votes</p>
                       <div className="w-full bg-gray-700 rounded-full h-2 mt-1 mb-2">
                         <div className="bg-[#a8ff00] h-2 rounded-full transition-all duration-500" style={{width: `${percentage}%`}}></div>
                       </div>
-
                       <button onClick={() => handleVote(p.id)} disabled={user && votesToday >= DAILY_VOTE_LIMIT + extraVotes} className={`w-full py-3 rounded-xl font-bold mt-1 transition ${!user? 'bg-blue-500 hover:bg-blue-600' : votesToday >= DAILY_VOTE_LIMIT + extraVotes? 'bg-gray-700 cursor-not-allowed' : 'bg-[#a8ff00] text-black hover:bg-[#9ae600]'}`}>
                         {!user? 'VOTE' : votesToday >= DAILY_VOTE_LIMIT + extraVotes? 'LIMIT DONE' : 'VOTE'}
                       </button>
