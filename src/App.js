@@ -20,36 +20,28 @@ const googleProvider = new GoogleAuthProvider();
 const DAILY_VOTE_LIMIT = 1;
 
 const ALL_PLAYERS = [
-  // BATTER
   { id: "virat-kohli-bat", name: 'Virat Kohli', role: 'BATTER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313101.6.jpg' },
   { id: "sachin-tendulkar-bat", name: 'Sachin Tendulkar', role: 'BATTER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313102.6.jpg' },
   { id: "rohit-sharma-bat", name: 'Rohit Sharma', role: 'BATTER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313103.6.jpg' },
   { id: "shubman-gill-bat", name: 'Shubman Gill', role: 'BATTER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/352400/352496.6.jpg' },
   { id: "suryakumar-yadav", name: 'Suryakumar Yadav', role: 'BATTER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313105.6.jpg' },
   { id: "rahul-dravid-bat", name: 'Rahul Dravid', role: 'BATTER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313118.6.jpg' },
-
-  // BOWLER
   { id: "jasprit-bumrah", name: 'Jasprit Bumrah', role: 'BOWLER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313114.6.jpg' },
   { id: "bhuvneshwar-kumar", name: 'Bhuvneshwar Kumar', role: 'BOWLER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313115.6.jpg' },
   { id: "mohammed-shami", name: 'Mohammed Shami', role: 'BOWLER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313116.6.jpg' },
   { id: "mohammed-siraj", name: 'Mohammed Siraj', role: 'BOWLER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/333400/333469.6.jpg' },
-
-  // ALL-ROUNDER
   { id: "hardik-pandya-ar", name: 'Hardik Pandya', role: 'ALL-ROUNDER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313123.6.jpg' },
   { id: "ravindra-jadeja-ar", name: 'Ravindra Jadeja', role: 'ALL-ROUNDER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313126.6.jpg' },
   { id: "ravichandran-ashwin", name: 'Ravichandran Ashwin', role: 'ALL-ROUNDER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313127.6.jpg' },
-
-  // KEEPER
   { id: "ms-dhoni-kp", name: 'MS Dhoni', role: 'KEEPER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313130.6.jpg' },
   { id: "rishabh-pant-kp", name: 'Rishabh Pant', role: 'KEEPER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313131.6.jpg' },
   { id: "sanju-samson", name: 'Sanju Samson', role: 'KEEPER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313134.6.jpg' },
-
-  // CAPTAIN
   { id: "virat-kohli-cap", name: 'Virat Kohli', role: 'CAPTAIN', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313101.6.jpg' },
   { id: "rohit-sharma-cap", name: 'Rohit Sharma', role: 'CAPTAIN', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313103.6.jpg' },
   { id: "ms-dhoni-cap", name: 'MS Dhoni', role: 'CAPTAIN', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313130.6.jpg' },
   { id: "rahul-dravid-cap", name: 'Rahul Dravid', role: 'CAPTAIN', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313118.6.jpg' },
 ];
+
 export default function CrickClash() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -66,6 +58,25 @@ export default function CrickClash() {
   const [battleHistory, setBattleHistory] = useState([]);
   const [showProfile, setShowProfile] = useState(false);
 
+  const getToday = () => new Date().toISOString().split('T')[0];
+
+  // DAILY RESET FUNCTION
+  const checkAndResetDaily = useCallback(async () => {
+    const today = getToday();
+    const metaRef = ref(db, 'meta');
+    const snap = await get(metaRef);
+    const metaData = snap.val();
+
+    if (!metaData || metaData.lastResetDate!== today) {
+      console.log("New day detected. Resetting all votes...");
+      const resetPlayers = {};
+      ALL_PLAYERS.forEach(p => { resetPlayers[p.id] = {...p, votes: 0}; });
+      await set(ref(db, 'players'), resetPlayers);
+      await set(metaRef, { lastResetDate: today, totalVotes: 0 });
+      setTotalVotes(0);
+    }
+  }, []);
+
   const generateBattle = useCallback((playerList, role) => {
     if(playerList.length < 2) return;
     let filtered = role === 'Any'? playerList : playerList.filter(p => p.role === role);
@@ -81,17 +92,19 @@ export default function CrickClash() {
   }, []);
 
   useEffect(() => {
+    checkAndResetDaily(); // App open ayinappude run avthundi
+
     onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       setLoading(false);
       if(currentUser) {
         const userRef = ref(db, `users/${currentUser.uid}`);
-        const today = new Date().toISOString().split('T')[0];
+        const today = getToday();
         onValue(userRef, (snapshot) => {
           const userData = snapshot.val();
           if(userData){
             if(userData.lastVoteDate === today){ setVotesToday(userData.votesToday || 0); }
-            else { setVotesToday(0); update(userRef, {votesToday: 0, lastVoteDate: today}); }
+            else { setVotesToday(0); update(userRef, {votesToday: 0, lastVoteDate: today, history: []}); } // history kuda reset
             setStreak(userData.streak || 0);
             setBadges(userData.badges || []);
             setBattleHistory(userData.history || []);
@@ -116,7 +129,7 @@ export default function CrickClash() {
       }
     });
 
-  }, []);
+  }, [checkAndResetDaily]);
 
   useEffect(() => { if(players.length > 0) generateBattle(players, filter); }, [players, filter, generateBattle]);
 
@@ -133,7 +146,7 @@ export default function CrickClash() {
   const updateStreak = async () => {
     if(!user) return {newStreak: 0, newBadges: []};
     const userRef = ref(db, `users/${user.uid}`);
-    const today = new Date().toISOString().split('T')[0];
+    const today = getToday();
     const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
     const snap = await get(userRef);
     const data = snap.val() || {};
@@ -143,6 +156,7 @@ export default function CrickClash() {
     if([3,7,30].includes(newStreak) &&!newBadges.includes(`${newStreak} Day Streak`)){ newBadges.push(`${newStreak} Day Streak`); }
     return {newStreak, newBadges};
   };
+
   const handleVote = async (votedPlayerId) => {
     if(!user){ alert("Google login required to vote"); await signInWithPopup(auth, googleProvider); return; }
     if(votesToday >= DAILY_VOTE_LIMIT) return alert(`Roju ${DAILY_VOTE_LIMIT} vote maatrame!`);
@@ -150,9 +164,10 @@ export default function CrickClash() {
     if(!votedPlayer) return;
 
     const {newStreak, newBadges} = await updateStreak();
-    const today = new Date().toISOString().split('T')[0];
+    const today = getToday();
     const userRef = ref(db, `users/${user.uid}`);
     const playerRef = ref(db, `players/${votedPlayerId}`);
+    const metaRef = ref(db, 'meta/totalVotes');
 
     const finalBadges = [...newBadges];
     if(votesToday === 0 &&!finalBadges.includes('First Vote')) finalBadges.push('First Vote');
@@ -163,10 +178,12 @@ export default function CrickClash() {
     await update(userRef, { votesToday: votesToday + 1, lastVoteDate: today, streak: newStreak, badges: finalBadges, history: newHistory });
     const playerSnap = await get(playerRef);
     await update(playerRef, { votes: (playerSnap.val()?.votes || 0) + 1 });
+    await update(metaRef, {'.sv': { 'increment': 1 }}); // totalVotes +1
 
     setVotesToday(votesToday + 1); setBadges(finalBadges); setStreak(newStreak);
     setBattleNo(battleNo + 1); setTimeout(() => generateBattle(players, filter), 500);
   };
+
   if(loading) return <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center text-white">Loading...</div>;
 
   return (
@@ -282,4 +299,4 @@ export default function CrickClash() {
       </footer>
     </div>
   );
-  }
+    }
