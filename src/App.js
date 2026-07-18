@@ -17,7 +17,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
 const googleProvider = new GoogleAuthProvider();
-const DAILY_VOTE_LIMIT = 1;
+const DAILY_VOTE_LIMIT = 10;
 
 const ALL_PLAYERS = [
   { id: "virat-kohli-bat", name: 'Virat Kohli', role: 'BATTER', votes: 0, image: 'https://static.iplt20.com/players/284/164.png' },
@@ -176,7 +176,7 @@ export default function CrickClash() {
   };
 
   const handleVote = async (votedPlayerId) => {
-    if(!user){ alert("First Google Login chey bro!"); await signInWithPopup(auth, googleProvider); return; }
+    if(!user){ alert("Google login required to vote!"); await signInWithPopup(auth, googleProvider); return; }
     const voteLimit = DAILY_VOTE_LIMIT + extraVotes;
     if(votesToday >= voteLimit) return alert(`Roju ${voteLimit} vote maatrame! Reset in ${timeLeft}`);
 
