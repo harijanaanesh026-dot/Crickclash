@@ -65,11 +65,10 @@ export default function CrickClash() {
   const [reactions, setReactions] = useState({fire:0, goat:0, shock:0, fire100:0});
   const [votedReaction, setVotedReaction] = useState(null);
   const [calendar, setCalendar] = useState([]);
-  const [showNextButton, setShowNextButton] = useState(false); // NEW: Auto skip aapadaniki
+  const [showNextButton, setShowNextButton] = useState(false);
 
   const getToday = () => new Date().toISOString().split('T')[0];
-    // TIMER
-  useEffect(() => {
+    useEffect(() => {
     const updateTimer = () => {
       const now = new Date();
       const tomorrow = new Date();
@@ -86,7 +85,6 @@ export default function CrickClash() {
     return () => clearInterval(interval);
   }, []);
 
-  // UPDATE STREAK CALENDAR
   const updateCalendar = async () => {
     const today = getToday();
     const snap = await get(ref(db, `users/${user.uid}/calendar`));
@@ -97,10 +95,8 @@ export default function CrickClash() {
     setStreak(cal.length);
   };
 
-  // PREDICTION
   const setPrediction = (name) => { setUserPrediction(name); };
 
-  // REACTIONS
   const addReaction = async (type) => {
     if(votedReaction) return;
     const newReactions = {...reactions, [type]: reactions[type] + 1};
@@ -108,7 +104,6 @@ export default function CrickClash() {
     await set(ref(db, `battles/${battleNo}/reactions`), newReactions);
   };
 
-  // COINS SHOP
   const buyExtraVote = async () => {
     if(userCoins >= 50){
       await update(ref(db, `users/${user.uid}`), {coins: userCoins - 50, extraVotes: extraVotes + 1});
@@ -152,7 +147,7 @@ export default function CrickClash() {
       attempts++;
     }
     setBattle([p1, p2]);
-    setShowNextButton(false); // NEW: kotha battle vaste button hide chey
+    setShowNextButton(false);
   }, []);
 
   const handleGoogleLogin = () => signInWithPopup(auth, googleProvider);
@@ -205,9 +200,8 @@ export default function CrickClash() {
     await update(ref(db, 'meta/totalVotes'), increment(1));
 
     setVotesToday(votesToday + 1); setBadges(finalBadges); setStreak(newStreak);
-    setShowNextButton(true); // NEW: Automatic skip aapi, button chupinchu
+    setShowNextButton(true);
 
-    // PREDICTION REWARD
     const winner = (battle[0].votes > battle[1].votes)? battle[0].name : battle[1].name;
     if(userPrediction === winner){
       const newCoins = userCoins + 10;
@@ -264,7 +258,7 @@ export default function CrickClash() {
         set(ref(db, 'meta'), { lastResetDate: getToday(), totalVotes: 0 });
       }
     });
-  }, [checkAndResetDaily, generateBattle, players, filter]);
+  }, [checkAndResetDaily]);
 
   useEffect(() => { if(players.length > 0) generateBattle(players, filter); }, [players, filter, generateBattle]);
     if(loading) return <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center text-white">Loading...</div>;
@@ -272,11 +266,9 @@ export default function CrickClash() {
     <div className="min-h-screen bg-[#0a0a0f] text-white flex-col">
       <style>{`
         @keyframes pop { 0%{transform:scale(1)} 50%{transform:scale(1.15)} 100%{transform:scale(1)} }
-        @keyframes float { 0%{transform:translateY(0)} 50%{transform:translateY(-10px)} 100%{transform:translateY(0)} }
         @keyframes glow { 0%{box-shadow:0 0 5px #a8ff00} 50%{box-shadow:0 0 20px #a8ff00} 100%{box-shadow:0 0 5px #a8ff00} }
-     .vote-pop { animation: pop 0.5s ease; }
-     .float { animation: float 2s ease-in-out infinite; }
-     .glow { animation: glow 1.5s infinite; }
+    .vote-pop { animation: pop 0.5s ease; }
+    .glow { animation: glow 1.5s infinite; }
       `}</style>
 
       <div className="max-w-md mx-auto w-full flex-1 p-4">
@@ -300,7 +292,6 @@ export default function CrickClash() {
 
         {user && (
           <>
-            {/* 1. STREAK CALENDAR */}
             <div className="bg-[#13131a] p-3 rounded-2xl mb-3 border border-[#222]">
               <div className="flex justify-between text-sm mb-2"><span>🔥 {streak} Day Streak</span><span className="text-gray-400">Resets in {timeLeft}</span></div>
               <div className="flex gap-1 justify-between">
@@ -310,13 +301,12 @@ export default function CrickClash() {
               </div>
             </div>
 
-            {/* 2. COINS SHOP */}
             <button onClick={buyExtraVote} className="w-full bg-gradient-to-r from-purple-600 to-pink-600 py-2 rounded-xl mb-3 font-bold">🪙 50 Coins = +1 Extra Vote</button>
 
             <div className="bg-[#13131a] p-3 rounded-2xl mb-3">
               <p className="text-sm text-gray-400 mb-2">Your Badges</p>
               <div className="flex gap-2 flex-wrap">
-                {badges.map(b => <span key={b} className="bg-[#a8ff00] text-black px-3 py-1 rounded-full text-sm font-bold float">🏏 {b}</span>)}
+                {badges.map(b => <span key={b} className="bg-[#a8ff00] text-black px-3 py-1 rounded-full text-sm font-bold">🏏 {b}</span>)}
                 {badges.length === 0 && <span className="text-gray-500 text-sm">No badges yet</span>}
               </div>
             </div>
@@ -353,8 +343,7 @@ export default function CrickClash() {
 
             {battle[0] && battle[1]? (
               <div>
-                {/* 3. PREDICTION */}
-                <div className="bg-[#1A1A1A] p-3 rounded-xl mb-3">
+                <div className="bg-[#1A1A1A] p-3 rounded-xl mb-3 min-h-[88px]">
                   <p className="text-xs text-gray-400 mb-2">Who will win?</p>
                   <div className="flex gap-2">
                     <button onClick={() => setPrediction(battle[0].name)} className={`flex-1 py-2 rounded-lg text-sm font-bold ${userPrediction === battle[0].name? 'bg-[#a8ff00] text-black' : 'bg-[#222]'}`}>{battle[0].name.split(' ')[0]}</button>
@@ -362,7 +351,6 @@ export default function CrickClash() {
                   </div>
                 </div>
 
-                {/* 4. LIVE VOTE BAR */}
                 <div className="flex items-center justify-center gap-2">
                   {[battle[0], battle[1]].map(p => (
                     <div key={p.id} className={`bg-gradient-to-b from-[#1e3a5f] to-[#0a0e1a] p-4 rounded-2xl w-1/2 text-center transition hover:scale-105 ${voteAnim === p.id? 'vote-pop' : ''}`}>
@@ -382,7 +370,6 @@ export default function CrickClash() {
                   ))}
                 </div>
 
-                {/* 5. REACTIONS */}
                 <div className="flex justify-around bg-[#13131a] p-2 rounded-xl my-4">
                   <button onClick={() => addReaction('fire')} className={`text-xl ${votedReaction==='fire'?'glow':''}`}>🔥 {reactions.fire}</button>
                   <button onClick={() => addReaction('goat')} className={`text-xl ${votedReaction==='goat'?'glow':''}`}>👑 {reactions.goat}</button>
@@ -395,7 +382,6 @@ export default function CrickClash() {
                   <button onClick={handleSkip} className="flex-1 bg-[#23232b] py-3 rounded-xl font-bold hover:bg-[#2e2e38] transition">⏭️ Skip</button>
                 </div>
 
-                {/* 6. NEW: NEXT BATTLE BUTTON - VOTE CHESAKA MATREME VASTUNDI */}
                 {showNextButton && (
                   <button
                     onClick={() => {
