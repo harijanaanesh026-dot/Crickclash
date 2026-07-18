@@ -261,14 +261,14 @@ export default function CrickClash() {
   }, [checkAndResetDaily]);
 
   useEffect(() => { if(players.length > 0) generateBattle(players, filter); }, [players, filter, generateBattle]);
-    if(loading) return <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center text-white">Loading...</div>;
+      if(loading) return <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center text-white">Loading...</div>;
     return (
     <div className="min-h-screen bg-[#0a0a0f] text-white flex-col">
       <style>{`
         @keyframes pop { 0%{transform:scale(1)} 50%{transform:scale(1.15)} 100%{transform:scale(1)} }
         @keyframes glow { 0%{box-shadow:0 0 5px #a8ff00} 50%{box-shadow:0 0 20px #a8ff00} 100%{box-shadow:0 0 5px #a8ff00} }
-    .vote-pop { animation: pop 0.5s ease; }
-    .glow { animation: glow 1.5s infinite; }
+   .vote-pop { animation: pop 0.5s ease; }
+   .glow { animation: glow 1.5s infinite; }
       `}</style>
 
       <div className="max-w-md mx-auto w-full flex-1 p-4">
@@ -343,7 +343,7 @@ export default function CrickClash() {
 
             {battle[0] && battle[1]? (
               <div>
-                <div className="bg-[#1A1A1A] p-3 rounded-xl mb-3 min-h-[88px]">
+                <div className="bg-[#1A1A1A] p-3 rounded-xl mb-3 min-h-">
                   <p className="text-xs text-gray-400 mb-2">Who will win?</p>
                   <div className="flex gap-2">
                     <button onClick={() => setPrediction(battle[0].name)} className={`flex-1 py-2 rounded-lg text-sm font-bold ${userPrediction === battle[0].name? 'bg-[#a8ff00] text-black' : 'bg-[#222]'}`}>{battle[0].name.split(' ')[0]}</button>
@@ -352,7 +352,11 @@ export default function CrickClash() {
                 </div>
 
                 <div className="flex items-center justify-center gap-2">
-                  {[battle[0], battle[1]].map(p => (
+                  {[battle[0], battle[1]].map(p => {
+                    // NEW: IDDARI TOTAL VOTES + PERCENTAGE CALC
+                    const battleTotalVotes = (battle[0]?.votes || 0) + (battle[1]?.votes || 0);
+                    const percentage = battleTotalVotes > 0? ((p.votes || 0) / battleTotalVotes * 100).toFixed(1) : 50;
+                    return (
                     <div key={p.id} className={`bg-gradient-to-b from-[#1e3a5f] to-[#0a0e1a] p-4 rounded-2xl w-1/2 text-center transition hover:scale-105 ${voteAnim === p.id? 'vote-pop' : ''}`}>
                       <img
                         src={p.image}
@@ -362,12 +366,19 @@ export default function CrickClash() {
                       />
                       <span className={`px-3 py-1 rounded-full text-xs font-bold ${p.role==='KEEPER'?'bg-red-900':p.role==='CAPTAIN'?'bg-blue-900':p.role==='BATTER'?'bg-red-800':'bg-blue-800'}`}>{p.role}</span>
                       <h3 className="text-xl font-bold mt-3">{p.name}</h3>
-                      <p className="text-[#a8ff00] font-bold">{p.votes || 0} votes</p>
-                      <button onClick={() => handleVote(p.id)} disabled={user && votesToday >= DAILY_VOTE_LIMIT + extraVotes} className={`w-full py-3 rounded-xl font-bold mt-2 transition ${!user? 'bg-blue-500 hover:bg-blue-600' : votesToday >= DAILY_VOTE_LIMIT + extraVotes? 'bg-gray-700 cursor-not-allowed' : 'bg-[#a8ff00] text-black hover:bg-[#9ae600]'}`}>
+
+                      {/* NEW: PERCENTAGE + PROGRESS BAR */}
+                      <p className="text-[#a8ff00] font-bold text-lg">{percentage}%</p>
+                      <p className="text-xs text-gray-400">{p.votes || 0} votes</p>
+                      <div className="w-full bg-gray-700 rounded-full h-2 mt-1 mb-2">
+                        <div className="bg-[#a8ff00] h-2 rounded-full transition-all duration-500" style={{width: `${percentage}%`}}></div>
+                      </div>
+
+                      <button onClick={() => handleVote(p.id)} disabled={user && votesToday >= DAILY_VOTE_LIMIT + extraVotes} className={`w-full py-3 rounded-xl font-bold mt-1 transition ${!user? 'bg-blue-500 hover:bg-blue-600' : votesToday >= DAILY_VOTE_LIMIT + extraVotes? 'bg-gray-700 cursor-not-allowed' : 'bg-[#a8ff00] text-black hover:bg-[#9ae600]'}`}>
                         {!user? 'VOTE' : votesToday >= DAILY_VOTE_LIMIT + extraVotes? 'LIMIT DONE' : 'VOTE'}
                       </button>
                     </div>
-                  ))}
+                  )})}
                 </div>
 
                 <div className="flex justify-around bg-[#13131a] p-2 rounded-xl my-4">
