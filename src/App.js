@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInWithPopup, signOut, onAuthStateChanged, GoogleAuthProvider } from 'firebase/auth';
-import { getDatabase, ref, set, update, onValue, get } from 'firebase/database';
+import { getDatabase, ref, set, update, onValue, get, remove } from 'firebase/database';
 
 const firebaseConfig = {
   apiKey: "AIzaSyD9BfrAh8djKof1Bu6FLG0Fz7X10NCdm6g",
@@ -60,7 +60,6 @@ export default function CrickClash() {
 
   const getToday = () => new Date().toISOString().split('T')[0];
 
-  // DAILY RESET FUNCTION
   const checkAndResetDaily = useCallback(async () => {
     const today = getToday();
     const metaRef = ref(db, 'meta');
@@ -77,6 +76,16 @@ export default function CrickClash() {
     }
   }, []);
 
+  const handleDeleteHistory = async () => {
+    if(!user) return;
+    if(window.confirm("Are you sure? Your entire battle history will be deleted.")){
+      const userRef = ref(db, `users/${user.uid}/history`);
+      await remove(userRef);
+      setBattleHistory([]);
+      alert("History Deleted!");
+    }
+  };
+
   const generateBattle = useCallback((playerList, role) => {
     if(playerList.length < 2) return;
     let filtered = role === 'Any'? playerList : playerList.filter(p => p.role === role);
@@ -92,7 +101,7 @@ export default function CrickClash() {
   }, []);
 
   useEffect(() => {
-    checkAndResetDaily(); // App open ayinappude run avthundi
+    checkAndResetDaily();
 
     onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
@@ -104,7 +113,7 @@ export default function CrickClash() {
           const userData = snapshot.val();
           if(userData){
             if(userData.lastVoteDate === today){ setVotesToday(userData.votesToday || 0); }
-            else { setVotesToday(0); update(userRef, {votesToday: 0, lastVoteDate: today, history: []}); } // history kuda reset
+            else { setVotesToday(0); update(userRef, {votesToday: 0, lastVoteDate: today, history: []}); }
             setStreak(userData.streak || 0);
             setBadges(userData.badges || []);
             setBattleHistory(userData.history || []);
@@ -126,6 +135,7 @@ export default function CrickClash() {
         const initialPlayers = {};
         ALL_PLAYERS.forEach((p) => { initialPlayers[p.id] = {...p}; });
         set(playersRef, initialPlayers);
+        set(ref(db, 'meta'), { lastResetDate: getToday(), totalVotes: 0 });
       }
     });
 
@@ -178,16 +188,15 @@ export default function CrickClash() {
     await update(userRef, { votesToday: votesToday + 1, lastVoteDate: today, streak: newStreak, badges: finalBadges, history: newHistory });
     const playerSnap = await get(playerRef);
     await update(playerRef, { votes: (playerSnap.val()?.votes || 0) + 1 });
-    await update(metaRef, {'.sv': { 'increment': 1 }}); // totalVotes +1
+    await update(metaRef, {'.sv': { 'increment': 1 }});
 
     setVotesToday(votesToday + 1); setBadges(finalBadges); setStreak(newStreak);
     setBattleNo(battleNo + 1); setTimeout(() => generateBattle(players, filter), 500);
   };
 
   if(loading) return <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center text-white">Loading...</div>;
-
-  return (
-    <div className="min-h-screen bg-[#0a0a0f] text-white flex flex-col">
+    return (
+    <div className="min-h-screen bg-[#0a0a0f] text-white flex-col">
       <div className="max-w-md mx-auto w-full flex-1 p-4">
         <header className="flex justify-between items-center mb-4">
           <div><h1 className="text-2xl font-bold">Crick<span className="text-[#FF7A00]">Clash</span></h1><p className="text-xs text-gray-400">ANESH Innovation</p></div>
@@ -287,7 +296,14 @@ export default function CrickClash() {
 
         {tab === 'History' && (
           <div className="space-y-3">
-            <h2 className="text-2xl font-bold text-[#a8ff00] mb-4 text-center">📜 Your Battle History</h2>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-bold text-[#a8ff00]">📜 Your Battle History</h2>
+              {battleHistory.length > 0 && (
+                <button onClick={handleDeleteHistory} className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded-lg text-sm font-bold">
+                  🗑️ Clear
+                </button>
+              )}
+            </div>
             {battleHistory.length === 0? <p className="text-gray-500 text-center">No battles yet</p> : battleHistory.map((h,i) => (<div key={i} className="bg-[#13131a] p-3 rounded-xl"><p className="text-sm text-gray-400">Battle {h.battleNo} • {h.date}</p><p className="font-bold">{h.players[0]} vs {h.players[1]}</p><p className="text-sm text-[#a8ff00]">You voted: {h.votedFor}</p></div>))}
           </div>
         )}
@@ -299,4 +315,4 @@ export default function CrickClash() {
       </footer>
     </div>
   );
-    }
+              }
