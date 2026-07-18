@@ -310,7 +310,7 @@ export default function CrickClash() {
       </div>
 
       <footer className="text-center mt-10 pb-6 text-gray-500 text-sm border-t border-gray-800 pt-4">
-        <p>© 2026 <span className="text-[#a8ff00] font-bold">CrickClash™</span> | A Production By <span className="text-white font-bold">ANESH</span></p>
+        <p>© 2026 <span className="text-white font-bold">CrickClash™</span> | A Production By <span className="text-white font-bold">ANESH</span></p>
         <p className="text-xs mt-1">Made with ❤️ for Cricket Fans</p>
       </footer>
     </div>
