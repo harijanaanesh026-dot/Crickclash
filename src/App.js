@@ -123,7 +123,6 @@ export default function CrickClash() {
       ALL_PLAYERS.forEach(p => { resetPlayers[p.id] = {...p, votes: 0}; });
       await set(ref(db, 'players'), resetPlayers);
       await set(metaRef, { lastResetDate: today });
-      await set(ref(db, 'totalVotes'), 0);
     }
   }, []);
 
@@ -207,6 +206,11 @@ export default function CrickClash() {
     setVotesToday(votesToday + 1); setBadges(finalBadges); setStreak(newStreak);
     setShowNextButton(true);
 
+    setTimeout(() => {
+      setBattleNo(b => b + 1);
+      generateBattle(players, filter);
+    }, 1000);
+
     const winner = ((battle[0].votes || 0) > (battle[1].votes || 0))? battle[0].name : battle[1].name;
     if(userPrediction === winner){
       const newCoins = userCoins + 10;
@@ -257,7 +261,6 @@ export default function CrickClash() {
         const initialPlayers = {};
         ALL_PLAYERS.forEach((p) => { initialPlayers[p.id] = {...p}; });
         set(playersRef, initialPlayers);
-        set(ref(db, 'totalVotes'), 0);
       }
     });
 
@@ -266,7 +269,7 @@ export default function CrickClash() {
       if (data) {
         const playersArray = Object.keys(data).map(key => ({ id: key,...data[key] }));
         setPlayers(playersArray);
-        const sorted = [...playersArray].filter(p => p.votes > 0).sort((a,b) => (b.votes||0) - (a.votes||0));
+        const sorted = [...playersArray].sort((a,b) => (b.votes||0) - (a.votes||0));
         setTopPlayer(sorted[0] || null);
       }
     });
@@ -285,8 +288,8 @@ export default function CrickClash() {
       <style>{`
         @keyframes pop { 0%{transform:scale(1)} 50%{transform:scale(1.15)} 100%{transform:scale(1)} }
         @keyframes glow { 0%{box-shadow:0 0 5px #a8ff00} 50%{box-shadow:0 0 20px #a8ff00} 100%{box-shadow:0 0 5px #a8ff00} }
-     .vote-pop { animation: pop 0.5s ease; }
-     .glow { animation: glow 1.5s infinite; }
+    .vote-pop { animation: pop 0.5s ease; }
+    .glow { animation: glow 1.5s infinite; }
       `}</style>
 
       <div className="max-w-md mx-auto w-full flex-1 p-4">
