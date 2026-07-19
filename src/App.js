@@ -17,7 +17,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
 const googleProvider = new GoogleAuthProvider();
-const DAILY_VOTE_LIMIT = 10; // 10 votes chesanu
+const DAILY_VOTE_LIMIT = 1; // 10 votes chesanu
 
 const ALL_PLAYERS = [
   { id: "virat-kohli-bat", name: 'Virat Kohli', role: 'BATTER', votes: 0, image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/313100/313101.6.jpg' },
