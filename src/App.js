@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInWithPopup, signOut, onAuthStateChanged, GoogleAuthProvider } from 'firebase/auth';
-import { getDatabase, ref, set, update, onValue, get, remove, increment, push } from 'firebase/database';
+import { getDatabase, ref, set, update, onValue, get, remove, increment } from 'firebase/database';
 
 const firebaseConfig = {
   apiKey: "AIzaSyD9BfrAh8djKof1Bu6FLG0Fz7X10NCdm6g",
@@ -171,7 +171,7 @@ export default function CrickClash() {
     const snap = await get(winnerRef);
     if(!snap.exists()){
       const sorted = [...playerList].sort((a,b) => b.votes - a.votes);
-      if(sorted[0]) await set(winnerRef, { name: sorted[0].name, votes: sorted[0].votes, image: sorted[0].image });
+      if(sorted[0]) await set(winnerRef, { name: sorted[0].name, votes: sorted[0].votes });
     }
     setWeeklyWinner(snap.val());
   }, []);
@@ -198,18 +198,21 @@ export default function CrickClash() {
     setBattle([p1, p2]);
   }, []);
 
+  const getBattleKey = () => battle[0] && battle[1]? `${battle[0].id}-${battle[1].id}-B${battleNo}` : null;
+
   const handlePostComment = async () => {
     if(!user){ alert("Login cheyali bro"); return; }
     if(!newComment.trim() ||!battle[0] ||!battle[1]) return;
     const time = Date.now();
-    const commentRef = ref(db, `comments/${battle[0].id}-${battle[1].id}/${time}`);
+    const battleKey = getBattleKey();
+    const commentRef = ref(db, `comments/${battleKey}/${time}`);
     await set(commentRef, { text: newComment, user: user.displayName, photo: user.photoURL, time: time, likes: {}, replies: {} });
     setNewComment("");
   };
 
   const handleLikeComment = async (commentKey) => {
     if(!user) return alert("Login cheyali");
-    const battleKey = `${battle[0].id}-${battle[1].id}`;
+    const battleKey = getBattleKey();
     const likeRef = ref(db, `comments/${battleKey}/${commentKey}/likes/${user.uid}`);
     const snap = await get(likeRef);
     if(snap.exists()){ await remove(likeRef); } else { await set(likeRef, true); }
@@ -219,7 +222,8 @@ export default function CrickClash() {
     if(!user){ alert("Login cheyali bro"); return; }
     if(!newReply.trim()) return;
     const time = Date.now();
-    const replyRef = ref(db, `comments/${battle[0].id}-${battle[1].id}/${commentKey}/replies/${time}`);
+    const battleKey = getBattleKey();
+    const replyRef = ref(db, `comments/${battleKey}/${commentKey}/replies/${time}`);
     await set(replyRef, { text: newReply, user: user.displayName, photo: user.photoURL, time: time });
     setNewReply("");
     setReplyTo(null);
@@ -227,12 +231,14 @@ export default function CrickClash() {
 
   useEffect(() => {
     if(!battle[0] ||!battle[1]) return;
-    const commentsRef = ref(db, `comments/${battle[0].id}-${battle[1].id}`);
-    onValue(commentsRef, (snap) => {
+    const battleKey = getBattleKey();
+    const commentsRef = ref(db, `comments/${battleKey}`);
+    const unsubscribe = onValue(commentsRef, (snap) => {
       const data = snap.val();
       setComments(data? Object.values(data).sort((a,b) => b.time - a.time) : []);
     });
-  }, [battle]);
+    return () => unsubscribe();
+  }, [battle, battleNo]);
 
   const updateStreak = async () => {
     if(!user) return {newStreak: 0, newBadges: []};
@@ -330,7 +336,7 @@ export default function CrickClash() {
       {selectedPlayer && (
         <div onClick={() => setSelectedPlayer(null)} className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
           <div onClick={e => e.stopPropagation()} className="bg-[#13131a] p-6 rounded-2xl w-full max-w-sm">
-            <img src={selectedPlayer.image} className="w-24 h-24 rounded-full mx-auto border-4 border-[#a8ff00]" />
+            <div className="w-24 h-24 rounded-full mx-auto border-4 border-[#a8ff00] bg-[#a8ff00] text-black flex items-center justify-center text-4xl font-bold">{selectedPlayer.name[0]}</div>
             <h2 className="text-2xl font-bold text-center mt-3">{selectedPlayer.name}</h2>
             <p className="text-center text-[#a8ff00]">{selectedPlayer.role}</p>
             <div className="mt-4 space-y-2">
@@ -359,10 +365,7 @@ export default function CrickClash() {
         {weeklyWinner && (
           <div className="bg-gradient-to-r from-yellow-500 to-orange-500 p-3 rounded-2xl mb-3 text-center">
             <p className="text-sm font-bold text-black">👑 THIS WEEK'S CHAMPION</p>
-            <div className="flex items-center justify-center gap-2">
-              <img src={weeklyWinner.image} className="w-8 h-8 rounded-full"/>
-              <p className="text-lg font-bold text-black">{weeklyWinner.name} - {weeklyWinner.votes} Votes</p>
-            </div>
+            <p className="text-lg font-bold text-black">{weeklyWinner.name} - {weeklyWinner.votes} Votes</p>
           </div>
         )}
 
@@ -407,7 +410,7 @@ export default function CrickClash() {
                 <div className="flex items-center justify-center gap-2">
                   {[battle[0], battle[1]].map(p => (
                     <div key={p.id} onClick={() => setSelectedPlayer(p)} className={`bg-gradient-to-b from-[#1e3a5f] to-[#0a0e1a] p-4 rounded-2xl w-1/2 text-center transition hover:scale-105 cursor-pointer ${voteAnim === p.id? 'vote-pop' : ''}`}>
-                      <img src={p.image} className="w-20 h-20 rounded-full mx-auto mb-2 object-cover border-2 border-[#a8ff00]" alt={p.name}/>
+                      <div className="w-20 h-20 rounded-full mx-auto mb-2 bg-[#a8ff00] text-black flex items-center justify-center text-3xl font-bold">{p.name[0]}</div>
                       <span className={`px-3 py-1 rounded-full text-xs font-bold ${p.role==='KEEPER'?'bg-red-900':p.role==='CAPTAIN'?'bg-blue-900':p.role==='BATTER'?'bg-red-800':'bg-blue-800'}`}>{p.role}</span>
                       <h3 className="text-xl font-bold mt-3">{p.name}</h3>
                       <p className="text-[#a8ff00] font-bold">{p.votes || 0} votes</p>
@@ -434,7 +437,7 @@ export default function CrickClash() {
                       return (
                         <div key={c.time} className="bg-[#0a0a0f] p-3 rounded-lg">
                           <div className="flex gap-2">
-                            <img src={c.photo} className="w-8 h-8 rounded-full" />
+                            <div className="w-8 h-8 rounded-full bg-[#a8ff00] text-black flex items-center justify-center text-xs font-bold">{c.user[0]}</div>
                             <div className="flex-1">
                               <p className="font-bold text-xs">{c.user}</p>
                               <p className="text-sm">{c.text}</p>
@@ -451,7 +454,7 @@ export default function CrickClash() {
                             <div className="ml-10 mt-2 space-y-2 border-l-2 border-gray-700 pl-3">
                               {replies.map(r => (
                                 <div key={r.time} className="flex gap-2">
-                                  <img src={r.photo} className="w-6 h-6 rounded-full" />
+                                  <div className="w-6 h-6 rounded-full bg-[#a8ff00] text-black flex items-center justify-center text-[10px] font-bold">{r.user[0]}</div>
                                   <div><p className="font-bold text-xs">{r.user}</p><p className="text-xs">{r.text}</p></div>
                                 </div>
                               ))}
@@ -487,7 +490,7 @@ export default function CrickClash() {
                 return (
                   <div key={p.name} onClick={() => setSelectedPlayer(p)} className="bg-[#13131a] p-3 rounded-xl mb-3 flex items-center gap-3 hover:bg-[#1a1a24] transition cursor-pointer">
                     <span className="text-xl font-bold text-[#a8ff00]">#{i+1}</span>
-                    <img src={p.image} className="w-12 h-12 rounded-full object-cover" alt={p.name}/>
+                    <div className="w-12 h-12 rounded-full bg-[#a8ff00] text-black flex items-center justify-center text-lg font-bold">{p.name[0]}</div>
                     <div className="flex-1"><div className="flex justify-between"><span className="font-bold">{p.name}</span><span className="text-[#a8ff00] font-bold text-sm">{percentage}%</span></div><div className="flex justify-between text-xs text-gray-400 mb-1"><span>{p.votes||0} votes</span><span>{p.role}</span></div><div className="w-full bg-gray-700 rounded-full h-2"><div className="bg-[#a8ff00] h-2 rounded-full transition-all duration-500" style={{width: `${percentage}%`}}></div></div></div>
                   </div>
                 )
