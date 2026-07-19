@@ -61,15 +61,17 @@ export default function CrickClash() {
   const [timeLeft, setTimeLeft] = useState("");
   const [isVoting, setIsVoting] = useState(false);
 
-  // NEW 3 FEATURES
+  // FEATURES STATE
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [weeklyWinner, setWeeklyWinner] = useState(null);
+  const [replyTo, setReplyTo] = useState(null);
+  const [newReply, setNewReply] = useState("");
 
   const getToday = () => new Date().toISOString().split('T')[0];
   const getWeekNumber = () => { const d = new Date(); d.setHours(0,0,0); d.setDate(d.getDate() + 4 - (d.getDay()||7)); return d.getFullYear() + '-W' + String(Math.ceil(((d - new Date(d.getFullYear(),0,1))/86400000 + 1)/7)).padStart(2,'0'); };
-    useEffect(() => {
+  useEffect(() => {
     const updateTimer = () => {
       const now = new Date();
       const tomorrow = new Date();
@@ -133,10 +135,30 @@ export default function CrickClash() {
   }, []);
 
   const handlePostComment = async () => {
-    if(!user ||!newComment.trim() ||!battle[0] ||!battle[1]) return;
-    const commentRef = push(ref(db, `comments/${battle[0].id}-${battle[1].id}`));
-    await set(commentRef, { text: newComment, user: user.displayName, photo: user.photoURL, time: Date.now() });
+    if(!user){ alert("Login cheyali bro"); return; }
+    if(!newComment.trim() ||!battle[0] ||!battle[1]) return;
+    const time = Date.now();
+    const commentRef = ref(db, `comments/${battle[0].id}-${battle[1].id}/${time}`);
+    await set(commentRef, { text: newComment, user: user.displayName, photo: user.photoURL, time: time, likes: {}, replies: {} });
     setNewComment("");
+  };
+
+  const handleLikeComment = async (commentKey) => {
+    if(!user) return alert("Login cheyali");
+    const battleKey = `${battle[0].id}-${battle[1].id}`;
+    const likeRef = ref(db, `comments/${battleKey}/${commentKey}/likes/${user.uid}`);
+    const snap = await get(likeRef);
+    if(snap.exists()){ await remove(likeRef); } else { await set(likeRef, true); }
+  };
+
+  const handlePostReply = async (commentKey) => {
+    if(!user){ alert("Login cheyali bro"); return; }
+    if(!newReply.trim()) return;
+    const time = Date.now();
+    const replyRef = ref(db, `comments/${battle[0].id}-${battle[1].id}/${commentKey}/replies/${time}`);
+    await set(replyRef, { text: newReply, user: user.displayName, photo: user.photoURL, time: time });
+    setNewReply("");
+    setReplyTo(null);
   };
 
   useEffect(() => {
@@ -144,7 +166,7 @@ export default function CrickClash() {
     const commentsRef = ref(db, `comments/${battle[0].id}-${battle[1].id}`);
     onValue(commentsRef, (snap) => {
       const data = snap.val();
-      setComments(data? Object.values(data).reverse() : []);
+      setComments(data? Object.values(data).sort((a,b) => b.time - a.time) : []);
     });
   }, [battle]);
 
@@ -163,11 +185,9 @@ export default function CrickClash() {
     return {newStreak, newBadges};
   };
 
-  // FIX: async ADD CHESANU IKADA
   const handleVote = async (votedPlayerId) => {
     if(!user){ alert("Google login required to vote"); await signInWithPopup(auth, googleProvider); return; }
     if(votesToday >= DAILY_VOTE_LIMIT || isVoting) return alert(`Roju ${DAILY_VOTE_LIMIT} vote maatrame!`);
-
     setIsVoting(true);
     setVoteAnim(votedPlayerId);
     setTimeout(() => setVoteAnim(null), 500);
@@ -176,14 +196,11 @@ export default function CrickClash() {
     const userRef = ref(db, `users/${user.uid}`);
     const playerRef = ref(db, `players/${votedPlayerId}`);
     const votedPlayer = players.find(p => p.id === votedPlayerId);
-
     const historyEntry = {battleNo, players: [battle[0]?.name, battle[1]?.name], votedFor: votedPlayer.name, date: today};
     const newHistory = [historyEntry,...battleHistory].slice(0, 50);
-
     await update(userRef, { votesToday: increment(1), lastVoteDate: today, streak: newStreak, badges: newBadges, history: newHistory });
     await update(playerRef, { votes: increment(1) });
     await update(ref(db, 'meta'), { totalVotes: increment(1) });
-
     setTimeout(() => {
       setIsVoting(false);
       setBattleNo(b => b + 1);
@@ -239,19 +256,13 @@ export default function CrickClash() {
       }
     })
   }, [checkAndResetDaily, generateBattle, filter, checkWeeklyWinner]);
-    if(loading) return <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center text-white">Loading...</div>;
+  if(loading) return <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center text-white">Loading...</div>;
   if(!user) return <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center"><button onClick={handleGoogleLogin} className="bg-blue-500 px-6 py-3 rounded-lg text-white font-bold">Login with Google</button></div>
 
   return (
     <div className="min-h-screen bg-[#0a0a0f] text-white flex-col">
-      <style>{`
-        @keyframes pop { 0%{transform:scale(1)} 50%{transform:scale(1.15)} 100%{transform:scale(1)} }
-        @keyframes float { 0%{transform:translateY(0)} 50%{transform:translateY(-10px)} 100%{transform:translateY(0)} }
-   .vote-pop { animation: pop 0.5s ease; }
-   .float { animation: float 2s ease-in-out infinite; }
-      `}</style>
+      <style>{`@keyframes pop { 0%{transform:scale(1)} 50%{transform:scale(1.15)} 100%{transform:scale(1)} } @keyframes float { 0%{transform:translateY(0)} 50%{transform:translateY(-10px)} 100%{transform:translateY(0)} }.vote-pop { animation: pop 0.5s ease; }.float { animation: float 2s ease-in-out infinite; }`}</style>
 
-      {/* FEATURE 2: PLAYER STATS POPUP */}
       {selectedPlayer && (
         <div onClick={() => setSelectedPlayer(null)} className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
           <div onClick={e => e.stopPropagation()} className="bg-[#13131a] p-6 rounded-2xl w-full max-w-sm">
@@ -281,7 +292,6 @@ export default function CrickClash() {
           </div>
         </header>
 
-        {/* FEATURE 3: WEEKLY WINNER BANNER */}
         {weeklyWinner && (
           <div className="bg-gradient-to-r from-yellow-500 to-orange-500 p-3 rounded-2xl mb-3 text-center">
             <p className="text-sm font-bold text-black">👑 THIS WEEK'S CHAMPION</p>
@@ -344,21 +354,55 @@ export default function CrickClash() {
                   ))}
                 </div>
 
-                {/* FEATURE 1: COMMENT SECTION */}
+                {/* COMMENTS WITH LIKE + REPLY */}
                 <div className="bg-[#13131a] p-4 rounded-2xl mt-4">
                   <h3 className="font-bold mb-3">💬 Debate Zone</h3>
                   <div className="flex gap-2 mb-3">
                     <input value={newComment} onChange={e => setNewComment(e.target.value)} placeholder="Who will win?" className="w-full bg-[#0a0a0f] p-2 rounded-lg outline-none" />
-                  <button onClick={handlePostComment} className="bg-[#a8ff00] text-black px-4 rounded-lg font-bold">Post</button>
+                    <button onClick={handlePostComment} className="bg-[#a8ff00] text-black px-4 rounded-lg font-bold">Post</button>
                   </div>
-                  <div className="space-y-2 max-h-40 overflow-y-auto">
+                  <div className="space-y-3 max-h-60 overflow-y-auto">
                     {comments.length === 0 && <p className="text-gray-500 text-sm">No comments yet. Be first!</p>}
-                    {comments.map((c,i) => (
-                      <div key={i} className="flex gap-2">
-                        <img src={c.photo} className="w-8 h-8 rounded-full" />
-                        <div className="bg-[#0a0a0f] p-2 rounded-lg flex-1"><p className="font-bold text-xs">{c.user}</p><p className="text-sm">{c.text}</p></div>
-                      </div>
-                    ))}
+                    {comments.map((c) => {
+                      const likeCount = c.likes? Object.keys(c.likes).length : 0;
+                      const isLiked = user && c.likes && c.likes[user.uid];
+                      const replies = c.replies? Object.values(c.replies).sort((a,b) => a.time - b.time) : [];
+                      return (
+                        <div key={c.time} className="bg-[#0a0a0f] p-3 rounded-lg">
+                          <div className="flex gap-2">
+                            <img src={c.photo} className="w-8 h-8 rounded-full" />
+                            <div className="flex-1">
+                              <p className="font-bold text-xs">{c.user}</p>
+                              <p className="text-sm">{c.text}</p>
+                            </div>
+                          </div>
+                          <div className="flex gap-4 mt-2 ml-10">
+                            <button onClick={() => handleLikeComment(c.time)} className={`flex items-center gap-1 text-xs ${isLiked? 'text-[#a8ff00]' : 'text-gray-400'}`}>
+                              {isLiked? '❤️' : '🤍'} {likeCount}
+                            </button>
+                            <button onClick={() => setReplyTo(replyTo === c.time? null : c.time)} className="text-xs text-gray-400">Reply</button>
+                          </div>
+
+                          {replies.length > 0 && (
+                            <div className="ml-10 mt-2 space-y-2 border-l-2 border-gray-700 pl-3">
+                              {replies.map(r => (
+                                <div key={r.time} className="flex gap-2">
+                                  <img src={r.photo} className="w-6 h-6 rounded-full" />
+                                  <div><p className="font-bold text-xs">{r.user}</p><p className="text-xs">{r.text}</p></div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          {replyTo === c.time && (
+                            <div className="flex gap-2 mt-2 ml-10">
+                              <input value={newReply} onChange={e => setNewReply(e.target.value)} placeholder="Write a reply..." className="w-full bg-[#13131a] p-1.5 rounded-lg text-sm outline-none" />
+                              <button onClick={() => handlePostReply(c.time)} className="bg-[#a8ff00] text-black px-3 rounded-lg text-sm font-bold">Send</button>
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
                   </div>
                 </div>
 
@@ -404,4 +448,4 @@ export default function CrickClash() {
       </footer>
     </div>
   );
-                      }
+        }
