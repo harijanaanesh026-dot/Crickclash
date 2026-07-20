@@ -20,9 +20,9 @@ const db = getDatabase(app);
 const googleProvider = new GoogleAuthProvider();
 const DAILY_VOTE_LIMIT = 1;
 
-// ============= ALL 70 PLAYERS DATA =============
+// ============= ALL 70 PLAYERS =============
 const ALL_PLAYERS = [
-  // BATTERS - 30
+  // BATTERS
   { id: "virat-kohli-bat", name: 'Virat Kohli', role: 'BATTER', votes: 0 },
   { id: "sachin-tendulkar", name: 'Sachin Tendulkar', role: 'BATTER', votes: 0 },
   { id: "rohit-sharma-bat", name: 'Rohit Sharma', role: 'BATTER', votes: 0 },
@@ -53,8 +53,7 @@ const ALL_PLAYERS = [
   { id: "shivam-dube-bat", name: 'Shivam Dube', role: 'BATTER', votes: 0 },
   { id: "nitish-kumar-reddy-bat", name: 'Nitish Kumar Reddy', role: 'BATTER', votes: 0 },
   { id: "krunal-pandya-bat", name: 'Krunal Pandya', role: 'BATTER', votes: 0 },
-
-  // BOWLERS - 18
+  // BOWLERS
   { id: "jasprit-bumrah", name: 'Jasprit Bumrah', role: 'BOWLER', votes: 0 },
   { id: "bhuvaneswar-kumar", name: 'Bhuvaneswar Kumar', role: 'BOWLER', votes: 0 },
   { id: "mohammed-shami", name: 'Mohammed Shami', role: 'BOWLER', votes: 0 },
@@ -73,8 +72,7 @@ const ALL_PLAYERS = [
   { id: "harbhajan-singh", name: 'Harbhajan Singh', role: 'BOWLER', votes: 0 },
   { id: "ravichandran-ashwin-bowl", name: 'Ravichandran Ashwin', role: 'BOWLER', votes: 0 },
   { id: "kuldeep-yadav", name: 'Kuldeep Yadav', role: 'BOWLER', votes: 0 },
-
-  // ALL-ROUNDER - 11
+  // ALL-ROUNDER
   { id: "kapil-dev-ar", name: 'Kapil Dev', role: 'ALL-ROUNDER', votes: 0 },
   { id: "ravindra-jadeja-ar", name: 'Ravindra Jadeja', role: 'ALL-ROUNDER', votes: 0 },
   { id: "yuvraj-singh-ar", name: 'Yuvraj Singh', role: 'ALL-ROUNDER', votes: 0 },
@@ -86,8 +84,7 @@ const ALL_PLAYERS = [
   { id: "shivam-dube-ar", name: 'Shivam Dube', role: 'ALL-ROUNDER', votes: 0 },
   { id: "nitish-kumar-reddy-ar", name: 'Nitish Kumar Reddy', role: 'ALL-ROUNDER', votes: 0 },
   { id: "shardul-thakur", name: 'Shardul Thakur', role: 'ALL-ROUNDER', votes: 0 },
-
-  // KEEPER - 8
+  // KEEPER
   { id: "ms-dhoni-kp", name: 'MS Dhoni', role: 'KEEPER', votes: 0 },
   { id: "jitesh-sharma-kp", name: 'Jitesh Sharma', role: 'KEEPER', votes: 0 },
   { id: "dhruv-jurel-kp", name: 'Dhruv Jurel', role: 'KEEPER', votes: 0 },
@@ -96,8 +93,7 @@ const ALL_PLAYERS = [
   { id: "ishan-kishan-kp", name: 'Ishan Kishan', role: 'KEEPER', votes: 0 },
   { id: "rishabh-pant-kp", name: 'Rishabh Pant', role: 'KEEPER', votes: 0 },
   { id: "dinesh-karthik-kp", name: 'Dinesh Karthik', role: 'KEEPER', votes: 0 },
-
-  // CAPTAIN - 8
+  // CAPTAIN
   { id: "virat-kohli-cap", name: 'Virat Kohli', role: 'CAPTAIN', votes: 0 },
   { id: "ms-dhoni-cap", name: 'MS Dhoni', role: 'CAPTAIN', votes: 0 },
   { id: "rohit-sharma-cap", name: 'Rohit Sharma', role: 'CAPTAIN', votes: 0 },
@@ -108,9 +104,7 @@ const ALL_PLAYERS = [
   { id: "kapil-dev-cap", name: 'Kapil Dev', role: 'CAPTAIN', votes: 0 },
 ];
 
-// ============= MAIN COMPONENT =============
 export default function CrickClash() {
-  // STATE
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [players, setPlayers] = useState(ALL_PLAYERS);
@@ -128,7 +122,6 @@ export default function CrickClash() {
   const [voteAnim, setVoteAnim] = useState(null);
   const [timeLeft, setTimeLeft] = useState("");
   const [isVoting, setIsVoting] = useState(false);
-
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
   const [selectedPlayer, setSelectedPlayer] = useState(null);
@@ -136,14 +129,8 @@ export default function CrickClash() {
   const [replyTo, setReplyTo] = useState(null);
   const [newReply, setNewReply] = useState("");
 
-  // HELPER FUNCTIONS
   const getToday = () => new Date().toISOString().split('T')[0];
-  const getWeekNumber = () => {
-    const d = new Date();
-    d.setHours(0,0,0);
-    d.setDate(d.getDate() + 4 - (d.getDay()||7));
-    return d.getFullYear() + '-W' + String(Math.ceil(((d - new Date(d.getFullYear(),0,1))/86400000 + 1)/7)).padStart(2,'0');
-  };
+  const getWeekNumber = () => { const d = new Date(); d.setHours(0,0,0); d.setDate(d.getDate() + 4 - (d.getDay()||7)); return d.getFullYear() + '-W' + String(Math.ceil(((d - new Date(d.getFullYear(),0,1))/86400000 + 1)/7)).padStart(2,'0'); };
     useEffect(() => {
     const updateTimer = () => {
       const now = new Date();
@@ -177,12 +164,11 @@ export default function CrickClash() {
   const checkWeeklyWinner = useCallback(async (playerList) => {
     const week = getWeekNumber();
     const winnerRef = ref(db, `winners/${week}`);
-    const snap = await get(winnerRef);
-    if(!snap.exists()){
-      const sorted = [...playerList].sort((a,b) => b.votes - a.votes);
-      if(sorted[0]) await set(winnerRef, { name: sorted[0].name, votes: sorted[0].votes });
+    const sorted = [...playerList].sort((a,b) => b.votes - a.votes);
+    if(sorted[0]) {
+      await set(winnerRef, { name: sorted[0].name, votes: sorted[0].votes });
+      setWeeklyWinner({ name: sorted[0].name, votes: sorted[0].votes });
     }
-    setWeeklyWinner(snap.val());
   }, []);
 
   const handleDeleteHistory = async () => {
@@ -228,7 +214,7 @@ export default function CrickClash() {
   };
 
   const handlePostReply = async (commentKey) => {
-    if(!user){ alert("Google Login required to debate"); await signInWithPopup(auth, googleProvider); return; }
+    if(!user){ alert("Login required"); await signInWithPopup(auth, googleProvider); return; }
     if(!newReply.trim()) return;
     const time = Date.now();
     const battleKey = getBattleKey();
@@ -395,7 +381,7 @@ export default function CrickClash() {
           </div>
         </header>
 
-        {!user && <div className="bg-[#a8ff00]/10 border-[#a8ff00] p-3 rounded-2xl mb-3 text-center text-sm">Login cheste vote + history save avthadi 🔥</div>}
+        {!user && <div className="bg-[#a8ff00]/10 border border-[#a8ff00] p-3 rounded-2xl mb-3 text-center text-sm">Login cheste vote + history save avthadi 🔥</div>}
 
         {weeklyWinner && (
           <div className="bg-gradient-to-r from-yellow-500 to-orange-500 p-3 rounded-2xl mb-3 text-center">
@@ -538,7 +524,7 @@ export default function CrickClash() {
               <h2 className="text-2xl font-bold text-[#a8ff00]">📜 Your Battle History</h2>
               {user && battleHistory.length > 0 && <button onClick={handleDeleteHistory} className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded-lg text-sm font-bold transition">🗑️ Clear</button>}
             </div>
-            {!user? <p className="text-gray-500 text-center">Login required to view your history</p> : battleHistory.length === 0? <p className="text-gray-500 text-center">No battles yet</p> : battleHistory.map((h,i) => (<div key={i} className="bg-[#13131a] p-3 rounded-xl hover:bg-[#1a1a24] transition"><p className="text-sm text-gray-400">Battle {h.battleNo} • {h.date}</p><p className="font-bold">{h.players[0]} vs {h.players[1]}</p><p className="text-sm text-[#a8ff00]">You voted: {h.votedFor}</p></div>))}
+            {!user? <p className="text-gray-500 text-center">Login required to view history</p> : battleHistory.length === 0? <p className="text-gray-500 text-center">No battles yet</p> : battleHistory.map((h,i) => (<div key={i} className="bg-[#13131a] p-3 rounded-xl hover:bg-[#1a1a24] transition"><p className="text-sm text-gray-400">Battle {h.battleNo} • {h.date}</p><p className="font-bold">{h.players[0]} vs {h.players[1]}</p><p className="text-sm text-[#a8ff00]">You voted: {h.votedFor}</p></div>))}
           </div>
         )}
       </div>
