@@ -200,7 +200,7 @@ export default function CrickClash() {
   const getBattleKey = () => battle[0] && battle[1]? `${battle[0].id}-${battle[1].id}-B${battleNo}` : null;
 
   const handlePostComment = async () => {
-    if(!user){ alert("Google login required to vote!"); await signInWithPopup(auth, googleProvider); return; }
+    if(!user){ alert("Google login required to Debate!"); await signInWithPopup(auth, googleProvider); return; }
     if(!newComment.trim() ||!battle[0] ||!battle[1]) return;
     const time = Date.now();
     const battleKey = getBattleKey();
@@ -255,7 +255,7 @@ export default function CrickClash() {
   };
 
   const handleVote = async (votedPlayerId) => {
-    if(!user){ alert("Google login required to vote!"); await signInWithPopup(auth, googleProvider); return; }
+    if(!user){ alert("Google login required vote!"); await signInWithPopup(auth, googleProvider); return; }
     if(votesToday >= DAILY_VOTE_LIMIT || isVoting) return alert(`Roju ${DAILY_VOTE_LIMIT} vote maatrame!`);
     setIsVoting(true);
     setVoteAnim(votedPlayerId);
