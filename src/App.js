@@ -176,7 +176,7 @@ export default function CrickClash() {
   }, []);
 
   const handleDeleteHistory = async () => {
-    if(!user) return alert("Login cheyali bro");
+    if(!user) return alert("Google login required to vote!");
     if(window.confirm("Are you sure? Your entire battle history will be deleted.")){
       await remove(ref(db, `users/${user.uid}/history`));
       setBattleHistory([]);
@@ -200,7 +200,7 @@ export default function CrickClash() {
   const getBattleKey = () => battle[0] && battle[1]? `${battle[0].id}-${battle[1].id}-B${battleNo}` : null;
 
   const handlePostComment = async () => {
-    if(!user){ alert("Login cheyali bro"); await signInWithPopup(auth, googleProvider); return; }
+    if(!user){ alert("Google login required to vote!"); await signInWithPopup(auth, googleProvider); return; }
     if(!newComment.trim() ||!battle[0] ||!battle[1]) return;
     const time = Date.now();
     const battleKey = getBattleKey();
@@ -210,7 +210,7 @@ export default function CrickClash() {
   };
 
   const handleLikeComment = async (commentKey) => {
-    if(!user) return alert("Login cheyali");
+    if(!user) return alert("Login required");
     const battleKey = getBattleKey();
     const likeRef = ref(db, `comments/${battleKey}/${commentKey}/likes/${user.uid}`);
     const snap = await get(likeRef);
