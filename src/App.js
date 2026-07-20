@@ -17,7 +17,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
 const googleProvider = new GoogleAuthProvider();
-const DAILY_VOTE_LIMIT = 5;
+const DAILY_VOTE_LIMIT = 3;
 
 const ALL_PLAYERS = [
   // BATTERS
