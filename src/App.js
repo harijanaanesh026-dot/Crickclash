@@ -509,7 +509,7 @@ export default function CrickClash() {
               <h2 className="text-2xl font-bold text-[#a8ff00]">📜 Your Battle History</h2>
               {user && battleHistory.length > 0 && <button onClick={handleDeleteHistory} className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded-lg text-sm font-bold transition">🗑️ Clear</button>}
             </div>
-            {!user? <p className="text-gray-500 text-center">Login cheyali history chudataniki</p> : battleHistory.length === 0? <p className="text-gray-500 text-center">No battles yet</p> : battleHistory.map((h,i) => (<div key={i} className="bg-[#13131a] p-3 rounded-xl hover:bg-[#1a1a24] transition"><p className="text-sm text-gray-400">Battle {h.battleNo} • {h.date}</p><p className="font-bold">{h.players[0]} vs {h.players[1]}</p><p className="text-sm text-[#a8ff00]">You voted: {h.votedFor}</p></div>))}
+            {!user? <p className="text-gray-500 text-center">Login to view your battle history</p> : battleHistory.length === 0? <p className="text-gray-500 text-center">No battles yet</p> : battleHistory.map((h,i) => (<div key={i} className="bg-[#13131a] p-3 rounded-xl hover:bg-[#1a1a24] transition"><p className="text-sm text-gray-400">Battle {h.battleNo} • {h.date}</p><p className="font-bold">{h.players[0]} vs {h.players[1]}</p><p className="text-sm text-[#a8ff00]">You voted: {h.votedFor}</p></div>))}
           </div>
         )}
       </div>
