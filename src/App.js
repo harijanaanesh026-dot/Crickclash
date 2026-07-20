@@ -218,7 +218,7 @@ export default function CrickClash() {
   };
 
   const handlePostReply = async (commentKey) => {
-    if(!user){ alert("Login cheyali bro"); await signInWithPopup(auth, googleProvider); return; }
+    if(!user){ alert("Google login required to vote!"); await signInWithPopup(auth, googleProvider); return; }
     if(!newReply.trim()) return;
     const time = Date.now();
     const battleKey = getBattleKey();
@@ -255,7 +255,7 @@ export default function CrickClash() {
   };
 
   const handleVote = async (votedPlayerId) => {
-    if(!user){ alert("Vote cheyyadaniki Login cheyali"); await signInWithPopup(auth, googleProvider); return; }
+    if(!user){ alert("Google login required to vote!"); await signInWithPopup(auth, googleProvider); return; }
     if(votesToday >= DAILY_VOTE_LIMIT || isVoting) return alert(`Roju ${DAILY_VOTE_LIMIT} vote maatrame!`);
     setIsVoting(true);
     setVoteAnim(votedPlayerId);
