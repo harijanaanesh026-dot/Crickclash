@@ -17,7 +17,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
 const googleProvider = new GoogleAuthProvider();
-const DAILY_VOTE_LIMIT = 3;
+const DAILY_VOTE_LIMIT = 1;
 
 const ALL_PLAYERS = [
   // BATTERS
@@ -106,10 +106,17 @@ const ALL_PLAYERS = [
   { id: "kapil-dev-cap", name: 'Kapil Dev', role: 'CAPTAIN', votes: 0 },
 ];
 
+const getToday = () => new Date().toISOString().split('T')[0];
+const getWeekNumber = () => {
+  const d = new Date();
+  d.setHours(0,0,0);
+  d.setDate(d.getDate() + 4 - (d.getDay()||7));
+  return d.getFullYear() + '-W' + String(Math.ceil(((d - new Date(d.getFullYear(),0,1))/86400000 + 1)/7)).padStart(2,'0');
+};
 export default function CrickClash() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [players, setPlayers] = useState(ALL_PLAYERS);
+  const [players, setPlayers] = useState([]);
   const [battle, setBattle] = useState([null, null]);
   const [battleNo, setBattleNo] = useState(1);
   const [filter, setFilter] = useState('Any');
@@ -117,21 +124,21 @@ export default function CrickClash() {
   const [streak, setStreak] = useState(0);
   const [votesToday, setVotesToday] = useState(0);
   const [totalVotes, setTotalVotes] = useState(0);
+  const [topPlayer, setTopPlayer] = useState(null);
   const [badges, setBadges] = useState([]);
   const [battleHistory, setBattleHistory] = useState([]);
   const [showProfile, setShowProfile] = useState(false);
   const [voteAnim, setVoteAnim] = useState(null);
   const [timeLeft, setTimeLeft] = useState("");
   const [isVoting, setIsVoting] = useState(false);
-
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
   const [selectedPlayer, setSelectedPlayer] = useState(null);
+  const [weeklyWinner, setWeeklyWinner] = useState(null);
   const [replyTo, setReplyTo] = useState(null);
   const [newReply, setNewReply] = useState("");
 
-  const getToday = () => new Date().toISOString().split('T')[0];
-    useEffect(() => {
+  useEffect(() => {
     const updateTimer = () => {
       const now = new Date();
       const tomorrow = new Date();
@@ -161,18 +168,22 @@ export default function CrickClash() {
     }
   }, []);
 
-  const handleDeleteHistory = async () => {
-    if(!user) return alert("Login cheyali bro");
-    if(window.confirm("Are you sure? Your entire battle history will be deleted.")){
-      await remove(ref(db, `users/${user.uid}/history`));
-      setBattleHistory([]);
+  const checkWeeklyWinner = useCallback(async (playerList) => {
+    const week = getWeekNumber();
+    const winnerRef = ref(db, `winners/${week}`);
+    const snap = await get(winnerRef);
+    if(!snap.exists()){
+      const sorted = [...playerList].sort((a,b) => b.votes - a.votes);
+      if(sorted[0]) await set(winnerRef, { name: sorted[0].name, votes: sorted[0].votes });
+    } else {
+      setWeeklyWinner(snap.val());
     }
-  };
+  }, []);
 
   const generateBattle = useCallback((playerList, role) => {
     if(playerList.length < 2) return;
     let filtered = role === 'Any'? playerList : playerList.filter(p => p.role === role);
-    if(filtered.length < 2) { setBattle([null, null]); return; }
+    if(filtered.length < 2) filtered = playerList;
     let p1 = filtered[Math.floor(Math.random() * filtered.length)];
     let p2 = filtered[Math.floor(Math.random() * filtered.length)];
     let attempts = 0;
@@ -185,13 +196,20 @@ export default function CrickClash() {
 
   const getBattleKey = () => battle[0] && battle[1]? `${battle[0].id}-${battle[1].id}-B${battleNo}` : null;
 
+  const handleDeleteHistory = async () => {
+    if(!user) return alert("Login cheyali bro");
+    if(window.confirm("Are you sure? Your entire battle history will be deleted.")){
+      await remove(ref(db, `users/${user.uid}/history`));
+      setBattleHistory([]);
+    }
+  };
+
   const handlePostComment = async () => {
     if(!user){ alert("Login cheyali bro"); await signInWithPopup(auth, googleProvider); return; }
     if(!newComment.trim() ||!battle[0] ||!battle[1]) return;
     const time = Date.now();
     const battleKey = getBattleKey();
-    const commentRef = ref(db, `comments/${battleKey}/${time}`);
-    await set(commentRef, { text: newComment, user: user.displayName, photo: user.photoURL, time: time, likes: {}, replies: {} });
+    await set(ref(db, `comments/${battleKey}/${time}`), { text: newComment, user: user.displayName, photo: user.photoURL, time: time, likes: {}, replies: {} });
     setNewComment("");
   };
 
@@ -208,8 +226,7 @@ export default function CrickClash() {
     if(!newReply.trim()) return;
     const time = Date.now();
     const battleKey = getBattleKey();
-    const replyRef = ref(db, `comments/${battleKey}/${commentKey}/replies/${time}`);
-    await set(replyRef, { text: newReply, user: user.displayName, photo: user.photoURL, time: time });
+    await set(ref(db, `comments/${battleKey}/${commentKey}/replies/${time}`), { text: newReply, user: user.displayName, photo: user.photoURL, time: time });
     setNewReply("");
     setReplyTo(null);
   };
@@ -255,7 +272,7 @@ export default function CrickClash() {
     const newHistory = [historyEntry,...battleHistory].slice(0, 50);
     await update(userRef, { votesToday: increment(1), lastVoteDate: today, streak: newStreak, badges: newBadges, history: newHistory });
     await update(playerRef, { votes: increment(1) });
-    await update(ref(db, 'meta'), { totalVotes: increment(1), battleNo: increment(1) });
+    await update(ref(db, 'meta'), { totalVotes: increment(1), battleNo: battleNo + 1 });
     setTimeout(() => {
       setIsVoting(false);
       generateBattle(players, filter);
@@ -264,7 +281,7 @@ export default function CrickClash() {
 
   const handleGoogleLogin = () => signInWithPopup(auth, googleProvider);
   const handleLogout = async () => { if(window.confirm("Logout?")) { await signOut(auth); setShowProfile(false); } };
-  const handleSkip = () => { setBattleNo(b => b + 1); generateBattle(players, filter); };
+  const handleSkip = () => { update(ref(db, 'meta'), { battleNo: battleNo + 1 }); generateBattle(players, filter); };
   const handleShareResult = () => {
     const text = `I voted for ${battle[0]?.name} vs ${battle[1]?.name} on CrickClash! ⚔️\nWho's your pick?`;
     const url = window.location.href;
@@ -274,24 +291,7 @@ export default function CrickClash() {
 
   useEffect(() => {
     checkAndResetDaily();
-    const playersRef = ref(db, 'players');
-    onValue(playersRef, (snapshot) => {
-      const data = snapshot.val();
-      if (data) {
-        const playersArray = ALL_PLAYERS.map(p => ({...p, votes: data[p.id]?.votes || 0 }));
-        setPlayers(playersArray);
-        generateBattle(playersArray, filter);
-        setTotalVotes(playersArray.reduce((sum, p) => sum + (p.votes || 0), 0));
-      } else {
-        const initialPlayers = {};
-        ALL_PLAYERS.forEach((p) => { initialPlayers[p.id] = {...p}; });
-        set(playersRef, initialPlayers);
-        set(ref(db, 'meta'), { lastResetDate: getToday(), totalVotes: 0, battleNo: 1 });
-      }
-      setLoading(false); // <- IDHE MAIN FIX BRO
-    });
-
-    onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       if(currentUser) {
         onValue(ref(db, `users/${currentUser.uid}`), (snapshot) => {
@@ -307,8 +307,36 @@ export default function CrickClash() {
       } else {
         setVotesToday(0); setStreak(0); setBadges([]); setBattleHistory([]);
       }
-    })
-  }, [checkAndResetDaily, generateBattle, filter]);
+    });
+
+    const playersRef = ref(db, 'players');
+    const metaRef = ref(db, 'meta');
+
+    const unsubscribePlayers = onValue(playersRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const playersArray = ALL_PLAYERS.map(p => ({...p, votes: data[p.id]?.votes || 0 }));
+        setPlayers(playersArray);
+        generateBattle(playersArray, filter);
+        const sorted = [...playersArray].sort((a,b) => b.votes - a.votes);
+        setTopPlayer(sorted[0]);
+        setTotalVotes(sorted.reduce((sum, p) => sum + p.votes, 0));
+        checkWeeklyWinner(sorted);
+      } else {
+        const initialPlayers = {};
+        ALL_PLAYERS.forEach((p) => { initialPlayers[p.id] = {...p}; });
+        set(playersRef, initialPlayers);
+      }
+      setLoading(false); // <- IDI CHALA IMPORTANT
+    });
+
+    const unsubscribeMeta = onValue(metaRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) setBattleNo(data.battleNo || 1);
+    });
+
+    return () => { unsubscribeAuth(); unsubscribePlayers(); unsubscribeMeta(); };
+  }, [checkAndResetDaily, generateBattle, filter, checkWeeklyWinner]);
     if(loading) return <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center text-white">Loading...</div>;
 
   return (
@@ -350,6 +378,13 @@ export default function CrickClash() {
 
         {!user && <div className="bg-[#a8ff00]/10 border-[#a8ff00] p-3 rounded-2xl mb-3 text-center text-sm">Login cheste vote + history save avthadi 🔥</div>}
 
+        {weeklyWinner && (
+          <div className="bg-gradient-to-r from-yellow-500 to-orange-500 p-3 rounded-2xl mb-3 text-center">
+            <p className="text-sm font-bold text-black">👑 THIS WEEK'S CHAMPION</p>
+            <p className="text-lg font-bold text-black">{weeklyWinner.name} - {weeklyWinner.votes} Votes</p>
+          </div>
+        )}
+
         <div className="bg-[#13131a] p-3 rounded-2xl mb-3">
           <p className="text-sm text-gray-400 mb-2">Your Badges</p>
           <div className="flex gap-2 flex-wrap">
@@ -374,7 +409,7 @@ export default function CrickClash() {
             <div className="grid grid-cols-4 text-center mb-6">
               <div><p className="text-2xl font-bold text-orange-400">{totalVotes}</p><p className="text-xs text-gray-400">TOTAL</p></div>
               <div><p className="text-2xl font-bold text-orange-400">{battleNo-1}</p><p className="text-xs text-gray-400">BATTLES</p></div>
-              <div><p className="text-2xl font-bold text-orange-400">--</p><p className="text-xs text-gray-400">TOP</p></div>
+              <div><p className="text-2xl font-bold text-orange-400 truncate">{topPlayer?.name.split(' ')[0] || 'None'}</p><p className="text-xs text-gray-400">TOP</p></div>
               <div><p className="text-2xl font-bold text-orange-400">🔥{user? streak : 0}</p><p className="text-xs text-gray-400">STREAK</p></div>
             </div>
             <p className="text-center text-gray-400 mb-2">WHO DO YOU LIKE?</p>
@@ -429,6 +464,18 @@ export default function CrickClash() {
                             </button>
                             <button onClick={() => setReplyTo(replyTo === c.time? null : c.time)} className="text-xs text-gray-400">Reply</button>
                           </div>
+
+                          {replies.length > 0 && (
+                            <div className="ml-10 mt-2 space-y-2 border-l-2 border-gray-700 pl-3">
+                              {replies.map(r => (
+                                <div key={r.time} className="flex gap-2">
+                                  <div className="w-6 h-6 rounded-full bg-[#a8ff00] text-black flex items-center justify-center text-xs font-bold">{r.user[0]}</div>
+                                  <div><p className="font-bold text-xs">{r.user}</p><p className="text-xs">{r.text}</p></div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
                           {replyTo === c.time && (
                             <div className="flex gap-2 mt-2 ml-10">
                               <input value={newReply} onChange={e => setNewReply(e.target.value)} placeholder="Write a reply..." className="w-full bg-[#13131a] p-1.5 rounded-lg text-sm outline-none" />
@@ -483,4 +530,4 @@ export default function CrickClash() {
       </footer>
     </div>
   );
-}
+        }
