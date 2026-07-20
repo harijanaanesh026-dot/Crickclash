@@ -176,7 +176,7 @@ export default function CrickClash() {
   }, []);
 
   const handleDeleteHistory = async () => {
-    if(!user) return alert("Google login required to vote!");
+    if(!user) return alert("login required");
     if(window.confirm("Are you sure? Your entire battle history will be deleted.")){
       await remove(ref(db, `users/${user.uid}/history`));
       setBattleHistory([]);
@@ -200,7 +200,7 @@ export default function CrickClash() {
   const getBattleKey = () => battle[0] && battle[1]? `${battle[0].id}-${battle[1].id}-B${battleNo}` : null;
 
   const handlePostComment = async () => {
-    if(!user){ alert("Google login required to Debate!"); await signInWithPopup(auth, googleProvider); return; }
+    if(!user){ alert("Login required"); await signInWithPopup(auth, googleProvider); return; }
     if(!newComment.trim() ||!battle[0] ||!battle[1]) return;
     const time = Date.now();
     const battleKey = getBattleKey();
@@ -218,7 +218,7 @@ export default function CrickClash() {
   };
 
   const handlePostReply = async (commentKey) => {
-    if(!user){ alert("Google login required to vote!"); await signInWithPopup(auth, googleProvider); return; }
+    if(!user){ alert("Google login required to Debate"); await signInWithPopup(auth, googleProvider); return; }
     if(!newReply.trim()) return;
     const time = Date.now();
     const battleKey = getBattleKey();
@@ -255,7 +255,7 @@ export default function CrickClash() {
   };
 
   const handleVote = async (votedPlayerId) => {
-    if(!user){ alert("Google login required vote!"); await signInWithPopup(auth, googleProvider); return; }
+    if(!user){ alert("Google login required to vote"); await signInWithPopup(auth, googleProvider); return; }
     if(votesToday >= DAILY_VOTE_LIMIT || isVoting) return alert(`Roju ${DAILY_VOTE_LIMIT} vote maatrame!`);
     setIsVoting(true);
     setVoteAnim(votedPlayerId);
@@ -360,13 +360,13 @@ export default function CrickClash() {
             {showProfile && user && (
               <div className="absolute right-0 mt-2 w-44 bg-[#1A1A1A] border-[#333] rounded-xl shadow-2xl z-50">
                 <div className="px-4 py-3 border-b border-[#333]"><p className="text-white text-sm font-semibold">{user.displayName}</p><p className="text-gray-400 text-xs truncate">{user.email}</p></div>
-                <button onClick={handleLogout} className="w-full text-left px-4 py-3 text-red-400 hover:bg-[#222] rounded-b-xl">Are you sure you want logout?</button>
+                <button onClick={handleLogout} className="w-full text-left px-4 py-3 text-red-400 hover:bg-[#222] rounded-b-xl">Logout?</button>
               </div>
             )}
           </div>
         </header>
 
-        {!user && <div className="bg-[#a8ff00]/10 border border-[#a8ff00] p-3 rounded-2xl mb-3 text-center text-sm">Login to save your votes and battle history 🔥</div>}
+        {!user && <div className="bg-[#a8ff00]/10 border border-[#a8ff00] p-3 rounded-2xl mb-3 text-center text-sm">Login cheste vote + history save avthadi 🔥</div>}
 
         {weeklyWinner && (
           <div className="bg-gradient-to-r from-yellow-500 to-orange-500 p-3 rounded-2xl mb-3 text-center">
@@ -509,7 +509,7 @@ export default function CrickClash() {
               <h2 className="text-2xl font-bold text-[#a8ff00]">📜 Your Battle History</h2>
               {user && battleHistory.length > 0 && <button onClick={handleDeleteHistory} className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded-lg text-sm font-bold transition">🗑️ Clear</button>}
             </div>
-            {!user? <p className="text-gray-500 text-center">Login to vote and view your battle history</p> : battleHistory.length === 0? <p className="text-gray-500 text-center">No battles yet</p> : battleHistory.map((h,i) => (<div key={i} className="bg-[#13131a] p-3 rounded-xl hover:bg-[#1a1a24] transition"><p className="text-sm text-gray-400">Battle {h.battleNo} • {h.date}</p><p className="font-bold">{h.players[0]} vs {h.players[1]}</p><p className="text-sm text-[#a8ff00]">You voted: {h.votedFor}</p></div>))}
+            {!user? <p className="text-gray-500 text-center">Login required to view your history</p> : battleHistory.length === 0? <p className="text-gray-500 text-center">No battles yet</p> : battleHistory.map((h,i) => (<div key={i} className="bg-[#13131a] p-3 rounded-xl hover:bg-[#1a1a24] transition"><p className="text-sm text-gray-400">Battle {h.battleNo} • {h.date}</p><p className="font-bold">{h.players[0]} vs {h.players[1]}</p><p className="text-sm text-[#a8ff00]">You voted: {h.votedFor}</p></div>))}
           </div>
         )}
       </div>
@@ -520,4 +520,4 @@ export default function CrickClash() {
       </footer>
     </div>
   );
-}
+                                                       }
