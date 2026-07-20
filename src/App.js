@@ -3,6 +3,7 @@ import { initializeApp } from 'firebase/app';
 import { getAuth, signInWithPopup, signOut, onAuthStateChanged, GoogleAuthProvider } from 'firebase/auth';
 import { getDatabase, ref, set, update, onValue, get, remove, increment } from 'firebase/database';
 
+// ============= FIREBASE CONFIG =============
 const firebaseConfig = {
   apiKey: "AIzaSyD9BfrAh8djKof1Bu6FLG0Fz7X10NCdm6g",
   authDomain: "crickclash-d30fe.firebaseapp.com",
@@ -17,10 +18,11 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
 const googleProvider = new GoogleAuthProvider();
-const DAILY_VOTE_LIMIT = 1;
+const DAILY_VOTE_LIMIT = 3;
 
+// ============= ALL 70 PLAYERS DATA =============
 const ALL_PLAYERS = [
-  // BATTERS
+  // BATTERS - 30
   { id: "virat-kohli-bat", name: 'Virat Kohli', role: 'BATTER', votes: 0 },
   { id: "sachin-tendulkar", name: 'Sachin Tendulkar', role: 'BATTER', votes: 0 },
   { id: "rohit-sharma-bat", name: 'Rohit Sharma', role: 'BATTER', votes: 0 },
@@ -52,7 +54,7 @@ const ALL_PLAYERS = [
   { id: "nitish-kumar-reddy-bat", name: 'Nitish Kumar Reddy', role: 'BATTER', votes: 0 },
   { id: "krunal-pandya-bat", name: 'Krunal Pandya', role: 'BATTER', votes: 0 },
 
-  // BOWLERS
+  // BOWLERS - 18
   { id: "jasprit-bumrah", name: 'Jasprit Bumrah', role: 'BOWLER', votes: 0 },
   { id: "bhuvaneswar-kumar", name: 'Bhuvaneswar Kumar', role: 'BOWLER', votes: 0 },
   { id: "mohammed-shami", name: 'Mohammed Shami', role: 'BOWLER', votes: 0 },
@@ -72,7 +74,7 @@ const ALL_PLAYERS = [
   { id: "ravichandran-ashwin-bowl", name: 'Ravichandran Ashwin', role: 'BOWLER', votes: 0 },
   { id: "kuldeep-yadav", name: 'Kuldeep Yadav', role: 'BOWLER', votes: 0 },
 
-  // ALL-ROUNDER
+  // ALL-ROUNDER - 11
   { id: "kapil-dev-ar", name: 'Kapil Dev', role: 'ALL-ROUNDER', votes: 0 },
   { id: "ravindra-jadeja-ar", name: 'Ravindra Jadeja', role: 'ALL-ROUNDER', votes: 0 },
   { id: "yuvraj-singh-ar", name: 'Yuvraj Singh', role: 'ALL-ROUNDER', votes: 0 },
@@ -85,7 +87,7 @@ const ALL_PLAYERS = [
   { id: "nitish-kumar-reddy-ar", name: 'Nitish Kumar Reddy', role: 'ALL-ROUNDER', votes: 0 },
   { id: "shardul-thakur", name: 'Shardul Thakur', role: 'ALL-ROUNDER', votes: 0 },
 
-  // KEEPER
+  // KEEPER - 8
   { id: "ms-dhoni-kp", name: 'MS Dhoni', role: 'KEEPER', votes: 0 },
   { id: "jitesh-sharma-kp", name: 'Jitesh Sharma', role: 'KEEPER', votes: 0 },
   { id: "dhruv-jurel-kp", name: 'Dhruv Jurel', role: 'KEEPER', votes: 0 },
@@ -95,7 +97,7 @@ const ALL_PLAYERS = [
   { id: "rishabh-pant-kp", name: 'Rishabh Pant', role: 'KEEPER', votes: 0 },
   { id: "dinesh-karthik-kp", name: 'Dinesh Karthik', role: 'KEEPER', votes: 0 },
 
-  // CAPTAIN
+  // CAPTAIN - 8
   { id: "virat-kohli-cap", name: 'Virat Kohli', role: 'CAPTAIN', votes: 0 },
   { id: "ms-dhoni-cap", name: 'MS Dhoni', role: 'CAPTAIN', votes: 0 },
   { id: "rohit-sharma-cap", name: 'Rohit Sharma', role: 'CAPTAIN', votes: 0 },
@@ -106,17 +108,12 @@ const ALL_PLAYERS = [
   { id: "kapil-dev-cap", name: 'Kapil Dev', role: 'CAPTAIN', votes: 0 },
 ];
 
-const getToday = () => new Date().toISOString().split('T')[0];
-const getWeekNumber = () => {
-  const d = new Date();
-  d.setHours(0,0,0);
-  d.setDate(d.getDate() + 4 - (d.getDay()||7));
-  return d.getFullYear() + '-W' + String(Math.ceil(((d - new Date(d.getFullYear(),0,1))/86400000 + 1)/7)).padStart(2,'0');
-};
+// ============= MAIN COMPONENT =============
 export default function CrickClash() {
+  // STATE
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [players, setPlayers] = useState([]);
+  const [players, setPlayers] = useState(ALL_PLAYERS);
   const [battle, setBattle] = useState([null, null]);
   const [battleNo, setBattleNo] = useState(1);
   const [filter, setFilter] = useState('Any');
@@ -131,6 +128,7 @@ export default function CrickClash() {
   const [voteAnim, setVoteAnim] = useState(null);
   const [timeLeft, setTimeLeft] = useState("");
   const [isVoting, setIsVoting] = useState(false);
+
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
   const [selectedPlayer, setSelectedPlayer] = useState(null);
@@ -138,7 +136,15 @@ export default function CrickClash() {
   const [replyTo, setReplyTo] = useState(null);
   const [newReply, setNewReply] = useState("");
 
-  useEffect(() => {
+  // HELPER FUNCTIONS
+  const getToday = () => new Date().toISOString().split('T')[0];
+  const getWeekNumber = () => {
+    const d = new Date();
+    d.setHours(0,0,0);
+    d.setDate(d.getDate() + 4 - (d.getDay()||7));
+    return d.getFullYear() + '-W' + String(Math.ceil(((d - new Date(d.getFullYear(),0,1))/86400000 + 1)/7)).padStart(2,'0');
+  };
+    useEffect(() => {
     const updateTimer = () => {
       const now = new Date();
       const tomorrow = new Date();
@@ -175,15 +181,22 @@ export default function CrickClash() {
     if(!snap.exists()){
       const sorted = [...playerList].sort((a,b) => b.votes - a.votes);
       if(sorted[0]) await set(winnerRef, { name: sorted[0].name, votes: sorted[0].votes });
-    } else {
-      setWeeklyWinner(snap.val());
     }
+    setWeeklyWinner(snap.val());
   }, []);
+
+  const handleDeleteHistory = async () => {
+    if(!user) return alert("Login cheyali bro");
+    if(window.confirm("Are you sure? Your entire battle history will be deleted.")){
+      await remove(ref(db, `users/${user.uid}/history`));
+      setBattleHistory([]);
+    }
+  };
 
   const generateBattle = useCallback((playerList, role) => {
     if(playerList.length < 2) return;
     let filtered = role === 'Any'? playerList : playerList.filter(p => p.role === role);
-    if(filtered.length < 2) filtered = playerList;
+    if(filtered.length < 2) { setBattle([null, null]); return; }
     let p1 = filtered[Math.floor(Math.random() * filtered.length)];
     let p2 = filtered[Math.floor(Math.random() * filtered.length)];
     let attempts = 0;
@@ -196,20 +209,13 @@ export default function CrickClash() {
 
   const getBattleKey = () => battle[0] && battle[1]? `${battle[0].id}-${battle[1].id}-B${battleNo}` : null;
 
-  const handleDeleteHistory = async () => {
-    if(!user) return alert("Login cheyali bro");
-    if(window.confirm("Are you sure? Your entire battle history will be deleted.")){
-      await remove(ref(db, `users/${user.uid}/history`));
-      setBattleHistory([]);
-    }
-  };
-
   const handlePostComment = async () => {
     if(!user){ alert("Login cheyali bro"); await signInWithPopup(auth, googleProvider); return; }
     if(!newComment.trim() ||!battle[0] ||!battle[1]) return;
     const time = Date.now();
     const battleKey = getBattleKey();
-    await set(ref(db, `comments/${battleKey}/${time}`), { text: newComment, user: user.displayName, photo: user.photoURL, time: time, likes: {}, replies: {} });
+    const commentRef = ref(db, `comments/${battleKey}/${time}`);
+    await set(commentRef, { text: newComment, user: user.displayName, photo: user.photoURL, time: time, likes: {}, replies: {} });
     setNewComment("");
   };
 
@@ -226,7 +232,8 @@ export default function CrickClash() {
     if(!newReply.trim()) return;
     const time = Date.now();
     const battleKey = getBattleKey();
-    await set(ref(db, `comments/${battleKey}/${commentKey}/replies/${time}`), { text: newReply, user: user.displayName, photo: user.photoURL, time: time });
+    const replyRef = ref(db, `comments/${battleKey}/${commentKey}/replies/${time}`);
+    await set(replyRef, { text: newReply, user: user.displayName, photo: user.photoURL, time: time });
     setNewReply("");
     setReplyTo(null);
   };
@@ -257,6 +264,20 @@ export default function CrickClash() {
     return {newStreak, newBadges};
   };
 
+  const handleSkip = async () => {
+    const newBattleNo = battleNo + 1;
+    setBattleNo(newBattleNo);
+    await update(ref(db, 'meta'), { battleNo: newBattleNo });
+    generateBattle(players, filter);
+  };
+
+  const handleShareResult = () => {
+    const text = `I voted for ${battle[0]?.name} vs ${battle[1]?.name} on CrickClash! ⚔️\nWho's your pick?`;
+    const url = window.location.href;
+    if (navigator.share) { navigator.share({title: 'CrickClash', text: text, url: url}); }
+    else { navigator.clipboard.writeText(`${text} ${url}`); alert("Copied to Clipboard!"); }
+  };
+
   const handleVote = async (votedPlayerId) => {
     if(!user){ alert("Vote cheyyadaniki Login cheyali"); await signInWithPopup(auth, googleProvider); return; }
     if(votesToday >= DAILY_VOTE_LIMIT || isVoting) return alert(`Roju ${DAILY_VOTE_LIMIT} vote maatrame!`);
@@ -270,29 +291,55 @@ export default function CrickClash() {
     const votedPlayer = players.find(p => p.id === votedPlayerId);
     const historyEntry = {battleNo, players: [battle[0]?.name, battle[1]?.name], votedFor: votedPlayer.name, date: today};
     const newHistory = [historyEntry,...battleHistory].slice(0, 50);
+    const newBattleNo = battleNo + 1;
+
     await update(userRef, { votesToday: increment(1), lastVoteDate: today, streak: newStreak, badges: newBadges, history: newHistory });
     await update(playerRef, { votes: increment(1) });
-    await update(ref(db, 'meta'), { totalVotes: increment(1), battleNo: battleNo + 1 });
+    await update(ref(db, 'meta'), { totalVotes: increment(1), battleNo: newBattleNo });
+
     setTimeout(() => {
       setIsVoting(false);
+      setBattleNo(newBattleNo);
       generateBattle(players, filter);
     }, 1000);
   };
 
   const handleGoogleLogin = () => signInWithPopup(auth, googleProvider);
   const handleLogout = async () => { if(window.confirm("Logout?")) { await signOut(auth); setShowProfile(false); } };
-  const handleSkip = () => { update(ref(db, 'meta'), { battleNo: battleNo + 1 }); generateBattle(players, filter); };
-  const handleShareResult = () => {
-    const text = `I voted for ${battle[0]?.name} vs ${battle[1]?.name} on CrickClash! ⚔️\nWho's your pick?`;
-    const url = window.location.href;
-    if (navigator.share) { navigator.share({title: 'CrickClash', text: text, url: url}); }
-    else { navigator.clipboard.writeText(`${text} ${url}`); alert("Copied to Clipboard!"); }
-  };
 
   useEffect(() => {
     checkAndResetDaily();
-    const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
+
+    const metaRef = ref(db, 'meta');
+    onValue(metaRef, (snapshot) => {
+      const metaData = snapshot.val();
+      if (metaData) {
+        setBattleNo(metaData.battleNo || 1);
+        setTotalVotes(metaData.totalVotes || 0);
+      }
+    });
+
+    const playersRef = ref(db, 'players');
+    onValue(playersRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const playersArray = ALL_PLAYERS.map(p => ({...p, votes: data[p.id]?.votes || 0 }));
+        setPlayers(playersArray);
+        generateBattle(playersArray, filter);
+        const sorted = [...playersArray].sort((a,b) => b.votes - a.votes);
+        setTopPlayer(sorted[0]);
+        checkWeeklyWinner(sorted);
+      } else {
+        const initialPlayers = {};
+        ALL_PLAYERS.forEach((p) => { initialPlayers[p.id] = {...p}; });
+        set(playersRef, initialPlayers);
+        set(metaRef, { lastResetDate: getToday(), totalVotes: 0, battleNo: 1 });
+      }
+    });
+
+    onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
+      setLoading(false);
       if(currentUser) {
         onValue(ref(db, `users/${currentUser.uid}`), (snapshot) => {
           const userData = snapshot.val();
@@ -307,35 +354,7 @@ export default function CrickClash() {
       } else {
         setVotesToday(0); setStreak(0); setBadges([]); setBattleHistory([]);
       }
-    });
-
-    const playersRef = ref(db, 'players');
-    const metaRef = ref(db, 'meta');
-
-    const unsubscribePlayers = onValue(playersRef, (snapshot) => {
-      const data = snapshot.val();
-      if (data) {
-        const playersArray = ALL_PLAYERS.map(p => ({...p, votes: data[p.id]?.votes || 0 }));
-        setPlayers(playersArray);
-        generateBattle(playersArray, filter);
-        const sorted = [...playersArray].sort((a,b) => b.votes - a.votes);
-        setTopPlayer(sorted[0]);
-        setTotalVotes(sorted.reduce((sum, p) => sum + p.votes, 0));
-        checkWeeklyWinner(sorted);
-      } else {
-        const initialPlayers = {};
-        ALL_PLAYERS.forEach((p) => { initialPlayers[p.id] = {...p}; });
-        set(playersRef, initialPlayers);
-      }
-      setLoading(false); // <- IDI CHALA IMPORTANT
-    });
-
-    const unsubscribeMeta = onValue(metaRef, (snapshot) => {
-      const data = snapshot.val();
-      if (data) setBattleNo(data.battleNo || 1);
-    });
-
-    return () => { unsubscribeAuth(); unsubscribePlayers(); unsubscribeMeta(); };
+    })
   }, [checkAndResetDaily, generateBattle, filter, checkWeeklyWinner]);
     if(loading) return <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center text-white">Loading...</div>;
 
