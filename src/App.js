@@ -366,11 +366,11 @@ export default function CrickClash() {
           </div>
         </header>
 
-        {!user && <div className="bg-[#a8ff00]/10 border border-[#a8ff00] p-3 rounded-2xl mb-3 text-center text-sm">Login cheste vote + history save avthadi 🔥</div>}
+        {!user && <div className="bg-[#a8ff00]/10 border border-[#a8ff00] p-3 rounded-2xl mb-3 text-center text-sm">Login to save your votes and battle history 🔥</div>}
 
         {weeklyWinner && (
           <div className="bg-gradient-to-r from-yellow-500 to-orange-500 p-3 rounded-2xl mb-3 text-center">
-            <p className="text-sm font-bold text-black">👑 THIS WEEK'S CHAMPION</p>
+            <p className="text-sm font-bold text-black">TODAY'S CHAMPION🏆</p>
             <p className="text-lg font-bold text-black">{weeklyWinner.name} - {weeklyWinner.votes} Votes</p>
           </div>
         )}
