@@ -158,20 +158,11 @@ export default function CrickClash() {
       ALL_PLAYERS.forEach(p => { resetPlayers[p.id] = {...p, votes: 0}; });
       await set(ref(db, 'players'), resetPlayers);
       await set(metaRef, { lastResetDate: today, totalVotes: 0, battleNo: 1 });
-
-      const usersSnap = await get(ref(db, 'users'));
-      if (usersSnap.exists()) {
-        const updates = {};
-        Object.keys(usersSnap.val()).forEach(uid => {
-          updates[`users/${uid}/votesToday`] = 0;
-        });
-        await update(ref(db), updates);
-      }
     }
   }, []);
 
   const handleDeleteHistory = async () => {
-    if(!user) return alert("Login required");
+    if(!user) return alert("Login cheyali bro");
     if(window.confirm("Are you sure? Your entire battle history will be deleted.")){
       await remove(ref(db, `users/${user.uid}/history`));
       setBattleHistory([]);
@@ -195,7 +186,7 @@ export default function CrickClash() {
   const getBattleKey = () => battle[0] && battle[1]? `${battle[0].id}-${battle[1].id}-B${battleNo}` : null;
 
   const handlePostComment = async () => {
-    if(!user){ alert("Login required"); await signInWithPopup(auth, googleProvider); return; }
+    if(!user){ alert("Login cheyali bro"); await signInWithPopup(auth, googleProvider); return; }
     if(!newComment.trim() ||!battle[0] ||!battle[1]) return;
     const time = Date.now();
     const battleKey = getBattleKey();
@@ -205,7 +196,7 @@ export default function CrickClash() {
   };
 
   const handleLikeComment = async (commentKey) => {
-    if(!user) return alert("Login required");
+    if(!user) return alert("Login cheyali");
     const battleKey = getBattleKey();
     const likeRef = ref(db, `comments/${battleKey}/${commentKey}/likes/${user.uid}`);
     const snap = await get(likeRef);
@@ -213,7 +204,7 @@ export default function CrickClash() {
   };
 
   const handlePostReply = async (commentKey) => {
-    if(!user){ alert("Login required"); await signInWithPopup(auth, googleProvider); return; }
+    if(!user){ alert("Login cheyali bro"); await signInWithPopup(auth, googleProvider); return; }
     if(!newReply.trim()) return;
     const time = Date.now();
     const battleKey = getBattleKey();
@@ -250,7 +241,7 @@ export default function CrickClash() {
   };
 
   const handleVote = async (votedPlayerId) => {
-    if(!user){ alert("Vote required to vote"); await signInWithPopup(auth, googleProvider); return; }
+    if(!user){ alert("Vote cheyyadaniki Login cheyali"); await signInWithPopup(auth, googleProvider); return; }
     if(votesToday >= DAILY_VOTE_LIMIT || isVoting) return alert(`Roju ${DAILY_VOTE_LIMIT} vote maatrame!`);
     setIsVoting(true);
     setVoteAnim(votedPlayerId);
@@ -290,19 +281,18 @@ export default function CrickClash() {
         const playersArray = ALL_PLAYERS.map(p => ({...p, votes: data[p.id]?.votes || 0 }));
         setPlayers(playersArray);
         generateBattle(playersArray, filter);
-        setTotalVotes(playersArray.reduce((sum, p) => sum + p.votes, 0));
-        // topPlayer and weeklyWinner logic teesesanu
+        setTotalVotes(playersArray.reduce((sum, p) => sum + (p.votes || 0), 0));
       } else {
         const initialPlayers = {};
         ALL_PLAYERS.forEach((p) => { initialPlayers[p.id] = {...p}; });
         set(playersRef, initialPlayers);
         set(ref(db, 'meta'), { lastResetDate: getToday(), totalVotes: 0, battleNo: 1 });
       }
+      setLoading(false); // <- IDHE MAIN FIX BRO
     });
 
     onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
-      setLoading(false);
       if(currentUser) {
         onValue(ref(db, `users/${currentUser.uid}`), (snapshot) => {
           const userData = snapshot.val();
@@ -358,9 +348,7 @@ export default function CrickClash() {
           </div>
         </header>
 
-        {!user && <div className="bg-[#a8ff00]/10 border border-[#a8ff00] p-3 rounded-2xl mb-3 text-center text-sm">Login cheste vote + history save avthadi 🔥</div>}
-
-        {/* WEEKLY CHAMPION CARD DELETE */}
+        {!user && <div className="bg-[#a8ff00]/10 border-[#a8ff00] p-3 rounded-2xl mb-3 text-center text-sm">Login cheste vote + history save avthadi 🔥</div>}
 
         <div className="bg-[#13131a] p-3 rounded-2xl mb-3">
           <p className="text-sm text-gray-400 mb-2">Your Badges</p>
@@ -386,7 +374,7 @@ export default function CrickClash() {
             <div className="grid grid-cols-4 text-center mb-6">
               <div><p className="text-2xl font-bold text-orange-400">{totalVotes}</p><p className="text-xs text-gray-400">TOTAL</p></div>
               <div><p className="text-2xl font-bold text-orange-400">{battleNo-1}</p><p className="text-xs text-gray-400">BATTLES</p></div>
-              <div><p className="text-2xl font-bold text-orange-400">--</p><p className="text-xs text-gray-400">TOP</p></div> {/* TOP DELETE */}
+              <div><p className="text-2xl font-bold text-orange-400">--</p><p className="text-xs text-gray-400">TOP</p></div>
               <div><p className="text-2xl font-bold text-orange-400">🔥{user? streak : 0}</p><p className="text-xs text-gray-400">STREAK</p></div>
             </div>
             <p className="text-center text-gray-400 mb-2">WHO DO YOU LIKE?</p>
@@ -484,7 +472,7 @@ export default function CrickClash() {
               <h2 className="text-2xl font-bold text-[#a8ff00]">📜 Your Battle History</h2>
               {user && battleHistory.length > 0 && <button onClick={handleDeleteHistory} className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded-lg text-sm font-bold transition">🗑️ Clear</button>}
             </div>
-            {!user? <p className="text-gray-500 text-center">Login required to view your history</p> : battleHistory.length === 0? <p className="text-gray-500 text-center">No battles yet</p> : battleHistory.map((h,i) => (<div key={i} className="bg-[#13131a] p-3 rounded-xl hover:bg-[#1a1a24] transition"><p className="text-sm text-gray-400">Battle {h.battleNo} • {h.date}</p><p className="font-bold">{h.players[0]} vs {h.players[1]}</p><p className="text-sm text-[#a8ff00]">You voted: {h.votedFor}</p></div>))}
+            {!user? <p className="text-gray-500 text-center">Login cheyali history chudataniki</p> : battleHistory.length === 0? <p className="text-gray-500 text-center">No battles yet</p> : battleHistory.map((h,i) => (<div key={i} className="bg-[#13131a] p-3 rounded-xl hover:bg-[#1a1a24] transition"><p className="text-sm text-gray-400">Battle {h.battleNo} • {h.date}</p><p className="font-bold">{h.players[0]} vs {h.players[1]}</p><p className="text-sm text-[#a8ff00]">You voted: {h.votedFor}</p></div>))}
           </div>
         )}
       </div>
@@ -495,4 +483,4 @@ export default function CrickClash() {
       </footer>
     </div>
   );
-        }
+}
