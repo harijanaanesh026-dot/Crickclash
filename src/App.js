@@ -113,13 +113,32 @@ const FOOTBALL_PLAYERS = [
 ];
 
 const MOVIES_PLAYERS = [
-  { id: "iron-man", name: 'Iron Man', role: 'HERO', votes: 0 },
-  { id: "batman", name: 'Batman', role: 'HERO', votes: 0 },
-  { id: "thor", name: 'Thor', role: 'HERO', votes: 0 },
-  { id: "spiderman", name: 'Spider-Man', role: 'HERO', votes: 0 },
+  // TOLLYWOOD HEROES
+  { id: "prabhas", name: 'Prabhas', role: 'HERO', votes: 0 },
+  { id: "allu-arjun", name: 'Allu Arjun', role: 'HERO', votes: 0 },
+  { id: "mahesh-babu", name: 'Mahesh Babu', role: 'HERO', votes: 0 },
+  { id: "jr-ntr", name: 'Jr. NTR', role: 'HERO', votes: 0 },
+  { id: "ram-charan", name: 'Ram Charan', role: 'HERO', votes: 0 },
+  { id: "pawan-kalyan", name: 'Pawan Kalyan', role: 'HERO', votes: 0 },
+  { id: "nani", name: 'Nani', role: 'HERO', votes: 0 },
+  { id: "vijay-deverakonda", name: 'Vijay Deverakonda', role: 'HERO', votes: 0 },
+  { id: "ravi-teja", name: 'Ravi Teja', role: 'HERO', votes: 0 },
+  { id: "balakrishna", name: 'Nandamuri Balakrishna', role: 'HERO', votes: 0 },
+  { id: "nagarjuna", name: 'Nagarjuna Akkineni', role: 'HERO', votes: 0 },
+  { id: "venkatesh", name: 'Venkatesh Daggubati', role: 'HERO', votes: 0 },
+  { id: "naga-chaitanya", name: 'Naga Chaitanya', role: 'HERO', votes: 0 },
+  { id: "varun-tej", name: 'Varun Tej', role: 'HERO', votes: 0 },
+  { id: "sai-dharam-tej", name: 'Sai Dharam Tej', role: 'HERO', votes: 0 },
+  { id: "adivi-sesh", name: 'Adivi Sesh', role: 'HERO', votes: 0 },
+  { id: "nithiin", name: 'Nithiin', role: 'HERO', votes: 0 },
+  { id: "ram-pothineni", name: 'Ram Pothineni', role: 'HERO', votes: 0 },
+  { id: "kalyan-ram", name: 'Kalyan Ram', role: 'HERO', votes: 0 },
+  
+  // VILLAINS - konchem add chesanu
   { id: "joker", name: 'Joker', role: 'VILLAIN', votes: 0 },
   { id: "thanos", name: 'Thanos', role: 'VILLAIN', votes: 0 },
-  { id: "deadpool", name: 'Deadpool', role: 'HERO', votes: 0 },
+  { id: "ranveer", name: 'Ranveer - KGF', role: 'VILLAIN', votes: 0 },
+  { id: "bhallaladeva", name: 'Bhallaladeva', role: 'VILLAIN', votes: 0 },
 ];
 
 const ALL_DATA = {
