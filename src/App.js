@@ -18,11 +18,10 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
 const googleProvider = new GoogleAuthProvider();
-const DAILY_VOTE_LIMIT = 1;
+const DAILY_VOTE_LIMIT = 1; // prati category ki 1
 
 // ============= NEE 70 CRICKET PLAYERS =============
 const CRICKET_PLAYERS = [
-  // BATTERS
   { id: "virat-kohli-bat", name: 'Virat Kohli', role: 'BATTER', votes: 0 },
   { id: "sachin-tendulkar", name: 'Sachin Tendulkar', role: 'BATTER', votes: 0 },
   { id: "rohit-sharma-bat", name: 'Rohit Sharma', role: 'BATTER', votes: 0 },
@@ -53,7 +52,6 @@ const CRICKET_PLAYERS = [
   { id: "shivam-dube-bat", name: 'Shivam Dube', role: 'BATTER', votes: 0 },
   { id: "nitish-kumar-reddy-bat", name: 'Nitish Kumar Reddy', role: 'BATTER', votes: 0 },
   { id: "krunal-pandya-bat", name: 'Krunal Pandya', role: 'BATTER', votes: 0 },
-  // BOWLERS
   { id: "jasprit-bumrah", name: 'Jasprit Bumrah', role: 'BOWLER', votes: 0 },
   { id: "bhuvaneswar-kumar", name: 'Bhuvaneswar Kumar', role: 'BOWLER', votes: 0 },
   { id: "mohammed-shami", name: 'Mohammed Shami', role: 'BOWLER', votes: 0 },
@@ -72,7 +70,6 @@ const CRICKET_PLAYERS = [
   { id: "harbhajan-singh", name: 'Harbhajan Singh', role: 'BOWLER', votes: 0 },
   { id: "ravichandran-ashwin-bowl", name: 'Ravichandran Ashwin', role: 'BOWLER', votes: 0 },
   { id: "kuldeep-yadav", name: 'Kuldeep Yadav', role: 'BOWLER', votes: 0 },
-  // ALL-ROUNDER
   { id: "kapil-dev-ar", name: 'Kapil Dev', role: 'ALL-ROUNDER', votes: 0 },
   { id: "ravindra-jadeja-ar", name: 'Ravindra Jadeja', role: 'ALL-ROUNDER', votes: 0 },
   { id: "yuvraj-singh-ar", name: 'Yuvraj Singh', role: 'ALL-ROUNDER', votes: 0 },
@@ -84,7 +81,6 @@ const CRICKET_PLAYERS = [
   { id: "shivam-dube-ar", name: 'Shivam Dube', role: 'ALL-ROUNDER', votes: 0 },
   { id: "nitish-kumar-reddy-ar", name: 'Nitish Kumar Reddy', role: 'ALL-ROUNDER', votes: 0 },
   { id: "shardul-thakur", name: 'Shardul Thakur', role: 'ALL-ROUNDER', votes: 0 },
-  // KEEPER
   { id: "ms-dhoni-kp", name: 'MS Dhoni', role: 'KEEPER', votes: 0 },
   { id: "jitesh-sharma-kp", name: 'Jitesh Sharma', role: 'KEEPER', votes: 0 },
   { id: "dhruv-jurel-kp", name: 'Dhruv Jurel', role: 'KEEPER', votes: 0 },
@@ -93,7 +89,6 @@ const CRICKET_PLAYERS = [
   { id: "ishan-kishan-kp", name: 'Ishan Kishan', role: 'KEEPER', votes: 0 },
   { id: "rishabh-pant-kp", name: 'Rishabh Pant', role: 'KEEPER', votes: 0 },
   { id: "dinesh-karthik-kp", name: 'Dinesh Karthik', role: 'KEEPER', votes: 0 },
-  // CAPTAIN
   { id: "virat-kohli-cap", name: 'Virat Kohli', role: 'CAPTAIN', votes: 0 },
   { id: "ms-dhoni-cap", name: 'MS Dhoni', role: 'CAPTAIN', votes: 0 },
   { id: "rohit-sharma-cap", name: 'Rohit Sharma', role: 'CAPTAIN', votes: 0 },
@@ -104,7 +99,7 @@ const CRICKET_PLAYERS = [
   { id: "kapil-dev-cap", name: 'Kapil Dev', role: 'CAPTAIN', votes: 0 },
 ];
 
-// ============= NEW: FOOTBALL + MOVIES =============
+// ============= FOOTBALL + MOVIES =============
 const FOOTBALL_PLAYERS = [
   { id: "messi", name: 'Lionel Messi', role: 'FORWARD', votes: 0 },
   { id: "ronaldo", name: 'Cristiano Ronaldo', role: 'FORWARD', votes: 0 },
@@ -136,14 +131,14 @@ const ALL_DATA = {
 export default function CrickClash() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [category, setCategory] = useState('Cricket'); // ONLY NEW
+  const [category, setCategory] = useState('Cricket');
   const [players, setPlayers] = useState(CRICKET_PLAYERS);
   const [battle, setBattle] = useState([null, null]);
   const [battleNo, setBattleNo] = useState(1);
   const [filter, setFilter] = useState('Any');
   const [tab, setTab] = useState('Battle');
   const [streak, setStreak] = useState(0);
-  const [votesToday, setVotesToday] = useState(0);
+  const [votesToday, setVotesToday] = useState({Cricket: 0, Football: 0, Movies: 0}); // OBJECT CHESANU
   const [totalVotes, setTotalVotes] = useState(0);
   const [topPlayer, setTopPlayer] = useState(null);
   const [badges, setBadges] = useState([]);
@@ -276,7 +271,7 @@ export default function CrickClash() {
     if(data.lastVoteDate === yesterday) newStreak = (data.streak || 0) + 1;
     let newBadges = [...(data.badges || [])];
     if([3,7,30].includes(newStreak) &&!newBadges.includes(`${newStreak} Day Streak`)){ newBadges.push(`${newStreak} Day Streak`); }
-    if(votesToday === 0 &&!newBadges.includes('First Vote')) newBadges.push('First Vote');
+    if(votesToday[category] === 0 &&!newBadges.includes(`First ${category} Vote`)) newBadges.push(`First ${category} Vote`);
     if(!newBadges.includes(`${category} Fan`)) newBadges.push(`${category} Fan`);
     return {newStreak, newBadges};
   };
@@ -297,7 +292,7 @@ export default function CrickClash() {
 
   const handleVote = async (votedPlayerId) => {
     if(!user){ alert("Google login required to vote"); await signInWithPopup(auth, googleProvider); return; }
-    if(votesToday >= DAILY_VOTE_LIMIT || isVoting) return alert(`Roju ${DAILY_VOTE_LIMIT} vote maatrame!`);
+    if(votesToday[category] >= DAILY_VOTE_LIMIT || isVoting) return alert(`Roju ${category} lo ${DAILY_VOTE_LIMIT} vote maatrame!`);
     setIsVoting(true);
     setVoteAnim(votedPlayerId);
     setTimeout(() => setVoteAnim(null), 500);
@@ -362,15 +357,20 @@ export default function CrickClash() {
         onValue(ref(db, `users/${currentUser.uid}/${category}`), (snapshot) => {
           const userData = snapshot.val();
           if(userData){
-            if(userData.lastVoteDate === getToday()){ setVotesToday(userData.votesToday || 0); }
-            else { setVotesToday(0); }
+            if(userData.lastVoteDate === getToday()){
+              setVotesToday(prev => ({...prev, [category]: userData.votesToday || 0}))
+            }
+            else {
+              setVotesToday(prev => ({...prev, [category]: 0}))
+            }
             setStreak(userData.streak || 0);
             setBadges(userData.badges || []);
             setBattleHistory(userData.history || []);
           }
         });
       } else {
-        setVotesToday(0); setStreak(0); setBadges([]); setBattleHistory([]);
+        setVotesToday({Cricket: 0, Football: 0, Movies: 0});
+        setStreak(0); setBadges([]); setBattleHistory([]);
       }
     })
   }, [checkAndResetDaily, generateBattle, filter, checkWeeklyWinner, category]);
@@ -422,7 +422,7 @@ export default function CrickClash() {
           ))}
         </div>
 
-        {!user && <div className="bg-[#a8ff00]/10 border border-[#a8ff00] p-3 rounded-2xl mb-3 text-center text-sm">Login to vote in {category} 🔥</div>}
+        {!user && <div className="bg-[#a8ff00]/10 border border-[#a8ff00] p-3 rounded-2xl mb-3 text-center text-sm">Login to get 3 votes per day 🔥 1 for each category</div>}
 
         {weeklyWinner && (
           <div className="bg-gradient-to-r from-yellow-500 to-orange-500 p-3 rounded-2xl mb-3 text-center">
@@ -438,10 +438,25 @@ export default function CrickClash() {
             {user && badges.length === 0 && <span className="text-gray-500 text-sm">No badges yet</span>}
           </div>
         </div>
+
+        {/* 3 VOTES CARD - NEW */}
         <div className="bg-[#13131a] p-4 rounded-2xl mb-4 text-center">
-          <p className="text-gray-400 text-sm">Today's {category} Votes Left</p>
-          <p className="text-4xl font-bold text-[#a8ff00]">{user? DAILY_VOTE_LIMIT - votesToday : DAILY_VOTE_LIMIT} / {DAILY_VOTE_LIMIT}</p>
-          <p className="text-xs text-gray-500 mt-1">Reset in: {timeLeft}</p>
+          <p className="text-gray-400 text-sm mb-2">Today's Votes Left</p>
+          <div className="grid grid-cols-3 gap-2">
+            <div className={`bg-[#0a0a0f] p-2 rounded-xl ${votesToday.Cricket >= 1? 'opacity-50' : ''}`}>
+              <p className="text-2xl font-bold text-[#a8ff00]">{DAILY_VOTE_LIMIT - votesToday.Cricket} / {DAILY_VOTE_LIMIT}</p>
+              <p className="text-xs">🏏 Cricket</p>
+            </div>
+            <div className={`bg-[#0a0a0f] p-2 rounded-xl ${votesToday.Football >= 1? 'opacity-50' : ''}`}>
+              <p className="text-2xl font-bold text-[#a8ff00]">{DAILY_VOTE_LIMIT - votesToday.Football} / {DAILY_VOTE_LIMIT}</p>
+              <p className="text-xs">⚽ Football</p>
+            </div>
+            <div className={`bg-[#0a0a0f] p-2 rounded-xl ${votesToday.Movies >= 1? 'opacity-50' : ''}`}>
+              <p className="text-2xl font-bold text-[#a8ff00]">{DAILY_VOTE_LIMIT - votesToday.Movies} / {DAILY_VOTE_LIMIT}</p>
+              <p className="text-xs">🎬 Movies</p>
+            </div>
+          </div>
+          <p className="text-xs text-gray-500 mt-2">Reset in: {timeLeft}</p>
         </div>
 
         <div className="flex justify-around border-b border-gray-800 mb-4">
@@ -483,8 +498,12 @@ export default function CrickClash() {
                       <span className={`px-3 py-1 rounded-full text-xs font-bold ${p.role==='KEEPER'?'bg-red-900':p.role==='CAPTAIN'?'bg-blue-900':p.role==='BATTER'?'bg-red-800':p.role==='GOALKEEPER'?'bg-green-900':p.role==='VILLAIN'?'bg-red-950':'bg-blue-800'}`}>{p.role}</span>
                       <h3 className="text-xl font-bold mt-3">{p.name}</h3>
                       <p className="text-[#a8ff00] font-bold">{p.votes || 0} votes</p>
-                      <button onClick={(e) => {e.stopPropagation(); handleVote(p.id)}} disabled={isVoting || (user && votesToday >= DAILY_VOTE_LIMIT)} className={`w-full py-3 rounded-xl font-bold mt-2 transition ${user && votesToday >= DAILY_VOTE_LIMIT? 'bg-gray-700 cursor-not-allowed' : 'bg-[#a8ff00] text-black hover:bg-[#9ae600]'}`}>
-                        {isVoting? 'VOTING...' : user && votesToday >= DAILY_VOTE_LIMIT? 'LIMIT DONE' : 'VOTE'}
+                      <button
+                        onClick={(e) => {e.stopPropagation(); handleVote(p.id)}}
+                        disabled={isVoting || (user && votesToday[category] >= DAILY_VOTE_LIMIT)}
+                        className={`w-full py-3 rounded-xl font-bold mt-2 transition ${user && votesToday[category] >= DAILY_VOTE_LIMIT? 'bg-gray-700 cursor-not-allowed' : 'bg-[#a8ff00] text-black hover:bg-[#9ae600]'}`}
+                      >
+                        {isVoting? 'VOTING...' : user && votesToday[category] >= DAILY_VOTE_LIMIT? 'VOTED TODAY' : 'VOTE'}
                       </button>
                     </div>
                   ))}
@@ -559,7 +578,11 @@ export default function CrickClash() {
                   <div key={p.name} onClick={() => setSelectedPlayer(p)} className="bg-[#13131a] p-3 rounded-xl mb-3 flex items-center gap-3 hover:bg-[#1a1a24] transition cursor-pointer">
                     <span className="text-xl font-bold text-[#a8ff00]">#{i+1}</span>
                     <div className="w-12 h-12 rounded-full bg-[#a8ff00] text-black flex items-center justify-center text-lg font-bold">{p.name[0]}</div>
-                    <div className="flex-1"><div className="flex justify-between"><span className="font-bold">{p.name}</span><span className="text-[#a8ff00] font-bold text-sm">{percentage}%</span></div><div className="flex justify-between text-xs text-gray-400 mb-1"><span>{p.votes||0} votes</span><span>{p.role}</span></div><div className="w-full bg-gray-700 rounded-full h-2"><div className="bg-[#a8ff00] h-2 rounded-full transition-all duration-500" style={{width: `${percentage}%`}}></div></div></div>
+                    <div className="flex-1">
+                      <div className="flex justify-between"><span className="font-bold">{p.name}</span><span className="text-[#a8ff00] font-bold text-sm">{percentage}%</span></div>
+                      <div className="flex justify-between text-xs text-gray-400 mb-1"><span>{p.votes||0} votes</span><span>{p.role}</span></div>
+                      <div className="w-full bg-gray-700 rounded-full h-2"><div className="bg-[#a8ff00] h-2 rounded-full transition-all duration-500" style={{width: `${percentage}%`}}></div></div>
+                    </div>
                   </div>
                 )
               })}
@@ -572,7 +595,13 @@ export default function CrickClash() {
               <h2 className="text-2xl font-bold text-[#a8ff00]">📜 Your {category} Battle History</h2>
               {user && battleHistory.length > 0 && <button onClick={handleDeleteHistory} className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded-lg text-sm font-bold transition">🗑️ Clear</button>}
             </div>
-            {!user? <p className="text-gray-500 text-center">Login required to view history</p> : battleHistory.length === 0? <p className="text-gray-500 text-center">No battles yet</p> : battleHistory.map((h,i) => (<div key={i} className="bg-[#13131a] p-3 rounded-xl hover:bg-[#1a1a24] transition"><p className="text-sm text-gray-400">Battle {h.battleNo} • {h.date}</p><p className="font-bold">{h.players[0]} vs {h.players[1]}</p><p className="text-sm text-[#a8ff00]">You voted: {h.votedFor}</p></div>))}
+            {!user? <p className="text-gray-500 text-center">Login required to view history</p> : battleHistory.length === 0? <p className="text-gray-500 text-center">No battles yet</p> : battleHistory.map((h,i) => (
+              <div key={i} className="bg-[#13131a] p-3 rounded-xl hover:bg-[#1a1a24] transition">
+                <p className="text-sm text-gray-400">Battle {h.battleNo} • {h.date} • {h.category}</p>
+                <p className="font-bold">{h.players[0]} vs {h.players[1]}</p>
+                <p className="text-sm text-[#a8ff00]">You voted: {h.votedFor}</p>
+              </div>
+            ))}
           </div>
         )}
       </div>
