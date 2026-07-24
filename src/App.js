@@ -416,7 +416,7 @@ export default function CrickClash() {
 
       <div className="max-w-md mx-auto w-full flex-1 p-4">
         <header className="flex justify-between items-center mb-4">
-          <div><h1 className="text-2xl font-bold">AI <span className="text-[#FF7A00]">FanVerse</span></h1><p className="text-xs text-gray-400">ANESH Innovation</p></div>
+          <div><h1 className="text-2xl font-bold">Clash <span className="text-[#FF7A00]">Verse</span></h1><p className="text-xs text-gray-400">ANESH Innovation</p></div>
           <div className="relative">
             {user?
               <img src={user.photoURL} onClick={() => setShowProfile(!showProfile)} className="w-10 h-10 rounded-full border-2 border-[#a8ff00] cursor-pointer hover:scale-110 transition" />
@@ -441,7 +441,7 @@ export default function CrickClash() {
           ))}
         </div>
 
-        {!user && <div className="bg-[#a8ff00]/10 border border-[#a8ff00] p-3 rounded-2xl mb-3 text-center text-sm">Login to get 3 votes per day 🔥 1 for each category</div>}
+        {!user && <div className="bg-[#a8ff00]/10 border border-[#a8ff00] p-3 rounded-2xl mb-3 text-center text-sm">Login to get 3 votes per day  1 for each category</div>}
 
         {weeklyWinner && (
           <div className="bg-gradient-to-r from-yellow-500 to-orange-500 p-3 rounded-2xl mb-3 text-center">
@@ -580,7 +580,7 @@ export default function CrickClash() {
                 </div>
 
                 <div className="flex gap-2 mt-4">
-                  <button onClick={handleShareResult} className="flex-1 bg-[#23232b] py-3 rounded-xl font-bold hover:bg-[#2e2e38] transition">📤 Share Battle</button>
+                  <button onClick={handleShareResult} className="flex-1 bg-[#23232b] py-3 rounded-xl font-bold hover:bg-[#2e2e38] transition">📤 Share</button>
                   <button onClick={handleSkip} className="flex-1 bg-[#23232b] py-3 rounded-xl font-bold hover:bg-[#2e2e38] transition">⏭️ Skip</button>
                 </div>
               </div>
@@ -626,7 +626,7 @@ export default function CrickClash() {
       </div>
 
       <footer className="text-center mt-10 pb-6 text-gray-500 text-sm border-t border-gray-800 pt-4">
-        <p>© 2026 <span className="text-white font-bold">AI FanVerse™</span> | A Production By <span className="text-white font-bold">ANESH</span></p>
+        <p>© 2026 <span className="text-white font-bold">Clashverse™</span> | A Production By <span className="text-white font-bold">ANESH</span></p>
         <p className="text-xs mt-1">Made with ❤️ for Cricket • Football • Movie Fans</p>
       </footer>
     </div>
