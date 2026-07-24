@@ -113,6 +113,7 @@ const FOOTBALL_PLAYERS = [
 ];
 
 const MOVIES_PLAYERS = [
+  // ===== HEROES =====
   { id: "prabhas", name: 'Prabhas', role: 'HERO', votes: 0 },
   { id: "jr-ntr", name: 'Jr NTR', role: 'HERO', votes: 0 },
   { id: "allu-arjun", name: 'Allu Arjun', role: 'HERO', votes: 0 },
@@ -131,6 +132,18 @@ const MOVIES_PLAYERS = [
   { id: "siddu", name: 'Siddu', role: 'HERO', votes: 0 },
   { id: "naga-chaitanya", name: 'Naga Chaitanya', role: 'HERO', votes: 0 },
   { id: "akhil", name: 'Akhil', role: 'HERO', votes: 0 },
+
+  // ===== VILLAINS =====
+  { id: "prakash-raj", name: 'Prakash Raj', role: 'VILLAIN', votes: 0 },
+  { id: "sonu-sood", name: 'Sonu Sood', role: 'VILLAIN', votes: 0 },
+  { id: "rana", name: 'Rana Daggubati', role: 'VILLAIN', votes: 0 },
+  { id: "Gopichand", name: 'Gopichand', role: 'VILLAIN', votes: 0 },
+  { id: "sudeep", name: 'Sudeep', role: 'VILLAIN', votes: 0 },
+  { id: "vijay-sethupathi", name: 'Vijay Sethupathi', role: 'VILLAIN', votes: 0 },
+  { id: "fahadh-faasl", name: 'Fahadh Faasil', role: 'VILLAIN', votes: 0 },
+  { id: "jagapathi-babu", name: 'Jagapathi Babu', role: 'VILLAIN', votes: 0 },
+  { id: "srikanth", name: 'SriKanth', role: 'VILLAIN', votes: 0 },
+  { id: "Sunil", name: 'Sunil', role: 'VILLAIN', votes: 0 }, // comedy villain 😂
 ];
 
 
