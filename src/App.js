@@ -143,7 +143,7 @@ const MOVIES_PLAYERS = [
 // ============= POLITICS =============
 const POLITICS_PLAYERS = [
   { id: "modi", name: 'Narendra Modi', role: 'PM', votes: 0 },
-  { id: "rahul", name: 'Rahul Gandhi', role: 'LEADER', votes: 0 },
+  { id: "rahul", name: 'Rahul Gandhi', role: 'PM', votes: 0 },
   { id: "kejriwal", name: 'Arvind Kejriwal', role: 'CM', votes: 0 },
   { id: "yogi", name: 'Yogi Adityanath', role: 'CM', votes: 0 },
   { id: "chandrababu", name: 'Chandrababu Naidu', role: 'CM', votes: 0 },
