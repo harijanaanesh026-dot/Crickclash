@@ -18,9 +18,16 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
 const googleProvider = new GoogleAuthProvider();
-const DAILY_VOTE_LIMIT = 1; // prati category ki 1 vote
 
-// ============= NEE 70 CRICKET PLAYERS =============
+// ========== KOTHAGA: PRATI ROLE KI 1 VOTE ==========
+const ROLE_VOTE_LIMIT = {
+  Cricket: 5, // BATTER, BOWLER, ALL-ROUNDER, KEEPER, CAPTAIN
+  Football: 2, // FORWARD, MIDFIELDER
+  Movies: 2, // HERO, VILLAIN
+  Politics: 3 // PM, CM, MLA
+};
+
+// ============= CRICKET PLAYERS =============
 const CRICKET_PLAYERS = [
   { id: "virat-kohli-bat", name: 'Virat Kohli', role: 'BATTER', votes: 0 },
   { id: "sachin-tendulkar", name: 'Sachin Tendulkar', role: 'BATTER', votes: 0 },
@@ -99,7 +106,7 @@ const CRICKET_PLAYERS = [
   { id: "kapil-dev-cap", name: 'Kapil Dev', role: 'CAPTAIN', votes: 0 },
 ];
 
-// ============= FOOTBALL + MOVIES =============
+// ============= FOOTBALL - DEFENDER, GK DELETE =============
 const FOOTBALL_PLAYERS = [
   { id: "messi", name: 'Lionel Messi', role: 'FORWARD', votes: 0 },
   { id: "ronaldo", name: 'Cristiano Ronaldo', role: 'FORWARD', votes: 0 },
@@ -108,12 +115,9 @@ const FOOTBALL_PLAYERS = [
   { id: "neymar", name: 'Neymar Jr', role: 'FORWARD', votes: 0 },
   { id: "modric", name: 'Luka Modric', role: 'MIDFIELDER', votes: 0 },
   { id: "de-bruyne", name: 'Kevin De Bruyne', role: 'MIDFIELDER', votes: 0 },
-  { id: "ramos", name: 'Sergio Ramos', role: 'DEFENDER', votes: 0 },
-  { id: "courtois", name: 'Thibaut Courtois', role: 'GOALKEEPER', votes: 0 },
 ];
 
 const MOVIES_PLAYERS = [
-  // ===== HEROES =====
   { id: "prabhas", name: 'Prabhas', role: 'HERO', votes: 0 },
   { id: "jr-ntr", name: 'Jr NTR', role: 'HERO', votes: 0 },
   { id: "allu-arjun", name: 'Allu Arjun', role: 'HERO', votes: 0 },
@@ -122,43 +126,27 @@ const MOVIES_PLAYERS = [
   { id: "mahesh-babu", name: 'Mahesh Babu', role: 'HERO', votes: 0 },
   { id: "nani", name: 'Nani', role: 'HERO', votes: 0 },
   { id: "ravi-teja", name: 'Ravi Teja', role: 'HERO', votes: 0 },
-  { id: "ram", name: 'Ram', role: 'HERO', votes: 0 },
   { id: "chiranjeevi", name: 'Chiranjeevi', role: 'HERO', votes: 0 },
   { id: "nagarjuna", name: 'Nagarjuna', role: 'HERO', votes: 0 },
   { id: "balakrishna", name: 'Balakrishna', role: 'HERO', votes: 0 },
-  { id: "venkatesh", name: 'Venkatesh', role: 'HERO', votes: 0 },
-  { id: "vijay-devarakonda", name: 'Vijay Devarakonda', role: 'HERO', votes: 0 },
-  { id: "sai-dharam-tej", name: 'Sai Dharam Tej', role: 'HERO', votes: 0 },
-  { id: "siddu", name: 'Siddu', role: 'HERO', votes: 0 },
-  { id: "naga-chaitanya", name: 'Naga Chaitanya', role: 'HERO', votes: 0 },
-  { id: "akhil", name: 'Akhil', role: 'HERO', votes: 0 },
-
-  // ===== VILLAINS =====
   { id: "prakash-raj", name: 'Prakash Raj', role: 'VILLAIN', votes: 0 },
   { id: "sonu-sood", name: 'Sonu Sood', role: 'VILLAIN', votes: 0 },
   { id: "rana", name: 'Rana Daggubati', role: 'VILLAIN', votes: 0 },
-  { id: "Gopichand", name: 'Gopichand', role: 'VILLAIN', votes: 0 },
   { id: "sudeep", name: 'Sudeep', role: 'VILLAIN', votes: 0 },
   { id: "vijay-sethupathi", name: 'Vijay Sethupathi', role: 'VILLAIN', votes: 0 },
-  { id: "fahadh-faasl", name: 'Fahadh Faasil', role: 'VILLAIN', votes: 0 },
   { id: "jagapathi-babu", name: 'Jagapathi Babu', role: 'VILLAIN', votes: 0 },
-  { id: "srikanth", name: 'SriKanth', role: 'VILLAIN', votes: 0 },
-  { id: "Sunil", name: 'Sunil', role: 'VILLAIN', votes: 0 }, // comedy villain 😂
 ];
 
-// ============= POLITICS + NUV ADIGINA 2 MLA LU =============
+// ============= POLITICS =============
 const POLITICS_PLAYERS = [
   { id: "modi", name: 'Narendra Modi', role: 'PM', votes: 0 },
-  { id: "rahul", name: 'Rahul Gandhi', role: 'PM', votes: 0 },
+  { id: "rahul", name: 'Rahul Gandhi', role: 'LEADER', votes: 0 },
   { id: "kejriwal", name: 'Arvind Kejriwal', role: 'CM', votes: 0 },
   { id: "yogi", name: 'Yogi Adityanath', role: 'CM', votes: 0 },
   { id: "chandrababu", name: 'Chandrababu Naidu', role: 'CM', votes: 0 },
   { id: "jagan", name: 'YS Jagan', role: 'CM', votes: 0 },
-  { id: "pawan-pol", name: 'Pawan Kalyan', role: 'DEPUTY CM', votes: 0 },
   { id: "kcr", name: 'KCR', role: 'CM', votes: 0 },
   { id: "revanth", name: 'Revanth Reddy', role: 'CM', votes: 0 },
-  
-  // ========== KOTHAGA ADD CHESINA MLA LU ==========
   { id: "n-raghavendra-reddy", name: 'N. Raghavendra Reddy', role: 'MLA', votes: 0 },
   { id: "y-balanagi-reddy", name: 'Y. Balanagi Reddy', role: 'MLA', votes: 0 },
 ];
@@ -180,7 +168,13 @@ export default function CrickClash() {
   const [filter, setFilter] = useState('Any');
   const [tab, setTab] = useState('Battle');
   const [streak, setStreak] = useState(0);
-  const [votesToday, setVotesToday] = useState({Cricket: 0, Football: 0, Movies: 0, Politics: 0});
+  // KOTHAGA: prati role ki votes track
+  const [votesToday, setVotesToday] = useState({
+    Cricket: {BATTER:0, BOWLER:0, 'ALL-ROUNDER':0, KEEPER:0, CAPTAIN:0},
+    Football: {FORWARD:0, MIDFIELDER:0},
+    Movies: {HERO:0, VILLAIN:0},
+    Politics: {PM:0, CM:0, MLA:0}
+  });
   const [totalVotes, setTotalVotes] = useState(0);
   const [topPlayer, setTopPlayer] = useState(null);
   const [badges, setBadges] = useState([]);
@@ -227,24 +221,6 @@ export default function CrickClash() {
       await set(metaRef, { lastResetDate: today, totalVotes: 0, battleNo: 1 });
     }
   }, [category]);
-
-  const checkWeeklyWinner = useCallback(async (playerList) => {
-    const week = getWeekNumber();
-    const winnerRef = ref(db, `winners/${category}/${week}`);
-    const sorted = [...playerList].sort((a,b) => b.votes - a.votes);
-    if(sorted[0]) {
-      await set(winnerRef, { name: sorted[0].name, votes: sorted[0].votes });
-      setWeeklyWinner({ name: sorted[0].name, votes: sorted[0].votes });
-    }
-  }, [category]);
-
-  const handleDeleteHistory = async () => {
-    if(!user) return alert("Login required");
-    if(window.confirm("Are you sure? Your entire battle history will be deleted.")){
-      await remove(ref(db, `users/${user.uid}/${category}/history`));
-      setBattleHistory([]);
-    }
-  };
 
   const generateBattle = useCallback((playerList, role) => {
     if(playerList.length < 2) return;
@@ -313,8 +289,6 @@ export default function CrickClash() {
     if(data.lastVoteDate === yesterday) newStreak = (data.streak || 0) + 1;
     let newBadges = [...(data.badges || [])];
     if([3,7,30].includes(newStreak) &&!newBadges.includes(`${newStreak} Day Streak`)){ newBadges.push(`${newStreak} Day Streak`); }
-    if(votesToday[category] === 0 &&!newBadges.includes(`First ${category} Vote`)) newBadges.push(`First ${category} Vote`);
-    if(!newBadges.includes(`${category} Fan`)) newBadges.push(`${category} Fan`);
     return {newStreak, newBadges};
   };
 
@@ -332,24 +306,37 @@ export default function CrickClash() {
     else { navigator.clipboard.writeText(`${text} ${url}`); alert("Copied to Clipboard!"); }
   };
 
+  // ========== KOTHAGA: ROLE BASE VOTE CHECK ==========
   const handleVote = async (votedPlayerId) => {
     if(!user){ alert("Google login required to vote"); await signInWithPopup(auth, googleProvider); return; }
-    if(votesToday[category] >= DAILY_VOTE_LIMIT || isVoting) return alert(`Roju ${category} lo ${DAILY_VOTE_LIMIT} vote maatrame!`);
+
+    const votedPlayer = ALL_DATA[category].find(p => p.id === votedPlayerId);
+    const playerRole = votedPlayer.role;
+
+    // aa role ki vote chesesa?
+    if(votesToday[category][playerRole] >= 1 || isVoting) return alert(`${playerRole} ki roju 1 vote maatrame!`);
+
     setIsVoting(true);
     setVoteAnim(votedPlayerId);
     setTimeout(() => setVoteAnim(null), 500);
+
     const {newStreak, newBadges} = await updateStreak();
     const today = getToday();
     const userRef = ref(db, `users/${user.uid}/${category}`);
     const playerRef = ref(db, `players/${category}/${votedPlayerId}`);
-    const votedPlayer = ALL_DATA[category].find(p => p.id === votedPlayerId);
-    const historyEntry = {battleNo, category, players: [battle[0]?.name, battle[1]?.name], votedFor: votedPlayer.name, date: today};
+    const historyEntry = {battleNo, category, players: [battle[0]?.name, battle[1]?.name], votedFor: votedPlayer.name, role: playerRole, date: today};
     const newHistory = [historyEntry,...battleHistory].slice(0, 50);
     const newBattleNo = battleNo + 1;
 
-    await update(userRef, { votesToday: increment(1), lastVoteDate: today, streak: newStreak, badges: newBadges, history: newHistory });
+    // role wise vote count update
+    const newVotesToday = {...votesToday};
+    newVotesToday[category][playerRole] = 1;
+
+    await update(userRef, { votesToday: newVotesToday[category], lastVoteDate: today, streak: newStreak, badges: newBadges, history: newHistory });
     await update(playerRef, { votes: increment(1) });
     await update(ref(db, `meta/${category}`), { totalVotes: increment(1), battleNo: newBattleNo });
+
+    setVotesToday(newVotesToday);
 
     setTimeout(() => {
       setIsVoting(false);
@@ -383,7 +370,6 @@ export default function CrickClash() {
         generateBattle(playersArray, filter);
         const sorted = [...playersArray].sort((a,b) => b.votes - a.votes);
         setTopPlayer(sorted[0]);
-        checkWeeklyWinner(sorted);
       } else {
         const initialPlayers = {};
         currentPlayers.forEach((p) => { initialPlayers[p.id] = {...p}; });
@@ -401,32 +387,36 @@ export default function CrickClash() {
           const userData = snapshot.val();
           if(userData){
             if(userData.lastVoteDate === getToday()){
-              setVotesToday(prev => ({...prev, [category]: userData.votesToday || 0}))
+              setVotesToday(prev => ({...prev, [category]: userData.votesToday || votesToday[category]}))
             }
             else {
-              setVotesToday(prev => ({...prev, [category]: 0}))
+              setVotesToday(prev => ({...prev, [category]: Object.keys(votesToday[category]).reduce((acc, key) => {acc[key]=0; return acc}, {})}))
             }
             setStreak(userData.streak || 0);
             setBadges(userData.badges || []);
             setBattleHistory(userData.history || []);
-          } else {
-            setVotesToday(prev => ({...prev, [category]: 0}))
-            setStreak(0); setBadges([]); setBattleHistory([]);
           }
         });
       } else {
-        setVotesToday({Cricket: 0, Football: 0, Movies: 0, Politics: 0});
+        setVotesToday({
+          Cricket: {BATTER:0, BOWLER:0, 'ALL-ROUNDER':0, KEEPER:0, CAPTAIN:0},
+          Football: {FORWARD:0, MIDFIELDER:0},
+          Movies: {HERO:0, VILLAIN:0},
+          Politics: {PM:0, CM:0, MLA:0}
+        });
         setStreak(0); setBadges([]); setBattleHistory([]);
       }
     })
-
     return () => unsubscribeAuth();
-  }, [checkAndResetDaily, generateBattle, filter, checkWeeklyWinner, category]);
+  }, [checkAndResetDaily, generateBattle, filter, category]);
   if(loading) return <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center text-white">Loading...</div>;
+
+  // total votes left calculate
+  const totalVotesLeft = Object.values(votesToday[category]).filter(v => v === 0).length;
 
   return (
     <div className="min-h-screen bg-[#0a0a0f] text-white flex-col">
-      <style>{`@keyframes pop { 0%{transform:scale(1)} 50%{transform:scale(1.15)} 100%{transform:scale(1)} } @keyframes float { 0%{transform:translateY(0)} 50%{transform:translateY(-10px)} 100%{transform:translateY(0)} }.vote-pop { animation: pop 0.5s ease; }.float { animation: float 2s ease-in-out infinite; }`}</style>
+      <style>{`@keyframes pop { 0%{transform:scale(1)} 50%{transform:scale(1.15)} 100%{transform:scale(1)} }.vote-pop { animation: pop 0.5s ease; }`}</style>
 
       {selectedPlayer && (
         <div onClick={() => setSelectedPlayer(null)} className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
@@ -469,30 +459,18 @@ export default function CrickClash() {
           ))}
         </div>
 
-        {!user && <div className="bg-[#a8ff00]/10 border-[#a8ff00] p-3 rounded-2xl mb-3 text-center text-sm">Login to get 4 votes per day 🔥 1 for each category</div>}
+        {!user && <div className="bg-[#a8ff00]/10 border-[#a8ff00] p-3 rounded-2xl mb-3 text-center text-sm">Login to get {ROLE_VOTE_LIMIT[category]} votes per day 🔥 1 for each role</div>}
 
-        {weeklyWinner && (
-          <div className="bg-gradient-to-r from-yellow-500 to-orange-500 p-3 rounded-2xl mb-3 text-center">
-            <p className="text-sm font-bold text-black">👑 {category} WEEK'S CHAMPION</p>
-            <p className="text-lg font-bold text-black">{weeklyWinner.name} - {weeklyWinner.votes} Votes</p>
-          </div>
-        )}
-
-        <div className="bg-[#13131a] p-3 rounded-2xl mb-3">
-          <p className="text-sm text-gray-400 mb-2">Your {category} Badges</p>
-          <div className="flex gap-2 flex-wrap">
-            {user? badges.map(b => <span key={b} className="bg-[#a8ff00] text-black px-3 py-1 rounded-full text-sm font-bold float">🏆 {b}</span>) : <span className="text-gray-500 text-sm">Login to see badges</span>}
-            {user && badges.length === 0 && <span className="text-gray-500 text-sm">No badges yet</span>}
-          </div>
-        </div>
-
+        {/* ROLE WISE VOTE CARD */}
         <div className="bg-[#13131a] p-4 rounded-2xl mb-4 text-center">
-          <p className="text-gray-400 text-sm mb-2">Today's Votes Left</p>
-          <div className="grid grid-cols-4 gap-2">
-            <div className={`bg-[#0a0a0f] p-2 rounded-xl ${votesToday.Cricket >= 1? 'opacity-50' : ''}`}><p className="text-2xl font-bold text-[#a8ff00]">{DAILY_VOTE_LIMIT - votesToday.Cricket}</p><p className="text-xs">🏏 Cricket</p></div>
-            <div className={`bg-[#0a0a0f] p-2 rounded-xl ${votesToday.Football >= 1? 'opacity-50' : ''}`}><p className="text-2xl font-bold text-[#a8ff00]">{DAILY_VOTE_LIMIT - votesToday.Football}</p><p className="text-xs">⚽ Football</p></div>
-            <div className={`bg-[#0a0a0f] p-2 rounded-xl ${votesToday.Movies >= 1? 'opacity-50' : ''}`}><p className="text-2xl font-bold text-[#a8ff00]">{DAILY_VOTE_LIMIT - votesToday.Movies}</p><p className="text-xs">🎬 Movies</p></div>
-            <div className={`bg-[#0a0a0f] p-2 rounded-xl ${votesToday.Politics >= 1? 'opacity-50' : ''}`}><p className="text-2xl font-bold text-[#a8ff00]">{DAILY_VOTE_LIMIT - votesToday.Politics}</p><p className="text-xs">🏛️ Politics</p></div>
+          <p className="text-gray-400 text-sm mb-2">Today's Votes Left: <span className="text-[#a8ff00] font-bold">{totalVotesLeft}/{ROLE_VOTE_LIMIT[category]}</span></p>
+          <div className={`grid gap-2 ${category === 'Cricket'? 'grid-cols-3' : 'grid-cols-2'}`}>
+            {Object.keys(votesToday[category]).map(role => (
+              <div key={role} className={`bg-[#0a0a0f] p-2 rounded-xl ${votesToday[category][role] >= 1? 'opacity-50' : ''}`}>
+                <p className="text-xl font-bold text-[#a8ff00]">{1 - votesToday[category][role]}</p>
+                <p className="text-xs">{role}</p>
+              </div>
+            ))}
           </div>
           <p className="text-xs text-gray-500 mt-2">Reset in: {timeLeft}</p>
         </div>
@@ -516,25 +494,28 @@ export default function CrickClash() {
 
             <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
               {category === 'Cricket' && ['Any', 'BATTER', 'BOWLER', 'ALL-ROUNDER', 'KEEPER', 'CAPTAIN'].map(role => (<button key={role} onClick={() => setFilter(role)} className={`px-4 py-2 rounded-full font-bold whitespace-nowrap transition ${filter === role? 'bg-[#a8ff00] text-black' : 'bg-[#13131a] hover:bg-[#222]'}`}>{role}</button>))}
-              {category === 'Football' && ['Any', 'FORWARD', 'MIDFIELDER', 'DEFENDER', 'GOALKEEPER'].map(role => (<button key={role} onClick={() => setFilter(role)} className={`px-4 py-2 rounded-full font-bold whitespace-nowrap transition ${filter === role? 'bg-[#a8ff00] text-black' : 'bg-[#13131a] hover:bg-[#222]'}`}>{role}</button>))}
+              {category === 'Football' && ['Any', 'FORWARD', 'MIDFIELDER'].map(role => (<button key={role} onClick={() => setFilter(role)} className={`px-4 py-2 rounded-full font-bold whitespace-nowrap transition ${filter === role? 'bg-[#a8ff00] text-black' : 'bg-[#13131a] hover:bg-[#222]'}`}>{role}</button>))}
               {category === 'Movies' && ['Any', 'HERO', 'VILLAIN'].map(role => (<button key={role} onClick={() => setFilter(role)} className={`px-4 py-2 rounded-full font-bold whitespace-nowrap transition ${filter === role? 'bg-[#a8ff00] text-black' : 'bg-[#13131a] hover:bg-[#222]'}`}>{role}</button>))}
-              {category === 'Politics' && ['Any', 'PM', 'CM','MLA'].map(role => (<button key={role} onClick={() => setFilter(role)} className={`px-4 py-2 rounded-full font-bold whitespace-nowrap transition ${filter === role? 'bg-[#a8ff00] text-black' : 'bg-[#13131a] hover:bg-[#222]'}`}>{role}</button>))}
+              {category === 'Politics' && ['Any', 'PM', 'CM', 'MLA'].map(role => (<button key={role} onClick={() => setFilter(role)} className={`px-4 py-2 rounded-full font-bold whitespace-nowrap transition ${filter === role? 'bg-[#a8ff00] text-black' : 'bg-[#13131a] hover:bg-[#222]'}`}>{role}</button>))}
             </div>
 
             {battle[0] && battle[1]? (
               <div>
                 <div className="flex items-center justify-center gap-2">
-                  {[battle[0], battle[1]].map(p => (
-                    <div key={p.id} onClick={() => setSelectedPlayer(p)} className={`bg-gradient-to-b from-[#1e3a5f] to-[#0a0e1a] p-4 rounded-2xl w-1/2 text-center transition hover:scale-105 cursor-pointer ${voteAnim === p.id? 'vote-pop' : ''}`}>
-                      <div className="w-20 h-20 rounded-full mx-auto mb-2 bg-[#a8ff00] text-black flex items-center justify-center text-3xl font-bold">{p.name[0]}</div>
-                      <span className={`px-3 py-1 rounded-full text-xs font-bold ${p.role==='KEEPER'?'bg-red-900':p.role==='CAPTAIN'?'bg-blue-900':p.role==='BATTER'?'bg-red-800':p.role==='GOALKEEPER'?'bg-green-900':p.role==='VILLAIN'?'bg-red-950':p.role==='HERO'?'bg-blue-800':p.role==='PM'?'bg-orange-900':p.role==='MLA'?'bg-purple-900':'bg-gray-800'}`}>{p.role}</span>
-                      <h3 className="text-xl font-bold mt-3">{p.name}</h3>
-                      <p className="text-[#a8ff00] font-bold">{p.votes || 0} votes</p>
-                      <button onClick={(e) => {e.stopPropagation(); handleVote(p.id)}} disabled={isVoting || (user && votesToday[category] >= DAILY_VOTE_LIMIT)} className={`w-full py-3 rounded-xl font-bold mt-2 transition ${user && votesToday[category] >= DAILY_VOTE_LIMIT? 'bg-gray-700 cursor-not-allowed' : 'bg-[#a8ff00] text-black hover:bg-[#9ae600]'}`}>
-                        {isVoting? 'VOTING...' : user && votesToday[category] >= DAILY_VOTE_LIMIT? 'VOTED TODAY' : 'VOTE'}
-                      </button>
-                    </div>
-                  ))}
+                  {[battle[0], battle[1]].map(p => {
+                    const roleVoted = votesToday[category][p.role] >= 1;
+                    return (
+                      <div key={p.id} onClick={() => setSelectedPlayer(p)} className={`bg-gradient-to-b from-[#1e3a5f] to-[#0a0e1a] p-4 rounded-2xl w-1/2 text-center transition hover:scale-105 cursor-pointer ${voteAnim === p.id? 'vote-pop' : ''}`}>
+                        <div className="w-20 h-20 rounded-full mx-auto mb-2 bg-[#a8ff00] text-black flex items-center justify-center text-3xl font-bold">{p.name[0]}</div>
+                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${p.role==='KEEPER'?'bg-red-900':p.role==='CAPTAIN'?'bg-blue-900':p.role==='BATTER'?'bg-red-800':p.role==='VILLAIN'?'bg-red-950':p.role==='HERO'?'bg-blue-800':p.role==='PM'?'bg-orange-900':p.role==='MLA'?'bg-purple-900':'bg-gray-800'}`}>{p.role}</span>
+                        <h3 className="text-xl font-bold mt-3">{p.name}</h3>
+                        <p className="text-[#a8ff00] font-bold">{p.votes || 0} votes</p>
+                        <button onClick={(e) => {e.stopPropagation(); handleVote(p.id)}} disabled={isVoting || roleVoted} className={`w-full py-3 rounded-xl font-bold mt-2 transition ${roleVoted? 'bg-gray-700 cursor-not-allowed' : 'bg-[#a8ff00] text-black hover:bg-[#9ae600]'}`}>
+                          {isVoting? 'VOTING...' : roleVoted? 'VOTED TODAY' : 'VOTE'}
+                        </button>
+                      </div>
+                    )
+                  })}
                 </div>
 
                 <div className="bg-[#13131a] p-4 rounded-2xl mt-4">
@@ -573,7 +554,7 @@ export default function CrickClash() {
         {tab === 'Rankings' && (
           <div>
             <h2 className="text-2xl font-bold text-[#a8ff00] mb-4 text-center">🏆 Top 10 {category} Players</h2>
-            {Object.values(players.reduce((acc, player) => { if (acc[player.name]) { acc[player.name].votes += player.votes || 0; } else { acc[player.name] = {...player }; } return acc; }, {})).sort((a,b) => b.votes - a.votes).slice(0,10).map((p,i) => {
+            {players.sort((a,b) => b.votes - a.votes).slice(0,10).map((p,i) => {
                 const percentage = totalVotes > 0? ((p.votes || 0) / totalVotes * 100).toFixed(1) : 0;
                 return (
                   <div key={p.id} onClick={() => setSelectedPlayer(p)} className="bg-[#13131a] p-3 rounded-xl mb-3 flex items-center gap-3 hover:bg-[#1a1a24] transition cursor-pointer">
@@ -598,7 +579,7 @@ export default function CrickClash() {
             </div>
             {!user? <p className="text-gray-500 text-center">Login required to view history</p> : battleHistory.length === 0? <p className="text-gray-500 text-center">No battles yet</p> : battleHistory.map((h,i) => (
               <div key={i} className="bg-[#13131a] p-3 rounded-xl hover:bg-[#1a1a24] transition">
-                <p className="text-sm text-gray-400">Battle {h.battleNo} • {h.date} • {h.category}</p>
+                <p className="text-sm text-gray-400">Battle {h.battleNo} • {h.date} • {h.role}</p>
                 <p className="font-bold">{h.players[0]} vs {h.players[1]}</p>
                 <p className="text-sm text-[#a8ff00]">You voted: {h.votedFor}</p>
               </div>
@@ -613,4 +594,4 @@ export default function CrickClash() {
       </footer>
     </div>
   );
-        }
+              }
