@@ -19,7 +19,7 @@ const auth = getAuth(app);
 const db = getDatabase(app);
 const googleProvider = new GoogleAuthProvider();
 
-// ========== KOTHAGA: PRATI ROLE KI 1 VOTE ==========
+// ========== PRATI ROLE KI 1 VOTE ==========
 const ROLE_VOTE_LIMIT = {
   Cricket: 5, // BATTER, BOWLER, ALL-ROUNDER, KEEPER, CAPTAIN
   Football: 2, // FORWARD, MIDFIELDER
@@ -27,7 +27,7 @@ const ROLE_VOTE_LIMIT = {
   Politics: 3 // PM, CM, MLA
 };
 
-// ============= CRICKET PLAYERS =============
+// ============= NEE 70 CRICKET PLAYERS =============
 const CRICKET_PLAYERS = [
   { id: "virat-kohli-bat", name: 'Virat Kohli', role: 'BATTER', votes: 0 },
   { id: "sachin-tendulkar", name: 'Sachin Tendulkar', role: 'BATTER', votes: 0 },
@@ -106,7 +106,7 @@ const CRICKET_PLAYERS = [
   { id: "kapil-dev-cap", name: 'Kapil Dev', role: 'CAPTAIN', votes: 0 },
 ];
 
-// ============= FOOTBALL - DEFENDER, GK DELETE =============
+// ============= FOOTBALL - DEFENDER, GK DELETE CHESA =============
 const FOOTBALL_PLAYERS = [
   { id: "messi", name: 'Lionel Messi', role: 'FORWARD', votes: 0 },
   { id: "ronaldo", name: 'Cristiano Ronaldo', role: 'FORWARD', votes: 0 },
@@ -118,6 +118,7 @@ const FOOTBALL_PLAYERS = [
 ];
 
 const MOVIES_PLAYERS = [
+  // ===== HEROES =====
   { id: "prabhas", name: 'Prabhas', role: 'HERO', votes: 0 },
   { id: "jr-ntr", name: 'Jr NTR', role: 'HERO', votes: 0 },
   { id: "allu-arjun", name: 'Allu Arjun', role: 'HERO', votes: 0 },
@@ -129,6 +130,8 @@ const MOVIES_PLAYERS = [
   { id: "chiranjeevi", name: 'Chiranjeevi', role: 'HERO', votes: 0 },
   { id: "nagarjuna", name: 'Nagarjuna', role: 'HERO', votes: 0 },
   { id: "balakrishna", name: 'Balakrishna', role: 'HERO', votes: 0 },
+
+  // ===== VILLAINS =====
   { id: "prakash-raj", name: 'Prakash Raj', role: 'VILLAIN', votes: 0 },
   { id: "sonu-sood", name: 'Sonu Sood', role: 'VILLAIN', votes: 0 },
   { id: "rana", name: 'Rana Daggubati', role: 'VILLAIN', votes: 0 },
@@ -168,13 +171,15 @@ export default function CrickClash() {
   const [filter, setFilter] = useState('Any');
   const [tab, setTab] = useState('Battle');
   const [streak, setStreak] = useState(0);
-  // KOTHAGA: prati role ki votes track
+  
+  // KOTHAGA: prati role ki votes track cheyyadaniki
   const [votesToday, setVotesToday] = useState({
     Cricket: {BATTER:0, BOWLER:0, 'ALL-ROUNDER':0, KEEPER:0, CAPTAIN:0},
     Football: {FORWARD:0, MIDFIELDER:0},
     Movies: {HERO:0, VILLAIN:0},
     Politics: {PM:0, CM:0, MLA:0}
   });
+  
   const [totalVotes, setTotalVotes] = useState(0);
   const [topPlayer, setTopPlayer] = useState(null);
   const [badges, setBadges] = useState([]);
@@ -190,7 +195,6 @@ export default function CrickClash() {
   const [replyTo, setReplyTo] = useState(null);
   const [newReply, setNewReply] = useState("");
   const getToday = () => new Date().toISOString().split('T')[0];
-  const getWeekNumber = () => { const d = new Date(); d.setHours(0,0,0); d.setDate(d.getDate() + 4 - (d.getDay()||7)); return d.getFullYear() + '-W' + String(Math.ceil(((d - new Date(d.getFullYear(),0,1))/86400000 + 1)/7)).padStart(2,'0'); };
 
   useEffect(() => {
     const updateTimer = () => {
@@ -281,7 +285,6 @@ export default function CrickClash() {
   const updateStreak = async () => {
     if(!user) return {newStreak: 0, newBadges: []};
     const userRef = ref(db, `users/${user.uid}/${category}`);
-    const today = getToday();
     const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
     const snap = await get(userRef);
     const data = snap.val() || {};
@@ -299,6 +302,14 @@ export default function CrickClash() {
     generateBattle(players, filter);
   };
 
+  const handleDeleteHistory = async () => {
+    if(!user) return alert("Login required");
+    if(window.confirm("Are you sure? Your entire battle history will be deleted.")){
+      await remove(ref(db, `users/${user.uid}/${category}/history`));
+      setBattleHistory([]);
+    }
+  };
+
   const handleShareResult = () => {
     const text = `I voted for ${battle[0]?.name} vs ${battle[1]?.name} on AI FanVerse ${category}! ⚔️\nWho's your pick?`;
     const url = window.location.href;
@@ -306,14 +317,12 @@ export default function CrickClash() {
     else { navigator.clipboard.writeText(`${text} ${url}`); alert("Copied to Clipboard!"); }
   };
 
-  // ========== KOTHAGA: ROLE BASE VOTE CHECK ==========
   const handleVote = async (votedPlayerId) => {
     if(!user){ alert("Google login required to vote"); await signInWithPopup(auth, googleProvider); return; }
 
     const votedPlayer = ALL_DATA[category].find(p => p.id === votedPlayerId);
     const playerRole = votedPlayer.role;
 
-    // aa role ki vote chesesa?
     if(votesToday[category][playerRole] >= 1 || isVoting) return alert(`${playerRole} ki roju 1 vote maatrame!`);
 
     setIsVoting(true);
@@ -328,7 +337,6 @@ export default function CrickClash() {
     const newHistory = [historyEntry,...battleHistory].slice(0, 50);
     const newBattleNo = battleNo + 1;
 
-    // role wise vote count update
     const newVotesToday = {...votesToday};
     newVotesToday[category][playerRole] = 1;
 
@@ -397,21 +405,12 @@ export default function CrickClash() {
             setBattleHistory(userData.history || []);
           }
         });
-      } else {
-        setVotesToday({
-          Cricket: {BATTER:0, BOWLER:0, 'ALL-ROUNDER':0, KEEPER:0, CAPTAIN:0},
-          Football: {FORWARD:0, MIDFIELDER:0},
-          Movies: {HERO:0, VILLAIN:0},
-          Politics: {PM:0, CM:0, MLA:0}
-        });
-        setStreak(0); setBadges([]); setBattleHistory([]);
       }
     })
     return () => unsubscribeAuth();
   }, [checkAndResetDaily, generateBattle, filter, category]);
   if(loading) return <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center text-white">Loading...</div>;
 
-  // total votes left calculate
   const totalVotesLeft = Object.values(votesToday[category]).filter(v => v === 0).length;
 
   return (
@@ -461,7 +460,6 @@ export default function CrickClash() {
 
         {!user && <div className="bg-[#a8ff00]/10 border-[#a8ff00] p-3 rounded-2xl mb-3 text-center text-sm">Login to get {ROLE_VOTE_LIMIT[category]} votes per day 🔥 1 for each role</div>}
 
-        {/* ROLE WISE VOTE CARD */}
         <div className="bg-[#13131a] p-4 rounded-2xl mb-4 text-center">
           <p className="text-gray-400 text-sm mb-2">Today's Votes Left: <span className="text-[#a8ff00] font-bold">{totalVotesLeft}/{ROLE_VOTE_LIMIT[category]}</span></p>
           <div className={`grid gap-2 ${category === 'Cricket'? 'grid-cols-3' : 'grid-cols-2'}`}>
@@ -594,4 +592,4 @@ export default function CrickClash() {
       </footer>
     </div>
   );
-              }
+        }
