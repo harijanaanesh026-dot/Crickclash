@@ -146,11 +146,24 @@ const MOVIES_PLAYERS = [
   { id: "Sunil", name: 'Sunil', role: 'VILLAIN', votes: 0 }, // comedy villain 😂
 ];
 
+// ============= POLITICS =============
+const POLITICS_PLAYERS = [
+  { id: "modi", name: 'Narendra Modi', role: 'PM', votes: 0 },
+  { id: "rahul", name: 'Rahul Gandhi', role: 'LEADER', votes: 0 },
+  { id: "kejriwal", name: 'Arvind Kejriwal', role: 'CM', votes: 0 },
+  { id: "yogi", name: 'Yogi Adityanath', role: 'CM', votes: 0 },
+  { id: "chandrababu", name: 'Chandrababu Naidu', role: 'CM', votes: 0 },
+  { id: "jagan", name: 'YS Jagan', role: 'LEADER', votes: 0 },
+  { id: "pawan-pol", name: 'Pawan Kalyan', role: 'DEPUTY CM', votes: 0 },
+  { id: "kcr", name: 'KCR', role: 'LEADER', votes: 0 },
+  { id: "revanth", name: 'Revanth Reddy', role: 'CM', votes: 0 },
+];
 
 const ALL_DATA = {
   Cricket: CRICKET_PLAYERS,
   Football: FOOTBALL_PLAYERS,
-  Movies: MOVIES_PLAYERS
+  Movies: MOVIES_PLAYERS,
+  Politics: POLITICS_PLAYERS
 };
 
 export default function CrickClash() {
@@ -163,7 +176,7 @@ export default function CrickClash() {
   const [filter, setFilter] = useState('Any');
   const [tab, setTab] = useState('Battle');
   const [streak, setStreak] = useState(0);
-  const [votesToday, setVotesToday] = useState({Cricket: 0, Football: 0, Movies: 0}); // OBJECT CHESANU
+  const [votesToday, setVotesToday] = useState({Cricket: 0, Football: 0, Movies: 0, Politics: 0});
   const [totalVotes, setTotalVotes] = useState(0);
   const [topPlayer, setTopPlayer] = useState(null);
   const [badges, setBadges] = useState([]);
@@ -178,7 +191,6 @@ export default function CrickClash() {
   const [weeklyWinner, setWeeklyWinner] = useState(null);
   const [replyTo, setReplyTo] = useState(null);
   const [newReply, setNewReply] = useState("");
-
   const getToday = () => new Date().toISOString().split('T')[0];
   const getWeekNumber = () => { const d = new Date(); d.setHours(0,0,0); d.setDate(d.getDate() + 4 - (d.getDay()||7)); return d.getFullYear() + '-W' + String(Math.ceil(((d - new Date(d.getFullYear(),0,1))/86400000 + 1)/7)).padStart(2,'0'); };
 
@@ -198,6 +210,7 @@ export default function CrickClash() {
     const interval = setInterval(updateTimer, 1000);
     return () => clearInterval(interval);
   }, []);
+
   const checkAndResetDaily = useCallback(async () => {
     const today = getToday();
     const metaRef = ref(db, `meta/${category}`);
@@ -394,7 +407,7 @@ export default function CrickClash() {
           }
         });
       } else {
-        setVotesToday({Cricket: 0, Football: 0, Movies: 0});
+        setVotesToday({Cricket: 0, Football: 0, Movies: 0, Politics: 0});
         setStreak(0); setBadges([]); setBattleHistory([]);
       }
     })
@@ -438,16 +451,16 @@ export default function CrickClash() {
           </div>
         </header>
 
-        {/* CATEGORY TABS */}
+        {/* 4 CATEGORY TABS */}
         <div className="flex justify-center gap-2 mb-4 bg-[#13131a] p-1 rounded-2xl">
           {Object.keys(ALL_DATA).map(cat => (
             <button key={cat} onClick={() => setCategory(cat)} className={`flex-1 py-2 rounded-xl font-bold text-sm transition ${category === cat? 'bg-[#a8ff00] text-black' : 'text-gray-400 hover:bg-[#222]'}`}>
-              {cat === 'Cricket' && '🏏 '}{cat === 'Football' && '⚽ '}{cat === 'Movies' && '🎬 '}{cat}
+              {cat === 'Cricket' && '🏏 '}{cat === 'Football' && '⚽ '}{cat === 'Movies' && '🎬 '}{cat === 'Politics' && '🏛️ '}{cat}
             </button>
           ))}
         </div>
 
-        {!user && <div className="bg-[#a8ff00]/10 border border-[#a8ff00] p-3 rounded-2xl mb-3 text-center text-sm">Login to get 3 votes per day 🔥 1 for each category</div>}
+        {!user && <div className="bg-[#a8ff00]/10 border border-[#a8ff00] p-3 rounded-2xl mb-3 text-center text-sm">Login to get 4 votes per day 🔥 1 for each category</div>}
 
         {weeklyWinner && (
           <div className="bg-gradient-to-r from-yellow-500 to-orange-500 p-3 rounded-2xl mb-3 text-center">
@@ -464,21 +477,25 @@ export default function CrickClash() {
           </div>
         </div>
 
-        {/* 3 VOTES CARD - NEW */}
+        {/* 4 VOTES CARD */}
         <div className="bg-[#13131a] p-4 rounded-2xl mb-4 text-center">
           <p className="text-gray-400 text-sm mb-2">Today's Votes Left</p>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-4 gap-2">
             <div className={`bg-[#0a0a0f] p-2 rounded-xl ${votesToday.Cricket >= 1? 'opacity-50' : ''}`}>
-              <p className="text-2xl font-bold text-[#a8ff00]">{DAILY_VOTE_LIMIT - votesToday.Cricket} / {DAILY_VOTE_LIMIT}</p>
+              <p className="text-2xl font-bold text-[#a8ff00]">{DAILY_VOTE_LIMIT - votesToday.Cricket}</p>
               <p className="text-xs">🏏 Cricket</p>
             </div>
             <div className={`bg-[#0a0a0f] p-2 rounded-xl ${votesToday.Football >= 1? 'opacity-50' : ''}`}>
-              <p className="text-2xl font-bold text-[#a8ff00]">{DAILY_VOTE_LIMIT - votesToday.Football} / {DAILY_VOTE_LIMIT}</p>
+              <p className="text-2xl font-bold text-[#a8ff00]">{DAILY_VOTE_LIMIT - votesToday.Football}</p>
               <p className="text-xs">⚽ Football</p>
             </div>
             <div className={`bg-[#0a0a0f] p-2 rounded-xl ${votesToday.Movies >= 1? 'opacity-50' : ''}`}>
-              <p className="text-2xl font-bold text-[#a8ff00]">{DAILY_VOTE_LIMIT - votesToday.Movies} / {DAILY_VOTE_LIMIT}</p>
+              <p className="text-2xl font-bold text-[#a8ff00]">{DAILY_VOTE_LIMIT - votesToday.Movies}</p>
               <p className="text-xs">🎬 Movies</p>
+            </div>
+            <div className={`bg-[#0a0a0f] p-2 rounded-xl ${votesToday.Politics >= 1? 'opacity-50' : ''}`}>
+              <p className="text-2xl font-bold text-[#a8ff00]">{DAILY_VOTE_LIMIT - votesToday.Politics}</p>
+              <p className="text-xs">🏛️ Politics</p>
             </div>
           </div>
           <p className="text-xs text-gray-500 mt-2">Reset in: {timeLeft}</p>
@@ -512,6 +529,9 @@ export default function CrickClash() {
               {category === 'Movies' && ['Any', 'HERO', 'VILLAIN'].map(role => (
                 <button key={role} onClick={() => setFilter(role)} className={`px-4 py-2 rounded-full font-bold whitespace-nowrap transition ${filter === role? 'bg-[#a8ff00] text-black' : 'bg-[#13131a] hover:bg-[#222]'}`}>{role}</button>
               ))}
+              {category === 'Politics' && ['Any', 'PM', 'CM', 'LEADER', 'HM', 'DEPUTY CM'].map(role => (
+                <button key={role} onClick={() => setFilter(role)} className={`px-4 py-2 rounded-full font-bold whitespace-nowrap transition ${filter === role? 'bg-[#a8ff00] text-black' : 'bg-[#13131a] hover:bg-[#222]'}`}>{role}</button>
+              ))}
             </div>
 
             {battle[0] && battle[1]? (
@@ -520,7 +540,7 @@ export default function CrickClash() {
                   {[battle[0], battle[1]].map(p => (
                     <div key={p.id} onClick={() => setSelectedPlayer(p)} className={`bg-gradient-to-b from-[#1e3a5f] to-[#0a0e1a] p-4 rounded-2xl w-1/2 text-center transition hover:scale-105 cursor-pointer ${voteAnim === p.id? 'vote-pop' : ''}`}>
                       <div className="w-20 h-20 rounded-full mx-auto mb-2 bg-[#a8ff00] text-black flex items-center justify-center text-3xl font-bold">{p.name[0]}</div>
-                      <span className={`px-3 py-1 rounded-full text-xs font-bold ${p.role==='KEEPER'?'bg-red-900':p.role==='CAPTAIN'?'bg-blue-900':p.role==='BATTER'?'bg-red-800':p.role==='GOALKEEPER'?'bg-green-900':p.role==='VILLAIN'?'bg-red-950':'bg-blue-800'}`}>{p.role}</span>
+                      <span className={`px-3 py-1 rounded-full text-xs font-bold ${p.role==='KEEPER'?'bg-red-900':p.role==='CAPTAIN'?'bg-blue-900':p.role==='BATTER'?'bg-red-800':p.role==='GOALKEEPER'?'bg-green-900':p.role==='VILLAIN'?'bg-red-950':p.role==='HERO'?'bg-blue-800':p.role==='PM'?'bg-orange-900':'bg-gray-800'}`}>{p.role}</span>
                       <h3 className="text-xl font-bold mt-3">{p.name}</h3>
                       <p className="text-[#a8ff00] font-bold">{p.votes || 0} votes</p>
                       <button
@@ -632,9 +652,9 @@ export default function CrickClash() {
       </div>
 
       <footer className="text-center mt-10 pb-6 text-gray-500 text-sm border-t border-gray-800 pt-4">
-        <p>© 2026 <span className="text-white font-bold">AI FanVerse™</span> | A Production By <span className="text-white font-bold">ANESH</span></p>
-        <p className="text-xs mt-1">Made with ❤️ for Cricket • Football • Movie Fans</p>
+        <p>© 2026 <span className="text-white font-bold">ClashVerse™</span> | A Production By <span className="text-white font-bold">ANESH</span></p>
+        <p className="text-xs mt-1">Made with ❤️ for Cricket • Football • Movies • Politics Fans</p>
       </footer>
     </div>
   );
-        }
+}
