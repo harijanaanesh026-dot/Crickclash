@@ -154,6 +154,8 @@ const POLITICS_PLAYERS = [
   { id: "yogi", name: 'Yogi Adityanath', role: 'CM', votes: 0 },
   { id: "chandrababu", name: 'Chandrababu Naidu', role: 'CM', votes: 0 },
   { id: "jagan", name: 'YS Jagan', role: 'CM', votes: 0 },
+  { id: "C.Joseph Vijay", name: 'C.Joseph Vijay', role: 'CM', votes: 0 },
+  { id: "Udhayanidhi Stalin", name: 'Udhayanidhi Stalin', role: 'CM', votes: 0 },
   { id: "pawan-pol", name: 'Pawan Kalyan', role: 'DEPUTY CM', votes: 0 },
   { id: "kcr", name: 'KCR', role: 'CM', votes: 0 },
   { id: "revanth", name: 'Revanth Reddy', role: 'CM', votes: 0 },
@@ -445,7 +447,7 @@ export default function CrickClash() {
 
       <div className="max-w-md mx-auto w-full flex-1 p-4">
         <header className="flex justify-between items-center mb-4">
-          <div><h1 className="text-2xl font-bold">AI <span className="text-[#FF7A00]">FanVerse</span></h1><p className="text-xs text-gray-400">ANESH Innovation</p></div>
+          <div><h1 className="text-2xl font-bold">ClashVerse<span className="text-[#FF7A00]"></span></h1><p className="text-xs text-gray-400">ANESH Innovation</p></div>
           <div className="relative">
             {user?
               <img src={user.photoURL} onClick={() => setShowProfile(!showProfile)} className="w-10 h-10 rounded-full border-2 border-[#a8ff00] cursor-pointer hover:scale-110 transition" />
@@ -469,7 +471,7 @@ export default function CrickClash() {
           ))}
         </div>
 
-        {!user && <div className="bg-[#a8ff00]/10 border-[#a8ff00] p-3 rounded-2xl mb-3 text-center text-sm">Login to get 4 votes per day 🔥 1 for each category</div>}
+        {!user && <div className="bg-[#a8ff00]/10 border-[#a8ff00] p-3 rounded-2xl mb-3 text-center text-sm">Login to get 4 votes per day 1 for each category</div>}
 
         {weeklyWinner && (
           <div className="bg-gradient-to-r from-yellow-500 to-orange-500 p-3 rounded-2xl mb-3 text-center">
