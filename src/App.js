@@ -101,21 +101,59 @@ const CRICKET_PLAYERS = [
 
 // ============= FOOTBALL =============
 const FOOTBALL_PLAYERS = [
-  { id: "messi", name: 'Lionel Messi', role: 'FORWARD', votes: 0 },
+  // ===== FORWARDS - 12 =====
   { id: "ronaldo", name: 'Cristiano Ronaldo', role: 'FORWARD', votes: 0 },
+  { id: "messi", name: 'Lionel Messi', role: 'FORWARD', votes: 0 },
   { id: "mbappe", name: 'Kylian Mbappe', role: 'FORWARD', votes: 0 },
-  { id: "haaland", name: 'Erling Haaland', role: 'FORWARD', votes: 0 },
   { id: "neymar", name: 'Neymar Jr', role: 'FORWARD', votes: 0 },
-  { id: "modric", name: 'Luka Modric', role: 'MIDFIELDER', votes: 0 },
+  { id: "haaland", name: 'Erling Haaland', role: 'FORWARD', votes: 0 },
+  { id: "vinicius", name: 'Vinicius Jr', role: 'FORWARD', votes: 0 },
+  { id: "salah", name: 'Mohamed Salah', role: 'FORWARD', votes: 0 },
+  { id: "lewandowski", name: 'Robert Lewandowski', role: 'FORWARD', votes: 0 },
+  { id: "kane", name: 'Harry Kane', role: 'FORWARD', votes: 0 },
+  { id: "benzema", name: 'Karim Benzema', role: 'FORWARD', votes: 0 },
+  { id: "mane", name: 'Sadio Mane', role: 'FORWARD', votes: 0 },
+  { id: "rashford", name: 'Marcus Rashford', role: 'FORWARD', votes: 0 },
+
+  // ===== MIDFIELDERS - 14 =====
   { id: "de-bruyne", name: 'Kevin De Bruyne', role: 'MIDFIELDER', votes: 0 },
+  { id: "modric", name: 'Luka Modric', role: 'MIDFIELDER', votes: 0 },
+  { id: "bellingham", name: 'Jude Bellingham', role: 'MIDFIELDER', votes: 0 },
+  { id: "pedri", name: 'Pedri', role: 'MIDFIELDER', votes: 0 },
+  { id: "kroos", name: 'Toni Kroos', role: 'MIDFIELDER', votes: 0 },
+  { id: "rodri", name: 'Rodri', role: 'MIDFIELDER', votes: 0 },
+  { id: "valverde", name: 'Federico Valverde', role: 'MIDFIELDER', votes: 0 },
+  { id: "fernandez", name: 'Bruno Fernandes', role: 'MIDFIELDER', votes: 0 },
+  { id: "griezmann", name: 'Antoine Griezmann', role: 'MIDFIELDER', votes: 0 },
+  { id: "casemiro", name: 'Casemiro', role: 'MIDFIELDER', votes: 0 },
+  { id: "kamavinga", name: 'Eduardo Camavinga', role: 'MIDFIELDER', votes: 0 },
+  { id: "musiala", name: 'Jamal Musiala', role: 'MIDFIELDER', votes: 0 },
+  { id: "foden", name: 'Phil Foden', role: 'MIDFIELDER', votes: 0 },
+  { id: "palmer", name: 'Cole Palmer', role: 'MIDFIELDER', votes: 0 },
+
+  // ===== DEFENDERS - 10 =====
   { id: "ramos", name: 'Sergio Ramos', role: 'DEFENDER', votes: 0 },
+  { id: "vvd", name: 'Virgil van Dijk', role: 'DEFENDER', votes: 0 },
+  { id: "dias", name: 'Ruben Dias', role: 'DEFENDER', votes: 0 },
+  { id: "hakimi", name: 'Achraf Hakimi', role: 'DEFENDER', votes: 0 },
+  { id: "trent", name: 'Trent Alexander-Arnold', role: 'DEFENDER', votes: 0 },
+  { id: "robertson", name: 'Andrew Robertson', role: 'DEFENDER', votes: 0 },
+  { id: "alaba", name: 'David Alaba', role: 'DEFENDER', votes: 0 },
+  { id: "rudiger", name: 'Antonio Rudiger', role: 'DEFENDER', votes: 0 },
+  { id: "marquinhos", name: 'Marquinhos', role: 'DEFENDER', votes: 0 },
+  { id: "araujo", name: 'Ronald Araujo', role: 'DEFENDER', votes: 0 },
+
+  // ===== GOALKEEPERS - 4 =====
   { id: "courtois", name: 'Thibaut Courtois', role: 'GOALKEEPER', votes: 0 },
+  { id: "ter-stegen", name: 'Marc-Andre ter Stegen', role: 'GOALKEEPER', votes: 0 },
+  { id: "alisson", name: 'Alisson Becker', role: 'GOALKEEPER', votes: 0 },
+  { id: "ederson", name: 'Ederson', role: 'GOALKEEPER', votes: 0 },
 ];
 
 // ============= MOVIES =============
 const MOVIES_PLAYERS = [
+  { id: "jr ntr", name: 'Jr NTR', role: 'HERO', votes: 0 },
   { id: "prabhas", name: 'Prabhas', role: 'HERO', votes: 0 },
-  { id: "jr-ntr", name: 'Jr NTR', role: 'HERO', votes: 0 },
   { id: "allu-arjun", name: 'Allu Arjun', role: 'HERO', votes: 0 },
   { id: "ram-charan", name: 'Ram Charan', role: 'HERO', votes: 0 },
   { id: "pawan-kalyan", name: 'Pawan Kalyan', role: 'HERO', votes: 0 },
@@ -411,7 +449,7 @@ export default function CrickClash() {
 
       <div className="max-w-md mx-auto w-full flex-1 p-4">
         <header className="flex justify-between items-center mb-4">
-          <div><h1 className="text-2xl font-bold">CrickClash<span className="text-[#FF7A00]"></span></h1><p className="text-xs text-gray-400">ANESH Innovation</p></div>
+          <div><h1 className="text-2xl font-bold">CrickClash<span className="text-[#FF7A00]"></span></h1><p className="text-xs text-gray-400">ANESH Forge</p></div>
           <div className="relative">
             {user?
               <img src={user.photoURL} onClick={() => setShowProfile(!showProfile)} className="w-10 h-10 rounded-full border-2 border-[#a8ff00] cursor-pointer hover:scale-110 transition" />
