@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInWithPopup, signOut, onAuthStateChanged, GoogleAuthProvider } from 'firebase/auth';
-import { getDatabase, ref, set, update, onValue, get, remove, increment, push } from 'firebase/database';
-import html2canvas from 'html2canvas';
+import { getDatabase, ref, set, update, onValue, get, remove, increment } from 'firebase/database';
 
 // ============= FIREBASE CONFIG =============
 const firebaseConfig = {
@@ -19,46 +18,171 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
 const googleProvider = new GoogleAuthProvider();
-const WEEKLY_VOTE_LIMIT = 3; // Week ki 3 votes
-const REFERRAL_BONUS_VOTE = 1;
+const DAILY_VOTE_LIMIT = 1;
+const REFERRAL_BONUS_VOTE = 1; // NEW
 
-// ============= 3 CATEGORIES DATA =============
+// ============= CRICKET PLAYERS - 70 =============
 const CRICKET_PLAYERS = [
   { id: "virat-kohli-bat", name: 'Virat Kohli', role: 'BATTER', votes: 0 },
   { id: "sachin-tendulkar", name: 'Sachin Tendulkar', role: 'BATTER', votes: 0 },
   { id: "rohit-sharma-bat", name: 'Rohit Sharma', role: 'BATTER', votes: 0 },
+  { id: "vaibhav-sooryavanshi", name: 'Vaibhav Sooryavanshi', role: 'BATTER', votes: 0 },
+  { id: "rajat-patidar-bat", name: 'Rajat Patidar', role: 'BATTER', votes: 0 },
+  { id: "abhishek-sharma", name: 'Abhishek Sharma', role: 'BATTER', votes: 0 },
+  { id: "shreyas-iyer", name: 'Shreyas Iyer', role: 'BATTER', votes: 0 },
+  { id: "kl-rahul-bat", name: 'KL Rahul', role: 'BATTER', votes: 0 },
+  { id: "shubman-gill-bat", name: 'Shubman Gill', role: 'BATTER', votes: 0 },
+  { id: "sai-sudarshan", name: 'Sai Sudarshan', role: 'BATTER', votes: 0 },
+  { id: "rahul-dravid-bat", name: 'Rahul Dravid', role: 'BATTER', votes: 0 },
+  { id: "virendra-sehwag", name: 'Virendra Sehwag', role: 'BATTER', votes: 0 },
+  { id: "shikhar-dhawan", name: 'Shikhar Dhawan', role: 'BATTER', votes: 0 },
+  { id: "suresh-raina", name: 'Suresh Raina', role: 'BATTER', votes: 0 },
+  { id: "yashasvi-jaiswal", name: 'Yashasvi Jaiswal', role: 'BATTER', votes: 0 },
   { id: "ms-dhoni-bat", name: 'MS Dhoni', role: 'BATTER', votes: 0 },
+  { id: "dinesh-karthik-bat", name: 'Dinesh Karthik', role: 'BATTER', votes: 0 },
+  { id: "priyansh-arya", name: 'Priyansh Arya', role: 'BATTER', votes: 0 },
+  { id: "tilak-varma", name: 'Tilak Varma', role: 'BATTER', votes: 0 },
+  { id: "ishan-kishan-bat", name: 'Ishan Kishan', role: 'BATTER', votes: 0 },
+  { id: "yuvraj-singh-bat", name: 'Yuvraj Singh', role: 'BATTER', votes: 0 },
+  { id: "sanju-samson-bat", name: 'Sanju Samson', role: 'BATTER', votes: 0 },
+  { id: "ruturaj-gaikwad-bat", name: 'Ruturaj Gaikwad', role: 'BATTER', votes: 0 },
+  { id: "rishabh-pant-bat", name: 'Rishabh Pant', role: 'BATTER', votes: 0 },
+  { id: "dhruv-jurel-bat", name: 'Dhruv Jurel', role: 'BATTER', votes: 0 },
+  { id: "jitesh-sharma-bat", name: 'Jitesh Sharma', role: 'BATTER', votes: 0 },
+  { id: "washington-sundar-bat", name: 'Washington Sundar', role: 'BATTER', votes: 0 },
+  { id: "shivam-dube-bat", name: 'Shivam Dube', role: 'BATTER', votes: 0 },
+  { id: "nitish-kumar-reddy-bat", name: 'Nitish Kumar Reddy', role: 'BATTER', votes: 0 },
+  { id: "krunal-pandya-bat", name: 'Krunal Pandya', role: 'BATTER', votes: 0 },
   { id: "jasprit-bumrah", name: 'Jasprit Bumrah', role: 'BOWLER', votes: 0 },
+  { id: "bhuvaneswar-kumar", name: 'Bhuvaneswar Kumar', role: 'BOWLER', votes: 0 },
+  { id: "mohammed-shami", name: 'Mohammed Shami', role: 'BOWLER', votes: 0 },
+  { id: "mohammed-siraj", name: 'Mohammed Siraj', role: 'BOWLER', votes: 0 },
+  { id: "prasidh-krishna", name: 'Prasidh Krishna', role: 'BOWLER', votes: 0 },
+  { id: "harshit-rana", name: 'Harshit Rana', role: 'BOWLER', votes: 0 },
+  { id: "ishant-sharma", name: 'Ishant Sharma', role: 'BOWLER', votes: 0 },
+  { id: "umesh-yadav", name: 'Umesh Yadav', role: 'BOWLER', votes: 0 },
+  { id: "axar-patel-bowl", name: 'Axar Patel', role: 'BOWLER', votes: 0 },
+  { id: "yuzvendra-chahal", name: 'Yuzvendra Chahal', role: 'BOWLER', votes: 0 },
+  { id: "deepak-chahar", name: 'Deepak Chahar', role: 'BOWLER', votes: 0 },
+  { id: "arshdeep-singh", name: 'Arshdeep Singh', role: 'BOWLER', votes: 0 },
+  { id: "ravindra-jadeja-bowl", name: 'Ravindra Jadeja', role: 'BOWLER', votes: 0 },
+  { id: "anil-kumble", name: 'Anil Kumble', role: 'BOWLER', votes: 0 },
+  { id: "kapil-dev-bowl", name: 'Kapil Dev', role: 'BOWLER', votes: 0 },
+  { id: "harbhajan-singh", name: 'Harbhajan Singh', role: 'BOWLER', votes: 0 },
+  { id: "ravichandran-ashwin-bowl", name: 'Ravichandran Ashwin', role: 'BOWLER', votes: 0 },
+  { id: "kuldeep-yadav", name: 'Kuldeep Yadav', role: 'BOWLER', votes: 0 },
+  { id: "kapil-dev-ar", name: 'Kapil Dev', role: 'ALL-ROUNDER', votes: 0 },
   { id: "ravindra-jadeja-ar", name: 'Ravindra Jadeja', role: 'ALL-ROUNDER', votes: 0 },
+  { id: "yuvraj-singh-ar", name: 'Yuvraj Singh', role: 'ALL-ROUNDER', votes: 0 },
+  { id: "ravichandran-ashwin-ar", name: 'Ravichandran Ashwin', role: 'ALL-ROUNDER', votes: 0 },
   { id: "hardik-pandya-ar", name: 'Hardik Pandya', role: 'ALL-ROUNDER', votes: 0 },
+  { id: "krunal-pandya-ar", name: 'Krunal Pandya', role: 'ALL-ROUNDER', votes: 0 },
+  { id: "axar-patel-ar", name: 'Axar Patel', role: 'ALL-ROUNDER', votes: 0 },
+  { id: "washington-sundar-ar", name: 'Washington Sundar', role: 'ALL-ROUNDER', votes: 0 },
+  { id: "shivam-dube-ar", name: 'Shivam Dube', role: 'ALL-ROUNDER', votes: 0 },
+  { id: "nitish-kumar-reddy-ar", name: 'Nitish Kumar Reddy', role: 'ALL-ROUNDER', votes: 0 },
+  { id: "shardul-thakur", name: 'Shardul Thakur', role: 'ALL-ROUNDER', votes: 0 },
+  { id: "ms-dhoni-kp", name: 'MS Dhoni', role: 'KEEPER', votes: 0 },
+  { id: "jitesh-sharma-kp", name: 'Jitesh Sharma', role: 'KEEPER', votes: 0 },
+  { id: "dhruv-jurel-kp", name: 'Dhruv Jurel', role: 'KEEPER', votes: 0 },
+  { id: "sanju-samson-kp", name: 'Sanju Samson', role: 'KEEPER', votes: 0 },
+  { id: "kl-rahul-kp", name: 'KL Rahul', role: 'KEEPER', votes: 0 },
+  { id: "ishan-kishan-kp", name: 'Ishan Kishan', role: 'KEEPER', votes: 0 },
   { id: "rishabh-pant-kp", name: 'Rishabh Pant', role: 'KEEPER', votes: 0 },
+  { id: "dinesh-karthik-kp", name: 'Dinesh Karthik', role: 'KEEPER', votes: 0 },
   { id: "virat-kohli-cap", name: 'Virat Kohli', role: 'CAPTAIN', votes: 0 },
+  { id: "ms-dhoni-cap", name: 'MS Dhoni', role: 'CAPTAIN', votes: 0 },
+  { id: "rohit-sharma-cap", name: 'Rohit Sharma', role: 'CAPTAIN', votes: 0 },
+  { id: "rajat-patidar-cap", name: 'Rajat Patidar', role: 'CAPTAIN', votes: 0 },
+  { id: "hardik-pandya-cap", name: 'Hardik Pandya', role: 'CAPTAIN', votes: 0 },
+  { id: "shubman-gill-cap", name: 'Shubman Gill', role: 'CAPTAIN', votes: 0 },
+  { id: "ruturaj-gaikwad-cap", name: 'Ruturaj Gaikwad', role: 'CAPTAIN', votes: 0 },
+  { id: "kapil-dev-cap", name: 'Kapil Dev', role: 'CAPTAIN', votes: 0 },
 ];
 
+// ============= FOOTBALL =============
 const FOOTBALL_PLAYERS = [
-  { id: "messi", name: 'Lionel Messi', role: 'FORWARD', votes: 0 },
+  // ===== FORWARDS - 12 =====
   { id: "ronaldo", name: 'Cristiano Ronaldo', role: 'FORWARD', votes: 0 },
+  { id: "messi", name: 'Lionel Messi', role: 'FORWARD', votes: 0 },
   { id: "mbappe", name: 'Kylian Mbappe', role: 'FORWARD', votes: 0 },
-  { id: "haaland", name: 'Erling Haaland', role: 'FORWARD', votes: 0 },
   { id: "neymar", name: 'Neymar Jr', role: 'FORWARD', votes: 0 },
-  { id: "modric", name: 'Luka Modric', role: 'MIDFIELDER', votes: 0 },
+  { id: "haaland", name: 'Erling Haaland', role: 'FORWARD', votes: 0 },
+  { id: "vinicius", name: 'Vinicius Jr', role: 'FORWARD', votes: 0 },
+  { id: "salah", name: 'Mohamed Salah', role: 'FORWARD', votes: 0 },
+  { id: "lewandowski", name: 'Robert Lewandowski', role: 'FORWARD', votes: 0 },
+  { id: "kane", name: 'Harry Kane', role: 'FORWARD', votes: 0 },
+  { id: "benzema", name: 'Karim Benzema', role: 'FORWARD', votes: 0 },
+  { id: "mane", name: 'Sadio Mane', role: 'FORWARD', votes: 0 },
+  { id: "rashford", name: 'Marcus Rashford', role: 'FORWARD', votes: 0 },
+
+  // ===== MIDFIELDERS - 14 =====
   { id: "de-bruyne", name: 'Kevin De Bruyne', role: 'MIDFIELDER', votes: 0 },
+  { id: "modric", name: 'Luka Modric', role: 'MIDFIELDER', votes: 0 },
+  { id: "bellingham", name: 'Jude Bellingham', role: 'MIDFIELDER', votes: 0 },
+  { id: "pedri", name: 'Pedri', role: 'MIDFIELDER', votes: 0 },
+  { id: "kroos", name: 'Toni Kroos', role: 'MIDFIELDER', votes: 0 },
+  { id: "rodri", name: 'Rodri', role: 'MIDFIELDER', votes: 0 },
+  { id: "valverde", name: 'Federico Valverde', role: 'MIDFIELDER', votes: 0 },
+  { id: "fernandez", name: 'Bruno Fernandes', role: 'MIDFIELDER', votes: 0 },
+  { id: "griezmann", name: 'Antoine Griezmann', role: 'MIDFIELDER', votes: 0 },
+  { id: "casemiro", name: 'Casemiro', role: 'MIDFIELDER', votes: 0 },
+  { id: "kamavinga", name: 'Eduardo Camavinga', role: 'MIDFIELDER', votes: 0 },
+  { id: "musiala", name: 'Jamal Musiala', role: 'MIDFIELDER', votes: 0 },
+  { id: "foden", name: 'Phil Foden', role: 'MIDFIELDER', votes: 0 },
+  { id: "palmer", name: 'Cole Palmer', role: 'MIDFIELDER', votes: 0 },
+
+  // ===== DEFENDERS - 10 =====
   { id: "ramos", name: 'Sergio Ramos', role: 'DEFENDER', votes: 0 },
+  { id: "vvd", name: 'Virgil van Dijk', role: 'DEFENDER', votes: 0 },
+  { id: "dias", name: 'Ruben Dias', role: 'DEFENDER', votes: 0 },
+  { id: "hakimi", name: 'Achraf Hakimi', role: 'DEFENDER', votes: 0 },
+  { id: "trent", name: 'Trent Alexander-Arnold', role: 'DEFENDER', votes: 0 },
+  { id: "robertson", name: 'Andrew Robertson', role: 'DEFENDER', votes: 0 },
+  { id: "alaba", name: 'David Alaba', role: 'DEFENDER', votes: 0 },
+  { id: "rudiger", name: 'Antonio Rudiger', role: 'DEFENDER', votes: 0 },
+  { id: "marquinhos", name: 'Marquinhos', role: 'DEFENDER', votes: 0 },
+  { id: "araujo", name: 'Ronald Araujo', role: 'DEFENDER', votes: 0 },
+
+  // ===== GOALKEEPERS - 4 =====
   { id: "courtois", name: 'Thibaut Courtois', role: 'GOALKEEPER', votes: 0 },
+  { id: "ter-stegen", name: 'Marc-Andre ter Stegen', role: 'GOALKEEPER', votes: 0 },
+  { id: "alisson", name: 'Alisson Becker', role: 'GOALKEEPER', votes: 0 },
+  { id: "ederson", name: 'Ederson', role: 'GOALKEEPER', votes: 0 },
 ];
 
+// ============= MOVIES =============
 const MOVIES_PLAYERS = [
+  { id: "jr ntr", name: 'Jr NTR', role: 'HERO', votes: 0 },
   { id: "prabhas", name: 'Prabhas', role: 'HERO', votes: 0 },
-  { id: "jr-ntr", name: 'Jr NTR', role: 'HERO', votes: 0 },
   { id: "allu-arjun", name: 'Allu Arjun', role: 'HERO', votes: 0 },
   { id: "ram-charan", name: 'Ram Charan', role: 'HERO', votes: 0 },
   { id: "pawan-kalyan", name: 'Pawan Kalyan', role: 'HERO', votes: 0 },
   { id: "mahesh-babu", name: 'Mahesh Babu', role: 'HERO', votes: 0 },
-  { id: "vijay", name: 'Thalapathy Vijay', role: 'HERO', votes: 0 },
-  { id: "srk", name: 'Shah Rukh Khan', role: 'HERO', votes: 0 },
+  { id: "nani", name: 'Nani', role: 'HERO', votes: 0 },
+  { id: "ravi-teja", name: 'Ravi Teja', role: 'HERO', votes: 0 },
+  { id: "ram", name: 'Ram', role: 'HERO', votes: 0 },
+  { id: "chiranjeevi", name: 'Chiranjeevi', role: 'HERO', votes: 0 },
+  { id: "nagarjuna", name: 'Nagarjuna', role: 'HERO', votes: 0 },
+  { id: "balakrishna", name: 'Balakrishna', role: 'HERO', votes: 0 },
+  { id: "venkatesh", name: 'Venkatesh', role: 'HERO', votes: 0 },
+  { id: "vijay-devarakonda", name: 'Vijay Devarakonda', role: 'HERO', votes: 0 },
+  { id: "sai-dharam-tej", name: 'Sai Dharam Tej', role: 'HERO', votes: 0 },
+  { id: "siddu", name: 'Siddu', role: 'HERO', votes: 0 },
+  { id: "naga-chaitanya", name: 'Naga Chaitanya', role: 'HERO', votes: 0 },
+  { id: "akhil", name: 'Akhil', role: 'HERO', votes: 0 },
   { id: "prakash-raj", name: 'Prakash Raj', role: 'VILLAIN', votes: 0 },
   { id: "sonu-sood", name: 'Sonu Sood', role: 'VILLAIN', votes: 0 },
+  { id: "rana", name: 'Rana Daggubati', role: 'VILLAIN', votes: 0 },
+  { id: "Gopichand", name: 'Gopichand', role: 'VILLAIN', votes: 0 },
+  { id: "sudeep", name: 'Sudeep', role: 'VILLAIN', votes: 0 },
+  { id: "vijay-sethupathi", name: 'Vijay Sethupathi', role: 'VILLAIN', votes: 0 },
+  { id: "fahadh-faasl", name: 'Fahadh Faasil', role: 'VILLAIN', votes: 0 },
+  { id: "jagapathi-babu", name: 'Jagapathi Babu', role: 'VILLAIN', votes: 0 },
+  { id: "srikanth", name: 'SriKanth', role: 'VILLAIN', votes: 0 },
+  { id: "Sunil", name: 'Sunil', role: 'VILLAIN', votes: 0 },
 ];
+
 
 const ALL_DATA = { Cricket: CRICKET_PLAYERS, Football: FOOTBALL_PLAYERS, Movies: MOVIES_PLAYERS };
 export default function CrickClash() {
@@ -71,7 +195,7 @@ export default function CrickClash() {
   const [filter, setFilter] = useState('Any');
   const [tab, setTab] = useState('Battle');
   const [streak, setStreak] = useState(0);
-  const [votesThisWeek, setVotesThisWeek] = useState({Cricket: 0, Football: 0, Movies: 0});
+  const [votesToday, setVotesToday] = useState({Cricket: 0, Football: 0, Movies: 0});
   const [totalVotes, setTotalVotes] = useState(0);
   const [topPlayer, setTopPlayer] = useState(null);
   const [badges, setBadges] = useState([]);
@@ -86,40 +210,28 @@ export default function CrickClash() {
   const [weeklyWinner, setWeeklyWinner] = useState(null);
   const [replyTo, setReplyTo] = useState(null);
   const [newReply, setNewReply] = useState("");
+
+  // NEW TOP 3 STATES
   const [showResultCard, setShowResultCard] = useState(false);
   const [tournament, setTournament] = useState(null);
 
   const getToday = () => new Date().toISOString().split('T')[0];
-  const getWeekStart = () => {
-    const now = new Date();
-    const day = now.getDay();
-    const diff = now.getDate() - day + (day === 0? -6 : 1);
-    return new Date(now.setDate(diff)).toISOString().split('T')[0];
-  }
-  const getWeekNumber = () => {
-    const d = new Date();
-    d.setHours(0,0,0);
-    d.setDate(d.getDate() + 4 - (d.getDay()||7));
-    return d.getFullYear() + '-W' + String(Math.ceil(((d - new Date(d.getFullYear(),0,1))/86400000 + 1)/7)).padStart(2,'0');
-  };
+  const getWeekNumber = () => { const d = new Date(); d.setHours(0,0,0); d.setDate(d.getDate() + 4 - (d.getDay()||7)); return d.getFullYear() + '-W' + String(Math.ceil(((d - new Date(d.getFullYear(),0,1))/86400000 + 1)/7)).padStart(2,'0'); };
 
-  // WEEKLY TIMER
   useEffect(() => {
     const updateTimer = () => {
       const now = new Date();
-      const nextMonday = new Date();
-      const day = now.getDay();
-      const daysUntilMonday = day === 0? 1 : 8 - day;
-      nextMonday.setDate(now.getDate() + daysUntilMonday);
-      nextMonday.setHours(0, 0, 0, 0);
-      const diff = nextMonday - now;
-      const d = Math.floor(diff / 1000 / 60 / 60 / 24);
-      const h = Math.floor(diff / 1000 / 60 / 60) % 24;
+      const tomorrow = new Date();
+      tomorrow.setDate(now.getDate() + 1);
+      tomorrow.setHours(0, 0, 0, 0);
+      const diff = tomorrow - now;
+      const h = Math.floor(diff / 1000 / 60 / 60);
       const m = Math.floor(diff / 1000 / 60) % 60;
-      setTimeLeft(`${d}d ${h}h ${m}m`);
+      const s = Math.floor(diff / 1000) % 60;
+      setTimeLeft(`${h}h ${m}m ${s}s`);
     };
     updateTimer();
-    const interval = setInterval(updateTimer, 60000);
+    const interval = setInterval(updateTimer, 1000);
     return () => clearInterval(interval);
   }, []);
 
@@ -129,29 +241,16 @@ export default function CrickClash() {
     setCategory(days[todayIndex]);
   }, []);
 
-  useEffect(() => {
-    const saved = localStorage.getItem(`battleNo_${category}`);
-    if(saved) setBattleNo(Number(saved));
-    const battleNoRef = ref(db, `meta/${category}/battleNo`);
-    onValue(battleNoRef, (snap) => { if(snap.exists()) setBattleNo(snap.val()); });
-  }, [category]);
-
-  useEffect(() => {
-    localStorage.setItem(`battleNo_${category}`, battleNo);
-    update(ref(db, `meta/${category}`), { battleNo });
-  }, [battleNo, category]);
-
-  // WEEKLY RESET FUNCTION
-  const checkAndResetWeekly = useCallback(async () => {
-    const weekStart = getWeekStart();
+  const checkAndResetDaily = useCallback(async () => {
+    const today = getToday();
     const metaRef = ref(db, `meta/${category}`);
     const snap = await get(metaRef);
     const metaData = snap.val();
-    if (!metaData || metaData.lastResetWeek!== weekStart) {
+    if (!metaData || metaData.lastResetDate!== today) {
       const resetPlayers = {};
       ALL_DATA[category].forEach(p => { resetPlayers[p.id] = {...p, votes: 0}; });
       await set(ref(db, `players/${category}`), resetPlayers);
-      await set(metaRef, { lastResetWeek: weekStart, totalVotes: 0, battleNo: 1 });
+      await set(metaRef, { lastResetDate: today, totalVotes: 0, battleNo: 1 });
     }
   }, [category]);
 
@@ -172,6 +271,7 @@ export default function CrickClash() {
   }, [category]);
 
   useEffect(() => { loadWeeklyWinner(); }, [category, loadWeeklyWinner]);
+
   const handleDeleteHistory = async () => {
     if(!user) return alert("Login required");
     if(window.confirm("Are you sure?")){ await remove(ref(db, `users/${user.uid}/${category}/history`)); setBattleHistory([]); }
@@ -212,16 +312,8 @@ export default function CrickClash() {
     if(!newReply.trim()) return;
     const time = Date.now();
     const battleKey = getBattleKey();
-    await set(ref(db, `comments/${battleKey}/${commentKey}/replies/${time}`), { text: newReply, user: user.displayName, photo: user.photoURL, time: time, likes: {} });
+    await set(ref(db, `comments/${battleKey}/${commentKey}/replies/${time}`), { text: newReply, user: user.displayName, photo: user.photoURL, time: time });
     setNewReply(""); setReplyTo(null);
-  };
-
-  const handleLikeReply = async (commentKey, replyKey) => {
-    if(!user) return alert("Login required");
-    const battleKey = getBattleKey();
-    const likeRef = ref(db, `comments/${battleKey}/${commentKey}/replies/${replyKey}/likes/${user.uid}`);
-    const snap = await get(likeRef);
-    if(snap.exists()){ await remove(likeRef); } else { await set(likeRef, true); }
   };
 
   useEffect(() => {
@@ -229,10 +321,7 @@ export default function CrickClash() {
     const battleKey = getBattleKey();
     const unsubscribe = onValue(ref(db, `comments/${battleKey}`), (snap) => {
       const data = snap.val();
-      if(data) {
-        const arr = Object.entries(data).map(([key, val]) => ({key,...val, replies: val.replies || {}}));
-        setComments(arr.sort((a,b) => b.time - a.time));
-      } else setComments([]);
+      setComments(data? Object.values(data).sort((a,b) => b.time - a.time) : []);
     });
     return () => unsubscribe();
   }, [battle, battleNo, category]);
@@ -248,7 +337,7 @@ export default function CrickClash() {
     if(data.lastVoteDate === yesterday) newStreak = (data.streak || 0) + 1;
     let newBadges = [...(data.badges || [])];
     if([3,7,30].includes(newStreak) &&!newBadges.includes(`${newStreak} Day Streak`)){ newBadges.push(`${newStreak} Day Streak`); }
-    if(votesThisWeek[category] === 0 &&!newBadges.includes(`First ${category} Vote`)) newBadges.push(`First ${category} Vote`);
+    if(votesToday[category] === 0 &&!newBadges.includes(`First ${category} Vote`)) newBadges.push(`First ${category} Vote`);
     if(!newBadges.includes(`${category} Fan`)) newBadges.push(`${category} Fan`);
     return {newStreak, newBadges};
   };
@@ -267,38 +356,25 @@ export default function CrickClash() {
     else { navigator.clipboard.writeText(`${text} ${url}`); alert("Copied!"); }
   };
 
-  const downloadResultCard = async () => {
-    const element = document.getElementById('result-card');
-    if(!element) return alert("Card dorakaledu");
-    try {
-      const canvas = await html2canvas(element, { backgroundColor: '#0a0a0f', scale: 2 });
-      const image = canvas.toDataURL('image/png');
-      const link = document.createElement('a');
-      link.download = `FanClash-${category}-Battle${battleNo-1}.png`;
-      link.href = image; link.click();
-    } catch { alert("Screenshot fail. Manual ga tey bro"); }
-  };
-
+  // TOP 3 NEW FUNCTIONS
   const handleRefer = async () => {
     if(!user) return alert("Login required");
     const refLink = `${window.location.origin}?ref=${user.uid}`;
     navigator.clipboard.writeText(`FanClash lo vote chey! ${refLink}`);
     alert("Referral link copied! Extra vote vastundi 🔥");
-    await update(ref(db, `users/${user.uid}/${category}`), { votesThisWeek: increment(-REFERRAL_BONUS_VOTE) });
-    setVotesThisWeek(prev => ({...prev, [category]: Math.max(0, prev[category] - 1)}));
-  };
+    await update(ref(db, `users/${user.uid}/${category}`), { votesToday: increment(-REFERRAL_BONUS_VOTE) });
+    setVotesToday(prev => ({...prev, [category]: Math.max(0, prev[category] - 1)}));
+  }
 
   const startTournament = () => {
     const shuffled = [...players].sort(() => 0.5 - Math.random()).slice(0, 8);
     if(shuffled.length < 8) return alert("8 players ledu");
     setTournament({ round: 1, matches: [[shuffled[0], shuffled[1]], [shuffled[2], shuffled[3]], [shuffled[4], shuffled[5]], [shuffled[6], shuffled[7]]], winner: null });
-  };
+  }
 
-  // WEEKLY VOTE LOGIC
   const handleVote = async (votedPlayerId) => {
-    const weekStart = getWeekStart();
     if(!user){ alert("Login required"); await signInWithPopup(auth, googleProvider); return; }
-    if(votesThisWeek[category] >= WEEKLY_VOTE_LIMIT || isVoting) return alert(`Ee week ${WEEKLY_VOTE_LIMIT} votes maatrame!`);
+    if(votesToday[category] >= DAILY_VOTE_LIMIT || isVoting) return alert(`Roju ${DAILY_VOTE_LIMIT} vote maatrame!`);
     setIsVoting(true); setVoteAnim(votedPlayerId); setTimeout(() => setVoteAnim(null), 500);
     const {newStreak, newBadges} = await updateStreak();
     const today = getToday();
@@ -307,14 +383,7 @@ export default function CrickClash() {
     const newHistory = [historyEntry,...battleHistory].slice(0, 50);
     const newBattleNo = battleNo + 1;
 
-    await update(ref(db, `users/${user.uid}/${category}`), {
-      votesThisWeek: increment(1),
-      lastVoteWeek: weekStart,
-      lastVoteDate: today,
-      streak: newStreak,
-      badges: newBadges,
-      history: newHistory
-    });
+    await update(ref(db, `users/${user.uid}/${category}`), { votesToday: increment(1), lastVoteDate: today, streak: newStreak, badges: newBadges, history: newHistory });
     await update(ref(db, `players/${category}/${votedPlayerId}`), { votes: increment(1) });
     await update(ref(db, `meta/${category}`), { totalVotes: increment(1), battleNo: newBattleNo });
 
@@ -325,7 +394,7 @@ export default function CrickClash() {
   const handleLogout = async () => { if(window.confirm("Logout?")) { await signOut(auth); setShowProfile(false); } };
 
   useEffect(() => {
-    checkAndResetWeekly();
+    checkAndResetDaily();
     onValue(ref(db, `meta/${category}`), (snapshot) => {
       const metaData = snapshot.val();
       if (metaData) { setBattleNo(metaData.battleNo || 1); setTotalVotes(metaData.totalVotes || 0); }
@@ -344,29 +413,29 @@ export default function CrickClash() {
         const initialPlayers = {};
         currentPlayers.forEach((p) => { initialPlayers[p.id] = {...p}; });
         set(ref(db, `players/${category}`), initialPlayers);
-        set(ref(db, `meta/${category}`), { lastResetWeek: getWeekStart(), totalVotes: 0, battleNo: 1 });
+        set(ref(db, `meta/${category}`), { lastResetDate: getToday(), totalVotes: 0, battleNo: 1 });
       }
     });
     onAuthStateChanged(auth, (currentUser) => {
-      const weekStart = getWeekStart();
       setUser(currentUser); setLoading(false);
       if(currentUser) {
         onValue(ref(db, `users/${currentUser.uid}/${category}`), (snapshot) => {
           const userData = snapshot.val();
           if(userData){
-            setVotesThisWeek(prev => ({...prev, [category]: userData.lastVoteWeek === weekStart? userData.votesThisWeek || 0 : 0}));
+            setVotesToday(prev => ({...prev, [category]: userData.lastVoteDate === getToday()? userData.votesToday || 0 : 0}))
             setStreak(userData.streak || 0); setBadges(userData.badges || []); setBattleHistory(userData.history || []);
           }
         });
-      } else { setVotesThisWeek({Cricket: 0, Football: 0, Movies: 0}); setStreak(0); setBadges([]); setBattleHistory([]); }
+      } else { setVotesToday({Cricket: 0, Football: 0, Movies: 0}); setStreak(0); setBadges([]); setBattleHistory([]); }
     });
-  }, [category, checkAndResetWeekly, checkWeeklyWinner, filter, generateBattle, loadWeeklyWinner]);
+  }, [category, checkAndResetDaily, checkWeeklyWinner, filter, generateBattle, loadWeeklyWinner]);
   if(loading) return <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center text-white">Loading...</div>;
 
   return (
-    <div className="min-h-screen bg-[#0a0a0f] text-white">
+    <div className="min-h-screen bg-[#0a0a0f] text-white flex-col">
       <style>{`@keyframes pop { 0%{transform:scale(1)} 50%{transform:scale(1.15)} 100%{transform:scale(1)} } @keyframes float { 0%{transform:translateY(0)} 50%{transform:translateY(-10px)} 100%{transform:translateY(0)} }.vote-pop { animation: pop 0.5s ease; }.float { animation: float 2s ease-in-out infinite; }`}</style>
 
+      {/* PLAYER DETAIL MODAL */}
       {selectedPlayer && (
         <div onClick={() => setSelectedPlayer(null)} className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
           <div onClick={e => e.stopPropagation()} className="bg-[#13131a] p-6 rounded-2xl w-full max-w-sm">
@@ -382,41 +451,17 @@ export default function CrickClash() {
         </div>
       )}
 
-      {showResultCard && battle[0] && battle[1] && (
-        <div onClick={() => setShowResultCard(false)} className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
-          <div onClick={e => e.stopPropagation()} id="result-card" className="bg-gradient-to-br from-[#1e3a5f] to-[#0a0a0f] p-6 rounded-3xl w-full max-w-sm border-2 border-[#a8ff00]">
-            <h2 className="text-center text-2xl font-bold mb-1">FanClash {category}</h2>
-            <p className="text-center text-gray-400 text-sm mb-4">Battle #{battleNo-1} Result</p>
-            <div className="flex gap-3 items-center mb-4">
-              {[battle[0], battle[1]].map(p => {
-                const total = (battle[0]?.votes || 0) + (battle[1]?.votes || 0);
-                const percent = total > 0? ((p.votes / total) * 100).toFixed(0) : 50;
-                return (
-                  <div key={p.id} className="flex-1 text-center p-3 rounded-2xl bg-[#13131a]">
-                    <div className="w-16 h-16 rounded-full mx-auto mb-2 bg-[#a8ff00] text-black flex items-center justify-center text-2xl font-bold">{p.name[0]}</div>
-                    <p className="font-bold text-sm">{p.name}</p>
-                    <p className="text-2xl font-bold text-[#a8ff00]">{percent}%</p>
-                  </div>
-                )
-              })}
-            </div>
-            <button onClick={downloadResultCard} className="w-full bg-gradient-to-r from-purple-600 to-pink-600 py-3 rounded-xl font-bold">📸 Download Image</button>
-            <button onClick={() => setShowResultCard(false)} className="w-full bg-[#23232b] py-2 rounded-xl font-bold mt-2">Close</button>
-          </div>
-        </div>
-      )}
-
-      <div className="max-w-md mx-auto w-full p-4">
+      <div className="max-w-md mx-auto w-full flex-1 p-4">
         <header className="flex justify-between items-center mb-4">
           <div><h1 className="text-2xl font-bold">FanClash</h1><p className="text-xs text-gray-400">ANESH Innovation</p></div>
           <div className="relative">
             {user?
-              <img src={user.photoURL} onClick={() => setShowProfile(!showProfile)} className="w-10 h-10 rounded-full border-2 border-[#a8ff00] cursor-pointer hover:scale-110 transition" alt="user" />
+              <img src={user.photoURL} onClick={() => setShowProfile(!showProfile)} className="w-10 h-10 rounded-full border-2 border-[#a8ff00] cursor-pointer hover:scale-110 transition" />
               :
               <button onClick={handleGoogleLogin} className="bg-[#a8ff00] text-black px-4 py-2 rounded-full font-bold text-sm">Login</button>
             }
             {showProfile && user && (
-              <div className="absolute right-0 mt-2 w-44 bg-[#1A1A1A] border border-[#333] rounded-xl shadow-2xl z-50">
+              <div className="absolute right-0 mt-2 w-44 bg-[#1A1A1A] border-[#333] rounded-xl shadow-2xl z-50">
                 <div className="px-4 py-3 border-b border-[#333]"><p className="text-white text-sm font-semibold">{user.displayName}</p><p className="text-gray-400 text-xs truncate">{user.email}</p></div>
                 <button onClick={handleLogout} className="w-full text-left px-4 py-3 text-red-400 hover:bg-[#222] rounded-b-xl">Logout</button>
               </div>
@@ -424,6 +469,7 @@ export default function CrickClash() {
           </div>
         </header>
 
+        {/* CATEGORY TABS */}
         <div className="flex justify-center gap-2 mb-4 bg-[#13131a] p-1 rounded-2xl">
           {Object.keys(ALL_DATA).map(cat => (
             <button key={cat} onClick={() => setCategory(cat)} className={`flex-1 py-2 rounded-xl font-bold text-sm transition ${category === cat? 'bg-[#a8ff00] text-black' : 'text-gray-400 hover:bg-[#222]'}`}>
@@ -432,18 +478,20 @@ export default function CrickClash() {
           ))}
         </div>
 
-        {!user && <div className="bg-[#a8ff00]/10 border-[#a8ff00] p-3 rounded-2xl mb-3 text-center text-sm">Login to get 3 votes per week</div>}
+        {!user && <div className="bg-[#a8ff00]/10 border-[#a8ff00] p-3 rounded-2xl mb-3 text-center text-sm">Login to get 3 votes per day 1 for each category</div>}
 
+        {/* DAILY BATTLE HEADER */}
         <div className="bg-gradient-to-r from-orange-600 to-red-600 p-3 rounded-2xl mb-3 text-center">
-          <p className="text-sm font-bold">🔥 Weekly Fan Battle</p>
+          <p className="text-sm font-bold">🔥 Daily Fan Battle</p>
           <p className="text-lg font-bold">
             {category === 'Cricket' && 'Best Cricketer of All Time?'}
             {category === 'Football' && 'GOAT Football Debate'}
             {category === 'Movies' && 'King of Indian Cinema?'}
           </p>
-          <p className="text-xs">Reset in: {timeLeft}</p>
+          <p className="text-xs">Resets in: {timeLeft}</p>
         </div>
 
+        {/* WEEKLY CHAMPION */}
         {weeklyWinner && (
           <div className="bg-gradient-to-r from-yellow-500 to-orange-500 p-3 rounded-2xl mb-3 text-center">
             <p className="text-sm font-bold text-black">👑 {category} WEEKLY CHAMPION</p>
@@ -451,24 +499,34 @@ export default function CrickClash() {
           </div>
         )}
 
+        <div className="bg-[#13131a] p-3 rounded-2xl mb-3">
+          <p className="text-sm text-gray-400 mb-2">Your {category} Badges</p>
+          <div className="flex gap-2 flex-wrap">
+            {user? badges.map(b => <span key={b} className="bg-[#a8ff00] text-black px-3 py-1 rounded-full text-sm font-bold float">🏆 {b}</span>) : <span className="text-gray-500 text-sm">Login to see badges</span>}
+          </div>
+        </div>
+
+        {/* VOTES CARD */}
         <div className="bg-[#13131a] p-4 rounded-2xl mb-4 text-center">
-          <p className="text-gray-400 text-sm mb-2">This Week's Votes Left</p>
+          <p className="text-gray-400 text-sm mb-2">Today's Votes Left</p>
           <div className="grid grid-cols-3 gap-2">
-            <div className={`bg-[#0a0a0f] p-2 rounded-xl ${votesThisWeek.Cricket >= 3? 'opacity-50' : ''}`}><p className="text-2xl font-bold text-[#a8ff00]">{WEEKLY_VOTE_LIMIT - votesThisWeek.Cricket}</p><p className="text-xs">🏏 Cricket</p></div>
-            <div className={`bg-[#0a0a0f] p-2 rounded-xl ${votesThisWeek.Football >= 3? 'opacity-50' : ''}`}><p className="text-2xl font-bold text-[#a8ff00]">{WEEKLY_VOTE_LIMIT - votesThisWeek.Football}</p><p className="text-xs">⚽ Football</p></div>
-            <div className={`bg-[#0a0a0f] p-2 rounded-xl ${votesThisWeek.Movies >= 3? 'opacity-50' : ''}`}><p className="text-2xl font-bold text-[#a8ff00]">{WEEKLY_VOTE_LIMIT - votesThisWeek.Movies}</p><p className="text-xs">🎬 Movies</p></div>
+            <div className={`bg-[#0a0a0f] p-2 rounded-xl ${votesToday.Cricket >= 1? 'opacity-50' : ''}`}><p className="text-2xl font-bold text-[#a8ff00]">{DAILY_VOTE_LIMIT - votesToday.Cricket}</p><p className="text-xs">🏏 Cricket</p></div>
+            <div className={`bg-[#0a0a0f] p-2 rounded-xl ${votesToday.Football >= 1? 'opacity-50' : ''}`}><p className="text-2xl font-bold text-[#a8ff00]">{DAILY_VOTE_LIMIT - votesToday.Football}</p><p className="text-xs">⚽ Football</p></div>
+            <div className={`bg-[#0a0a0f] p-2 rounded-xl ${votesToday.Movies >= 1? 'opacity-50' : ''}`}><p className="text-2xl font-bold text-[#a8ff00]">{DAILY_VOTE_LIMIT - votesToday.Movies}</p><p className="text-xs">🎬 Movies</p></div>
           </div>
           <p className="text-xs text-gray-500 mt-2">Reset in: {timeLeft}</p>
         </div>
 
+        {/* TABS */}
         <div className="flex justify-around border-b border-gray-800 mb-4">
           <button onClick={() => setTab('Battle')} className={`pb-2 font-bold transition ${tab === 'Battle'? 'text-[#a8ff00] border-b-2 border-[#a8ff00]' : 'text-gray-500'}`}>⚔️ Battle</button>
           <button onClick={() => setTab('Rankings')} className={`pb-2 font-bold transition ${tab === 'Rankings'? 'text-[#a8ff00] border-b-2 border-[#a8ff00]' : 'text-gray-500'}`}>🏆 Rankings</button>
           <button onClick={() => setTab('History')} className={`pb-2 font-bold transition ${tab === 'History'? 'text-[#a8ff00] border-b-2 border-[#a8ff00]' : 'text-gray-500'}`}>📜 History</button>
         </div>
 
-        {tab === 'Battle' && battle[0] && battle[1] && (
-          <div>
+        {/* BATTLE TAB */}
+        {tab === 'Battle' && (
+          <>
             <div className="grid grid-cols-4 text-center mb-6">
               <div><p className="text-2xl font-bold text-orange-400">{totalVotes}</p><p className="text-xs text-gray-400">TOTAL</p></div>
               <div><p className="text-2xl font-bold text-orange-400">{battleNo-1}</p><p className="text-xs text-gray-400">BATTLES</p></div>
@@ -477,96 +535,68 @@ export default function CrickClash() {
             </div>
             <h2 className="text-center text-4xl font-bold mb-4">Battle <span className="text-[#a8ff00]">{battleNo}</span></h2>
 
+            {/* ROLE FILTERS */}
             <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
               {category === 'Cricket' && ['Any', 'BATTER', 'BOWLER', 'ALL-ROUNDER', 'KEEPER', 'CAPTAIN'].map(role => (
-                <button key={role} onClick={() => {setFilter(role); generateBattle(players, role)}} className={`px-4 py-2 rounded-full font-bold whitespace-nowrap ${filter === role? 'bg-[#a8ff00] text-black' : 'bg-[#13131a]'}`}>{role}</button>
+                <button key={role} onClick={() => setFilter(role)} className={`px-4 py-2 rounded-full font-bold whitespace-nowrap ${filter === role? 'bg-[#a8ff00] text-black' : 'bg-[#13131a]'}`}>{role}</button>
               ))}
               {category === 'Football' && ['Any', 'FORWARD', 'MIDFIELDER', 'DEFENDER', 'GOALKEEPER'].map(role => (
-                <button key={role} onClick={() => {setFilter(role); generateBattle(players, role)}} className={`px-4 py-2 rounded-full font-bold whitespace-nowrap ${filter === role? 'bg-[#a8ff00] text-black' : 'bg-[#13131a]'}`}>{role}</button>
+                <button key={role} onClick={() => setFilter(role)} className={`px-4 py-2 rounded-full font-bold whitespace-nowrap ${filter === role? 'bg-[#a8ff00] text-black' : 'bg-[#13131a]'}`}>{role}</button>
               ))}
               {category === 'Movies' && ['Any', 'HERO', 'VILLAIN'].map(role => (
-                <button key={role} onClick={() => {setFilter(role); generateBattle(players, role)}} className={`px-4 py-2 rounded-full font-bold whitespace-nowrap ${filter === role? 'bg-[#a8ff00] text-black' : 'bg-[#13131a]'}`}>{role}</button>
+                <button key={role} onClick={() => setFilter(role)} className={`px-4 py-2 rounded-full font-bold whitespace-nowrap ${filter === role? 'bg-[#a8ff00] text-black' : 'bg-[#13131a]'}`}>{role}</button>
               ))}
             </div>
 
-            <div className="flex gap-4 mb-4">
-              {[battle[0], battle[1]].map(p => (
-                <div key={p.id} onClick={() => setSelectedPlayer(p)} className={`flex-1 bg-[#13131a] p-4 rounded-2xl text-center cursor-pointer ${voteAnim === p.id? 'vote-pop' : ''}`}>
-                  <div className="w-20 h-20 rounded-full mx-auto mb-2 bg-[#a8ff00] text-black flex items-center justify-center text-3xl font-bold">{p.name[0]}</div>
-                  <span className="px-3 py-1 rounded-full text-xs font-bold bg-gray-800">{p.role}</span>
-                  <h3 className="text-xl font-bold mt-3">{p.name}</h3>
-                  <p className="text-[#a8ff00] font-bold">{p.votes || 0} votes</p>
-                  <button onClick={(e) => {e.stopPropagation(); handleVote(p.id)}} disabled={isVoting || votesThisWeek[category] >= WEEKLY_VOTE_LIMIT} className={`w-full py-3 rounded-xl font-bold mt-2 ${votesThisWeek[category] >= WEEKLY_VOTE_LIMIT? 'bg-gray-700' : 'bg-[#a8ff00] text-black'}`}>
-                    {isVoting? 'VOTING...' : votesThisWeek[category] >= WEEKLY_VOTE_LIMIT? 'VOTED THIS WEEK' : 'VOTE'}
-                  </button>
+            {battle[0] && battle[1]? (
+              <div>
+                <div className="flex items-center justify-center gap-2">
+                  {[battle[0], battle[1]].map(p => (
+                    <div key={p.id} onClick={() => setSelectedPlayer(p)} className={`bg-gradient-to-b from-[#1e3a5f] to-[#0a0e1a] p-4 rounded-2xl w-1/2 text-center ${voteAnim === p.id? 'vote-pop' : ''}`}>
+                      <div className="w-20 h-20 rounded-full mx-auto mb-2 bg-[#a8ff00] text-black flex items-center justify-center text-3xl font-bold">{p.name[0]}</div>
+                      <span className="px-3 py-1 rounded-full text-xs font-bold bg-gray-800">{p.role}</span>
+                      <h3 className="text-xl font-bold mt-3">{p.name}</h3>
+                      <p className="text-[#a8ff00] font-bold">{p.votes || 0} votes</p>
+                      <button onClick={(e) => {e.stopPropagation(); handleVote(p.id)}} disabled={isVoting || votesToday[category] >= DAILY_VOTE_LIMIT} className={`w-full py-3 rounded-xl font-bold mt-2 ${votesToday[category] >= DAILY_VOTE_LIMIT? 'bg-gray-700' : 'bg-[#a8ff00] text-black'}`}>
+                        {isVoting? 'VOTING...' : votesToday[category] >= DAILY_VOTE_LIMIT? 'VOTED TODAY' : 'VOTE'}
+                      </button>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-
-            <div className="flex gap-2 mt-4">
-              <button onClick={handleSkip} className="flex-1 bg-[#23232b] py-3 rounded-xl font-bold">⏭️ Skip</button>
-              <button onClick={() => setShowResultCard(true)} className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 py-3 rounded-xl font-bold">📸 Result</button>
-            </div>
-
-            {/* DEBATE ZONE */}
-            <div className="bg-[#13131a] p-4 rounded-2xl mt-4">
-              <h3 className="font-bold mb-3">💬 Debate Zone</h3>
-              <div className="flex gap-2 mb-3">
-                <input value={newComment} onChange={e => setNewComment(e.target.value)} placeholder="Who will win?" className="w-full bg-[#0a0a0f] p-2 rounded-lg outline-none" />
-                <button onClick={handlePostComment} className="bg-[#a8ff00] text-black px-4 rounded-lg font-bold">Post</button>
-              </div>
-
-              <div className="space-y-3 max-h-60 overflow-y-auto">
-                {comments.length === 0 && <p className="text-gray-500 text-sm">No comments yet. Be first!</p>}
-                {comments.map((c) => {
-                  const likeCount = c.likes? Object.keys(c.likes).length : 0;
-                  return (
-                    <div key={c.key} className="bg-[#0a0a0f] p-3 rounded-lg">
-                      <div className="flex gap-2">
-                        <img src={c.photo} className="w-8 h-8 rounded-full" alt="user" />
-                        <div className="flex-1">
+<div className="bg-[#13131a] p-4 rounded-2xl mt-4">
+                  <h3 className="font-bold mb-3">💬 Debate Zone</h3>
+                  <div className="flex gap-2 mb-3">
+                    <input value={newComment} onChange={e => setNewComment(e.target.value)} placeholder="Who will win?" className="w-full bg-[#0a0a0f] p-2 rounded-lg outline-none" />
+                    <button onClick={handlePostComment} className="bg-[#a8ff00] text-black px-4 rounded-lg font-bold">Post</button>
+                  </div>
+                  <div className="space-y-3 max-h-60 overflow-y-auto">
+                    {comments.length === 0 && <p className="text-gray-500 text-sm">No comments yet. Be first!</p>}
+                    {comments.map((c) => {
+                      const likeCount = c.likes? Object.keys(c.likes).length : 0;
+                      return (
+                        <div key={c.time} className="bg-[#0a0a0f] p-3 rounded-lg">
                           <p className="font-bold text-xs">{c.user}</p>
                           <p className="text-sm">{c.text}</p>
-                          <div className="flex gap-3 mt-1 text-xs text-gray-400">
-                            <button onClick={() => handleLikeComment(c.key)}>🤍 {likeCount}</button>
-                            <button onClick={() => setReplyTo(c.key)}>↩️ Reply</button>
-                          </div>
+                          <button onClick={() => handleLikeComment(c.time)} className="text-xs text-gray-400 mt-1">🤍 {likeCount}</button>
                         </div>
-                      </div>
+                      )
+                    })}
+                  </div>
+                </div>
 
-                      {c.replies && Object.entries(c.replies).length > 0 && (
-                        <div className="ml-6 mt-2 space-y-2 border-l-2 border-[#23232b] pl-3">
-                          {Object.entries(c.replies).map(([rk, r]) => (
-                            <div key={rk} className="flex gap-2">
-                              <img src={r.photo} className="w-6 h-6 rounded-full" alt="user" />
-                              <div className="flex-1">
-                                <p className="font-bold text-xs">{r.user}</p>
-                                <p className="text-sm">{r.text}</p>
-                                <button onClick={() => handleLikeReply(c.key, rk)} className="text-xs text-gray-400 mt-1">🤍 {r.likes? Object.keys(r.likes).length : 0}</button>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-
-                      {replyTo === c.key && (
-                        <div className="flex gap-2 mt-2 ml-6">
-                          <input value={newReply} onChange={e => setNewReply(e.target.value)} placeholder="Write reply..." className="w-full bg-[#13131a] p-2 rounded-lg outline-none text-sm" />
-                          <button onClick={() => handlePostReply(c.key)} className="bg-[#a8ff00] text-black px-3 rounded-lg font-bold text-sm">Send</button>
-                        </div>
-                      )}
-                    </div>
-                  )
-                })}
+                {/* 5 BUTTONS */}
+                <div className="flex gap-2 mt-4">
+                  <button onClick={handleShareResult} className="flex-1 bg-[#23232b] py-3 rounded-xl font-bold">📤 Share</button>
+                  <button onClick={() => setShowResultCard(true)} className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 py-3 rounded-xl font-bold">📸 Result</button>
+                  <button onClick={handleSkip} className="flex-1 bg-[#23232b] py-3 rounded-xl font-bold">⏭️ Skip</button>
+                </div>
+                <div className="flex gap-2 mt-3">
+                  <button onClick={handleRefer} className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 py-3 rounded-xl font-bold">👥 Refer</button>
+                  <button onClick={startTournament} className="flex-1 bg-gradient-to-r from-yellow-600 to-orange-600 py-3 rounded-xl font-bold">🏆 Tournament</button>
+                </div>
               </div>
-            </div>
-
-            <div className="flex gap-2 mt-4">
-              <button onClick={handleShareResult} className="flex-1 bg-[#23232b] py-3 rounded-xl font-bold">📤 Share</button>
-              <button onClick={handleRefer} className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 py-3 rounded-xl font-bold">👥 Refer</button>
-            </div>
-            <button onClick={startTournament} className="w-full bg-gradient-to-r from-yellow-600 to-orange-600 py-3 rounded-xl font-bold mt-3">🏆 Tournament</button>
-          </div>
+            ) : <p className="text-center">Loading Players...</p>}
+          </>
         )}
 
         {/* RANKINGS TAB */}
@@ -607,7 +637,34 @@ export default function CrickClash() {
           </div>
         )}
       </div>
-{tournament && (
+
+      {/* MODAL 1: RESULT CARD */}
+      {showResultCard && battle[0] && battle[1] && (
+        <div onClick={() => setShowResultCard(false)} className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
+          <div onClick={e => e.stopPropagation()} className="bg-gradient-to-br from-[#1e3a5f] to-[#0a0e1a] p-6 rounded-3xl w-full max-w-sm border-2 border-[#a8ff00]">
+            <h2 className="text-center text-2xl font-bold mb-1">FanClash {category}</h2>
+            <p className="text-center text-gray-400 text-sm mb-4">Battle #{battleNo-1} Result</p>
+            <div className="flex gap-3 items-center mb-4">
+              {[battle[0], battle[1]].map(p => {
+                const total = battle[0].votes + battle[1].votes;
+                const percent = total > 0? ((p.votes / total) * 100).toFixed(0) : 50;
+                return (
+                  <div key={p.id} className="flex-1 text-center p-3 rounded-2xl bg-[#13131a]">
+                    <div className="w-16 h-16 rounded-full mx-auto mb-2 bg-[#a8ff00] text-black flex items-center justify-center text-2xl font-bold">{p.name[0]}</div>
+                    <p className="font-bold text-sm">{p.name}</p>
+                    <p className="text-2xl font-bold text-[#a8ff00]">{percent}%</p>
+                  </div>
+                )
+              })}
+            </div>
+            <button onClick={() => alert("Screenshot teesi share chey! 📸")} className="w-full bg-gradient-to-r from-purple-600 to-pink-600 py-3 rounded-xl font-bold">📸 Screenshot</button>
+            <button onClick={() => setShowResultCard(false)} className="w-full bg-[#23232b] py-2 rounded-xl font-bold mt-2">Close</button>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 2: TOURNAMENT */}
+      {tournament && (
         <div onClick={() => setTournament(null)} className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
           <div onClick={e => e.stopPropagation()} className="bg-[#13131a] p-6 rounded-2xl w-full max-w-md">
             <h2 className="text-2xl font-bold text-center mb-4">🏆 Round {tournament.round}</h2>
@@ -628,4 +685,4 @@ export default function CrickClash() {
       </footer>
     </div>
   );
-                                      }
+                                                                       }
