@@ -19,6 +19,7 @@ const auth = getAuth(app);
 const db = getDatabase(app);
 const googleProvider = new GoogleAuthProvider();
 const DAILY_VOTE_LIMIT = 1;
+const REFERRAL_BONUS_VOTE = 1;
 
 // ============= CRICKET PLAYERS - 70 =============
 const CRICKET_PLAYERS = [
