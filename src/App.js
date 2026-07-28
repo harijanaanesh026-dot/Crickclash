@@ -213,7 +213,6 @@ export default function CrickClash() {
   const getToday = () => new Date().toISOString().split('T')[0];
   const getWeekNumber = () => { const d = new Date(); d.setHours(0,0,0); d.setDate(d.getDate() + 4 - (d.getDay()||7)); return d.getFullYear() + '-W' + String(Math.ceil(((d - new Date(d.getFullYear(),0,1))/86400000 + 1)/7)).padStart(2,'0'); };
 
-  // TIMER
   useEffect(() => {
     const updateTimer = () => {
       const now = new Date();
@@ -231,7 +230,6 @@ export default function CrickClash() {
     return () => clearInterval(interval);
   }, []);
 
-  // AUTO DAILY CATEGORY SWITCH - 🔥 DAILY BATTLE
   useEffect(() => {
     const days = ['Cricket', 'Football', 'Movies'];
     const todayIndex = new Date().getDay() % 3;
@@ -447,7 +445,7 @@ export default function CrickClash() {
 
   return (
     <div className="min-h-screen bg-[#0a0a0f] text-white flex-col">
-      <style>{`@keyframes pop { 0%{transform:scale(1)} 50%{transform:scale(1.15)} 100%{transform:scale(1)} } @keyframes float { 0%{transform:translateY(0)} 50%{transform:translateY(-10px)} 100%{transform:translateY(0)} }.vote-pop { animation: pop 0.5s ease; }.float { animation: float 2s ease-in-out infinite; }`}</style>
+      <style>{`@keyframes pop { 0%{transform:scale(1)} 50%{transform:scale(1.15)} 100%{transform:scale(1)} } @keyframes float { 0%{transform:translateY(0)} 50%{transform:translateY(-10px)} 100%{transform:translateY(0)} } @keyframes fire { 0%{transform:scale(1)} 50%{transform:scale(1.2)} 100%{transform:scale(1)} }.vote-pop { animation: pop 0.5s ease; }.float { animation: float 2s ease-in-out infinite; }.fire-anim { animation: fire 1s ease-in-out infinite; }`}</style>
 
       {selectedPlayer && (
         <div onClick={() => setSelectedPlayer(null)} className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
@@ -458,6 +456,11 @@ export default function CrickClash() {
             <div className="mt-4 space-y-2">
               <div className="flex justify-between"><span>Total Votes</span><span className="font-bold">{selectedPlayer.votes}</span></div>
               <div className="flex justify-between"><span>Win Rate</span><span className="font-bold">{totalVotes > 0? ((selectedPlayer.votes/totalVotes)*100).toFixed(1) : 0}%</span></div>
+              <div className="mt-3">
+                <div className="w-full bg-gray-700 rounded-full h-3">
+                  <div className="bg-gradient-to-r from-yellow-400 to-orange-500 h-3 rounded-full transition-all duration-700" style={{width: `${totalVotes > 0? (selectedPlayer.votes/totalVotes)*100 : 0}%`}}></div>
+                </div>
+              </div>
             </div>
             <button onClick={() => setSelectedPlayer(null)} className="w-full bg-[#a8ff00] text-black mt-4 py-2 rounded-xl font-bold">Close</button>
           </div>
@@ -467,22 +470,24 @@ export default function CrickClash() {
       <div className="max-w-md mx-auto w-full flex-1 p-4">
         <header className="flex justify-between items-center mb-4">
           <div><h1 className="text-2xl font-bold">FanClash<span className="text-[#FF7A00]"></span></h1><p className="text-xs text-gray-400">ANESH Innovation</p></div>
-          <div className="relative">
-            {user?
-              <img src={user.photoURL} onClick={() => setShowProfile(!showProfile)} className="w-10 h-10 rounded-full border-2 border-[#a8ff00] cursor-pointer hover:scale-110 transition" />
-              :
-              <button onClick={handleGoogleLogin} className="bg-[#a8ff00] text-black px-4 py-2 rounded-full font-bold text-sm">Login</button>
-            }
-            {showProfile && user && (
-              <div className="absolute right-0 mt-2 w-44 bg-[#1A1A1A] border-[#333] rounded-xl shadow-2xl z-50">
-                <div className="px-4 py-3 border-b border-[#333]"><p className="text-white text-sm font-semibold">{user.displayName}</p><p className="text-gray-400 text-xs truncate">{user.email}</p></div>
-                <button onClick={handleLogout} className="w-full text-left px-4 py-3 text-red-400 hover:bg-[#222] rounded-b-xl">Logout</button>
-              </div>
-            )}
+          <div className="flex items-center gap-2">
+            {user && streak > 0 && <div className="bg-red-600/20 px-3 py-1 rounded-full flex items-center gap-1 fire-anim"><span>🔥</span><span className="font-bold text-sm">{streak}</span></div>}
+            <div className="relative">
+              {user?
+                <img src={user.photoURL} onClick={() => setShowProfile(!showProfile)} className="w-10 h-10 rounded-full border-2 border-[#a8ff00] cursor-pointer hover:scale-110 transition" />
+                :
+                <button onClick={handleGoogleLogin} className="bg-[#a8ff00] text-black px-4 py-2 rounded-full font-bold text-sm">Login</button>
+              }
+              {showProfile && user && (
+                <div className="absolute right-0 mt-2 w-44 bg-[#1A1A1A] border-[#333] rounded-xl shadow-2xl z-50">
+                  <div className="px-4 py-3 border-b border-[#333]"><p className="text-white text-sm font-semibold">{user.displayName}</p><p className="text-gray-400 text-xs truncate">{user.email}</p></div>
+                  <button onClick={handleLogout} className="w-full text-left px-4 py-3 text-red-400 hover:bg-[#222] rounded-b-xl">Logout</button>
+                </div>
+              )}
+            </div>
           </div>
         </header>
 
-        {/* 1. 3 CATEGORY TABS - 🏏 ⚽ 🎬 */}
         <div className="flex justify-center gap-2 mb-4 bg-[#13131a] p-1 rounded-2xl">
           {Object.keys(ALL_DATA).map(cat => (
             <button key={cat} onClick={() => setCategory(cat)} className={`flex-1 py-2 rounded-xl font-bold text-sm transition ${category === cat? 'bg-[#a8ff00] text-black' : 'text-gray-400 hover:bg-[#222]'}`}>
@@ -493,7 +498,6 @@ export default function CrickClash() {
 
         {!user && <div className="bg-[#a8ff00]/10 border-[#a8ff00] p-3 rounded-2xl mb-3 text-center text-sm">Login to get 3 votes per day 1 for each category</div>}
 
-        {/* 2. 🔥 DAILY FAN BATTLE HEADER */}
         <div className="bg-gradient-to-r from-orange-600 to-red-600 p-3 rounded-2xl mb-3 text-center">
           <p className="text-sm font-bold">🔥 Daily Fan Battle</p>
           <p className="text-lg font-bold">
@@ -504,13 +508,21 @@ export default function CrickClash() {
           <p className="text-xs">Resets in: {timeLeft}</p>
         </div>
 
-        {/* 3. 🏆 WEEKLY FAN CHAMPIONS */}
         {weeklyWinner && (
           <div className="bg-gradient-to-r from-yellow-500 to-orange-500 p-3 rounded-2xl mb-3 text-center">
             <p className="text-sm font-bold text-black">👑 {category} WEEKLY CHAMPION</p>
             <p className="text-lg font-bold text-black">{weeklyWinner.name} - {weeklyWinner.votes} Votes</p>
           </div>
         )}
+
+        <div className="bg-[#13131a] p-3 rounded-2xl mb-3">
+          <p className="text-sm font-bold mb-2">👑 Fan of the Week - {category}</p>
+          <div className="space-y-2">
+            <div className="flex items-center gap-2"><span className="text-yellow-400">🥇</span><span className="text-sm">You - {votesToday[category]} votes</span></div>
+            <div className="flex items-center gap-2"><span>🥈</span><span className="text-sm text-gray-400">Coming Soon</span></div>
+            <div className="flex items-center gap-2"><span>🥉</span><span className="text-sm text-gray-400">Vote to climb!</span></div>
+          </div>
+        </div>
 
         <div className="bg-[#13131a] p-3 rounded-2xl mb-3">
           <p className="text-sm text-gray-400 mb-2">Your {category} Badges</p>
@@ -520,7 +532,6 @@ export default function CrickClash() {
           </div>
         </div>
 
-        {/* 3 VOTES CARD */}
         <div className="bg-[#13131a] p-4 rounded-2xl mb-4 text-center">
           <p className="text-gray-400 text-sm mb-2">Today's Votes Left</p>
           <div className="grid grid-cols-3 gap-2">
@@ -545,8 +556,7 @@ export default function CrickClash() {
           <button onClick={() => setTab('Rankings')} className={`pb-2 font-bold transition ${tab === 'Rankings'? 'text-[#a8ff00] border-b-2 border-[#a8ff00]' : 'text-gray-500'}`}>🏆 Rankings</button>
           <button onClick={() => setTab('History')} className={`pb-2 font-bold transition ${tab === 'History'? 'text-[#a8ff00] border-b-2 border-[#a8ff00]' : 'text-gray-500'}`}>📜 History</button>
         </div>
-
-        {tab === 'Battle' && (
+                              {tab === 'Battle' && (
           <>
             <div className="grid grid-cols-4 text-center mb-6">
               <div><p className="text-2xl font-bold text-orange-400">{totalVotes}</p><p className="text-xs text-gray-400">TOTAL</p></div>
@@ -557,7 +567,6 @@ export default function CrickClash() {
             <p className="text-center text-gray-400 mb-2">WHO DO YOU LIKE?</p>
             <h2 className="text-center text-4xl font-bold mb-4">Battle <span className="text-[#a8ff00]">{battleNo}</span></h2>
 
-            {/* ROLE FILTERS */}
             <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
               {category === 'Cricket' && ['Any', 'BATTER', 'BOWLER', 'ALL-ROUNDER', 'KEEPER', 'CAPTAIN'].map(role => (
                 <button key={role} onClick={() => setFilter(role)} className={`px-4 py-2 rounded-full font-bold whitespace-nowrap transition ${filter === role? 'bg-[#a8ff00] text-black' : 'bg-[#13131a] hover:bg-[#222]'}`}>{role}</button>
@@ -573,12 +582,17 @@ export default function CrickClash() {
             {battle[0] && battle[1]? (
               <div>
                 <div className="flex items-center justify-center gap-2">
-                  {[battle[0], battle[1]].map(p => (
+                  {[battle[0], battle[1]].map(p => {
+                    const votePercent = p.votes + battle[1].votes > 0? (p.votes / (p.votes + battle[1].votes)) * 100 : 50;
+                    return (
                     <div key={p.id} onClick={() => setSelectedPlayer(p)} className={`bg-gradient-to-b from-[#1e3a5f] to-[#0a0e1a] p-4 rounded-2xl w-1/2 text-center transition hover:scale-105 cursor-pointer ${voteAnim === p.id? 'vote-pop' : ''}`}>
                       <div className="w-20 h-20 rounded-full mx-auto mb-2 bg-[#a8ff00] text-black flex items-center justify-center text-3xl font-bold">{p.name[0]}</div>
                       <span className={`px-3 py-1 rounded-full text-xs font-bold ${p.role==='KEEPER'?'bg-red-900':p.role==='CAPTAIN'?'bg-blue-900':p.role==='BATTER'?'bg-red-800':p.role==='GOALKEEPER'?'bg-green-900':p.role==='VILLAIN'?'bg-red-950':p.role==='HERO'?'bg-blue-800':'bg-gray-800'}`}>{p.role}</span>
                       <h3 className="text-xl font-bold mt-3">{p.name}</h3>
                       <p className="text-[#a8ff00] font-bold">{p.votes || 0} votes</p>
+                      <div className="w-full bg-gray-700 rounded-full h-2 mt-2">
+                        <div className="bg-[#a8ff00] h-2 rounded-full transition-all duration-500" style={{width: `${votePercent}%`}}></div>
+                      </div>
                       <button
                         onClick={(e) => {e.stopPropagation(); handleVote(p.id)}}
                         disabled={isVoting || (user && votesToday[category] >= DAILY_VOTE_LIMIT)}
@@ -587,7 +601,7 @@ export default function CrickClash() {
                         {isVoting? 'VOTING...' : user && votesToday[category] >= DAILY_VOTE_LIMIT? 'VOTED TODAY' : 'VOTE'}
                       </button>
                     </div>
-                  ))}
+                  )})}
                 </div>
 
                 <div className="bg-[#13131a] p-4 rounded-2xl mt-4">
@@ -617,7 +631,6 @@ export default function CrickClash() {
                             </button>
                             <button onClick={() => setReplyTo(replyTo === c.time? null : c.time)} className="text-xs text-gray-400">Reply</button>
                           </div>
-
                           {replies.length > 0 && (
                             <div className="ml-10 mt-2 space-y-2 border-l-2 border-gray-700 pl-3">
                               {replies.map(r => (
@@ -628,7 +641,6 @@ export default function CrickClash() {
                               ))}
                             </div>
                           )}
-
                           {replyTo === c.time && (
                             <div className="flex gap-2 mt-2 ml-10">
                               <input value={newReply} onChange={e => setNewReply(e.target.value)} placeholder="Write a reply..." className="w-full bg-[#13131a] p-1.5 rounded-lg text-sm outline-none" />
@@ -693,4 +705,5 @@ export default function CrickClash() {
       </footer>
     </div>
   );
-        }
+                                                                                                             }
+                              
