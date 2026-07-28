@@ -209,8 +209,11 @@ export default function CrickClash() {
   const [weeklyWinner, setWeeklyWinner] = useState(null);
   const [replyTo, setReplyTo] = useState(null);
   const [newReply, setNewReply] = useState("");
+
   const getToday = () => new Date().toISOString().split('T')[0];
   const getWeekNumber = () => { const d = new Date(); d.setHours(0,0,0); d.setDate(d.getDate() + 4 - (d.getDay()||7)); return d.getFullYear() + '-W' + String(Math.ceil(((d - new Date(d.getFullYear(),0,1))/86400000 + 1)/7)).padStart(2,'0'); };
+
+  // TIMER
   useEffect(() => {
     const updateTimer = () => {
       const now = new Date();
@@ -226,6 +229,13 @@ export default function CrickClash() {
     updateTimer();
     const interval = setInterval(updateTimer, 1000);
     return () => clearInterval(interval);
+  }, []);
+
+  // AUTO DAILY CATEGORY SWITCH - 🔥 DAILY BATTLE
+  useEffect(() => {
+    const days = ['Cricket', 'Football', 'Movies'];
+    const todayIndex = new Date().getDay() % 3;
+    setCategory(days[todayIndex]);
   }, []);
 
   const checkAndResetDaily = useCallback(async () => {
@@ -246,10 +256,18 @@ export default function CrickClash() {
     const winnerRef = ref(db, `winners/${category}/${week}`);
     const sorted = [...playerList].sort((a,b) => b.votes - a.votes);
     if(sorted[0]) {
-      await set(winnerRef, { name: sorted[0].name, votes: sorted[0].votes });
+      await set(winnerRef, { name: sorted[0].name, votes: sorted[0].votes, role: sorted[0].role });
       setWeeklyWinner({ name: sorted[0].name, votes: sorted[0].votes });
     }
   }, [category]);
+
+  const loadWeeklyWinner = useCallback(async () => {
+    const week = getWeekNumber();
+    const snap = await get(ref(db, `winners/${category}/${week}`));
+    setWeeklyWinner(snap.exists()? snap.val() : null);
+  }, [category]);
+
+  useEffect(() => { loadWeeklyWinner(); }, [category, loadWeeklyWinner]);
 
   const handleDeleteHistory = async () => {
     if(!user) return alert("Login required");
@@ -339,9 +357,9 @@ export default function CrickClash() {
   };
 
   const handleShareResult = () => {
-    const text = `Who's your pick ${battle[0]?.name} vs ${battle[1]?.name} on CrickClash ${category}! ⚔️\nWho's your pick?`;
+    const text = `Who's your pick ${battle[0]?.name} vs ${battle[1]?.name} on FanClash ${category}! ⚔️\nWho's your pick?`;
     const url = window.location.href;
-    if (navigator.share) { navigator.share({title: 'CrickClash', text: text, url: url}); }
+    if (navigator.share) { navigator.share({title: 'FanClash', text: text, url: url}); }
     else { navigator.clipboard.writeText(`${text} ${url}`); alert("Copied to Clipboard!"); }
   };
 
@@ -411,8 +429,7 @@ export default function CrickClash() {
           if(userData){
             if(userData.lastVoteDate === getToday()){
               setVotesToday(prev => ({...prev, [category]: userData.votesToday || 0}))
-            }
-            else {
+            } else {
               setVotesToday(prev => ({...prev, [category]: 0}))
             }
             setStreak(userData.streak || 0);
@@ -425,7 +442,7 @@ export default function CrickClash() {
         setStreak(0); setBadges([]); setBattleHistory([]);
       }
     });
-  }, [category, checkAndResetDaily, checkWeeklyWinner, filter, generateBattle]);
+  }, [category, checkAndResetDaily, checkWeeklyWinner, filter, generateBattle, loadWeeklyWinner]);
   if(loading) return <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center text-white">Loading...</div>;
 
   return (
@@ -449,7 +466,7 @@ export default function CrickClash() {
 
       <div className="max-w-md mx-auto w-full flex-1 p-4">
         <header className="flex justify-between items-center mb-4">
-          <div><h1 className="text-2xl font-bold">CrickClash<span className="text-[#FF7A00]"></span></h1><p className="text-xs text-gray-400">ANESH Forge</p></div>
+          <div><h1 className="text-2xl font-bold">FanClash<span className="text-[#FF7A00]"></span></h1><p className="text-xs text-gray-400">ANESH Innovation</p></div>
           <div className="relative">
             {user?
               <img src={user.photoURL} onClick={() => setShowProfile(!showProfile)} className="w-10 h-10 rounded-full border-2 border-[#a8ff00] cursor-pointer hover:scale-110 transition" />
@@ -465,7 +482,7 @@ export default function CrickClash() {
           </div>
         </header>
 
-        {/* 3 CATEGORY TABS */}
+        {/* 1. 3 CATEGORY TABS - 🏏 ⚽ 🎬 */}
         <div className="flex justify-center gap-2 mb-4 bg-[#13131a] p-1 rounded-2xl">
           {Object.keys(ALL_DATA).map(cat => (
             <button key={cat} onClick={() => setCategory(cat)} className={`flex-1 py-2 rounded-xl font-bold text-sm transition ${category === cat? 'bg-[#a8ff00] text-black' : 'text-gray-400 hover:bg-[#222]'}`}>
@@ -474,11 +491,23 @@ export default function CrickClash() {
           ))}
         </div>
 
-        {!user && <div className="bg-[#a8ff00]/10 border border-[#a8ff00] p-3 rounded-2xl mb-3 text-center text-sm">Login to get 3 votes per day 1 for each category</div>}
+        {!user && <div className="bg-[#a8ff00]/10 border-[#a8ff00] p-3 rounded-2xl mb-3 text-center text-sm">Login to get 3 votes per day 1 for each category</div>}
 
+        {/* 2. 🔥 DAILY FAN BATTLE HEADER */}
+        <div className="bg-gradient-to-r from-orange-600 to-red-600 p-3 rounded-2xl mb-3 text-center">
+          <p className="text-sm font-bold">🔥 Daily Fan Battle</p>
+          <p className="text-lg font-bold">
+            {category === 'Cricket' && 'Best Cricketer of All Time?'}
+            {category === 'Football' && 'GOAT Football Debate'}
+            {category === 'Movies' && 'King of Indian Cinema?'}
+          </p>
+          <p className="text-xs">Resets in: {timeLeft}</p>
+        </div>
+
+        {/* 3. 🏆 WEEKLY FAN CHAMPIONS */}
         {weeklyWinner && (
           <div className="bg-gradient-to-r from-yellow-500 to-orange-500 p-3 rounded-2xl mb-3 text-center">
-            <p className="text-sm font-bold text-black">👑 {category} TODAY'S CHAMPION</p>
+            <p className="text-sm font-bold text-black">👑 {category} WEEKLY CHAMPION</p>
             <p className="text-lg font-bold text-black">{weeklyWinner.name} - {weeklyWinner.votes} Votes</p>
           </div>
         )}
@@ -659,9 +688,9 @@ export default function CrickClash() {
       </div>
 
       <footer className="text-center mt-10 pb-6 text-gray-500 text-sm border-t border-gray-800 pt-4">
-        <p>© 2026 <span className="text-white font-bold">CrickClash™</span> | A Production By <span className="text-white font-bold">ANESH</span></p>
+        <p>© 2026 <span className="text-white font-bold">FanClash™</span> | A Production By <span className="text-white font-bold">ANESH</span></p>
         <p className="text-xs mt-1">Made with ❤️ for Cricket • Football • Movies Fans</p>
       </footer>
     </div>
   );
-}
+        }
