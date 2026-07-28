@@ -389,8 +389,8 @@ export default function CrickClash() {
       const link = document.createElement('a');
       link.download = `FanClash-${category}-Battle${battleNo-1}.png`;
       link.href = image; link.click();
-    } catch { alert("Screenshot fail. Manual ga tey bro") }
-  }
+    } catch { alert("Screenshot fail. Manual ga tey bro"); }
+  };
 
   const handleRefer = async () => {
     if(!user) return alert("Login required");
@@ -399,13 +399,13 @@ export default function CrickClash() {
     alert("Referral link copied! Extra vote vastundi 🔥");
     await update(ref(db, `users/${user.uid}/${category}`), { votesToday: increment(-REFERRAL_BONUS_VOTE) });
     setVotesToday(prev => ({...prev, [category]: Math.max(0, prev[category] - 1)}));
-  }
+  };
 
   const startTournament = () => {
     const shuffled = [...players].sort(() => 0.5 - Math.random()).slice(0, 8);
     if(shuffled.length < 8) return alert("8 players ledu");
     setTournament({ round: 1, matches: [[shuffled[0], shuffled[1]], [shuffled[2], shuffled[3]], [shuffled[4], shuffled[5]], [shuffled[6], shuffled[7]]], winner: null });
-  }
+  };
 
   const handleVote = async (votedPlayerId) => {
     if(!user){ alert("Login required"); await signInWithPopup(auth, googleProvider); return; }
@@ -457,7 +457,7 @@ export default function CrickClash() {
         onValue(ref(db, `users/${currentUser.uid}/${category}`), (snapshot) => {
           const userData = snapshot.val();
           if(userData){
-            setVotesToday(prev => ({...prev, [category]: userData.lastVoteDate === getToday()? userData.votesToday || 0 : 0}))
+            setVotesToday(prev => ({...prev, [category]: userData.lastVoteDate === getToday()? userData.votesToday || 0 : 0}));
             setStreak(userData.streak || 0); setBadges(userData.badges || []); setBattleHistory(userData.history || []);
           }
         });
@@ -516,7 +516,7 @@ export default function CrickClash() {
           <div><h1 className="text-2xl font-bold">FanClash</h1><p className="text-xs text-gray-400">ANESH Innovation</p></div>
           <div className="relative">
             {user?
-              <img src={user.photoURL} onClick={() => setShowProfile(!showProfile)} className="w-10 h-10 rounded-full border-2 border-[#a8ff00] cursor-pointer hover:scale-110 transition" />
+              <img src={user.photoURL} onClick={() => setShowProfile(!showProfile)} className="w-10 h-10 rounded-full border-2 border-[#a8ff00] cursor-pointer hover:scale-110 transition" alt="user" />
               :
               <button onClick={handleGoogleLogin} className="bg-[#a8ff00] text-black px-4 py-2 rounded-full font-bold text-sm">Login</button>
             }
@@ -612,7 +612,15 @@ export default function CrickClash() {
               <div>
                 <div className="flex items-center justify-center gap-2">
                   {[battle[0], battle[1]].map(p => (
-                    <div key={p.id} onClick={() => setSelectedPlayer(p)} className={`bg-gradient-to-b from-[#1e3a5f] to-[#0a0e1a] p-4 rounded-2xl w-1/2 text-center ${voteAnim === p.id? 'vote.pop { animation: pop 0.5s ease; }`}></div>
+                    <div key={p.id} onClick={() => setSelectedPlayer(p)} className={`bg-gradient-to-b from-[#1e3a5f] to-[#0a0e1a] p-4 rounded-2xl w-1/.5 text-center cursor-pointer ${voteAnim === p.id? 'vote-pop' : ''}`}>
+                      <div className="w-20 h-20 rounded-full mx-auto mb-2 bg-[#a8ff00] text-black flex items-center justify-center text-3xl font-bold">{p.name[0]}</div>
+                      <span className="px-3 py-1 rounded-full text-xs font-bold bg-gray-800">{p.role}</span>
+                      <h3 className="text-xl font-bold mt-3">{p.name}</h3>
+                      <p className="text-[#a8ff00] font-bold">{p.votes || 0} votes</p>
+                      <button onClick={(e) => {e.stopPropagation(); handleVote(p.id)}} disabled={isVoting || votesToday[category] >= DAILY_VOTE_LIMIT} className={`w-full py-3 rounded-xl font-bold mt-2 ${votesToday[category] >= DAILY_VOTE_LIMIT? 'bg-gray-700' : 'bg-[#a8ff00] text-black'}`}>
+                        {isVoting? 'VOTING...' : votesToday[category] >= DAILY_VOTE_LIMIT? 'VOTED TODAY' : 'VOTE'}
+                      </button>
+                    </div>
                   ))}
                 </div>
 
@@ -637,7 +645,7 @@ export default function CrickClash() {
                       return (
                         <div key={c.key} className="bg-[#0a0a0f] p-3 rounded-lg">
                           <div className="flex gap-2">
-                            <img src={c.photo} className="w-8 h-8 rounded-full" />
+                            <img src={c.photo} className="w-8 h-8 rounded-full" alt="user" />
                             <div className="flex-1">
                               <p className="font-bold text-xs">{c.user}</p>
                               <p className="text-sm">{c.text}</p>
@@ -653,7 +661,7 @@ export default function CrickClash() {
                             <div className="ml-6 mt-2 space-y-2 border-l-2 border-[#23232b] pl-3">
                               {Object.entries(c.replies).map(([rk, r]) => (
                                 <div key={rk} className="flex gap-2">
-                                  <img src={r.photo} className="w-6 h-6 rounded-full" />
+                                  <img src={r.photo} className="w-6 h-6 rounded-full" alt="user" />
                                   <div className="flex-1">
                                     <p className="font-bold text-xs">{r.user}</p>
                                     <p className="text-sm">{r.text}</p>
@@ -713,7 +721,7 @@ export default function CrickClash() {
               })}
           </div>
         )}
-        {/* HISTORY TAB */}
+{/* HISTORY TAB */}
         {tab === 'History' && (
           <div className="space-y-3">
             <div className="flex justify-between items-center mb-4">
@@ -749,8 +757,8 @@ export default function CrickClash() {
       )}
 
       <footer className="text-center mt-10 pb-6 text-gray-500 text-sm border-t border-gray-800 pt-4">
-        <p>© 2026 <span className="text-white font-bold">FanClash™</span> | A Production By <span className="text-white font-bold">ANESH</span></p>
+        <p>© 2026 <span className="text-white font-bold">FanClash™</span> | By <span className="text-white font-bold">ANESH</span></p>
       </footer>
     </div>
   );
-}
+                        }
