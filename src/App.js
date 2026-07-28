@@ -360,8 +360,8 @@ export default function CrickClash() {
   const handleRefer = async () => {
     if(!user) return alert("Login required");
     const refLink = `${window.location.origin}?ref=${user.uid}`;
-    navigator.clipboard.writeText(`FanClash lo vote chey! ${refLink}`);
-    alert("Referral link copied! Extra vote vastundi 🔥");
+    navigator.clipboard.writeText(`vote now on FanClash! ${refLink}`);
+    alert("Referral link copied! you can get an extra vote");
     await update(ref(db, `users/${user.uid}/${category}`), { votesToday: increment(-REFERRAL_BONUS_VOTE) });
     setVotesToday(prev => ({...prev, [category]: Math.max(0, prev[category] - 1)}));
   }
@@ -494,7 +494,7 @@ export default function CrickClash() {
         {/* WEEKLY CHAMPION */}
         {weeklyWinner && (
           <div className="bg-gradient-to-r from-yellow-500 to-orange-500 p-3 rounded-2xl mb-3 text-center">
-            <p className="text-sm font-bold text-black">👑 {category} WEEKLY CHAMPION</p>
+            <p className="text-sm font-bold text-black">👑 {category} TODAY CHAMPION</p>
             <p className="text-lg font-bold text-black">{weeklyWinner.name} - {weeklyWinner.votes} Votes</p>
           </div>
         )}
@@ -657,7 +657,7 @@ export default function CrickClash() {
                 )
               })}
             </div>
-            <button onClick={() => alert("Screenshot teesi share chey! 📸")} className="w-full bg-gradient-to-r from-purple-600 to-pink-600 py-3 rounded-xl font-bold">📸 Screenshot</button>
+            <button onClick={() => alert("Take a screenshot and share it! 📸")} className="w-full bg-gradient-to-r from-purple-600 to-pink-600 py-3 rounded-xl font-bold">📸 Screenshot</button>
             <button onClick={() => setShowResultCard(false)} className="w-full bg-[#23232b] py-2 rounded-xl font-bold mt-2">Close</button>
           </div>
         </div>
@@ -681,7 +681,7 @@ export default function CrickClash() {
       )}
 
       <footer className="text-center mt-10 pb-6 text-gray-500 text-sm border-t border-gray-800 pt-4">
-        <p>© 2026 <span className="text-white font-bold">FanClash™</span> | By <span className="text-white font-bold">ANESH</span></p>
+        <p>© 2026 <span className="text-white font-bold">FanClash™</span> | A Production By <span className="text-white font-bold">ANESH</span></p>
       </footer>
     </div>
   );
