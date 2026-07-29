@@ -212,11 +212,8 @@ export default function CrickClash() {
   const [replyTo, setReplyTo] = useState(null);
   const [newReply, setNewReply] = useState("");
 
-  // NEW TOP 3 STATES
   const [showResultCard, setShowResultCard] = useState(false);
   const [tournament, setTournament] = useState(null);
-
-  // NEW: NOTIFICATION STATES
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
 
@@ -224,7 +221,6 @@ export default function CrickClash() {
   const getWeekNumber = () => { const d = new Date(); d.setHours(0,0,0); d.setDate(d.getDate() + 4 - (d.getDay()||7)); return d.getFullYear() + '-W' + String(Math.ceil(((d - new Date(d.getFullYear(),0,1))/86400000 + 1)/7)).padStart(2,'0'); };
   const getBattleKey = () => battle[0] && battle[1]? `${category}-${battle[0].id}-${battle[1].id}-B${battleNo}` : null;
 
-  // NEW: MENTION FUNCTIONS
   const extractMentions = (text) => {
     const mentionRegex = /@(\w+)/g;
     const mentions = [];
@@ -304,18 +300,21 @@ export default function CrickClash() {
     if(window.confirm("Are you sure?")){ await remove(ref(db, `users/${user.uid}/${category}/history`)); setBattleHistory([]); }
   };
 
+  // FIX: SAME BATTLE MALLI SET CHEYYAKUNDA CHECK PETTAM
   const generateBattle = useCallback((playerList, role) => {
     if(playerList.length < 2) return;
     let filtered = role === 'Any'? playerList : playerList.filter(p => p.role === role);
     if(filtered.length < 2) { setBattle([null, null]); return; }
+
     let p1 = filtered[Math.floor(Math.random() * filtered.length)];
     let p2 = filtered[Math.floor(Math.random() * filtered.length)];
     let attempts = 0;
     while(p1.id === p2.id && attempts < 20) { p2 = filtered[Math.floor(Math.random() * filtered.length)]; attempts++; }
-    setBattle([p1, p2]);
-  }, []);
 
-  // UPDATED: POST COMMENT WITH MENTION
+    if(battle[0]?.id === p1.id && battle[1]?.id === p2.id) return; // Same unte skip
+    setBattle([p1, p2]);
+  }, [battle]);
+
   const handlePostComment = async () => {
     if(!user){ alert("Login required"); await signInWithPopup(auth, googleProvider); return; }
     if(!newComment.trim() ||!battle[0] ||!battle[1]) return;
@@ -326,7 +325,6 @@ export default function CrickClash() {
     setNewComment("");
   };
 
-  // FIXED: UPVOTE / DOWNVOTE - Iddhi lekapothe build fail avutundi
   const handleVoteComment = async (commentKey, voteType) => {
     if(!user) return alert("Login required");
     const battleKey = getBattleKey();
@@ -337,7 +335,6 @@ export default function CrickClash() {
     else { await set(voteRef, voteType); }
   };
 
-  // UPDATED: POST REPLY WITH MENTION
   const handlePostReply = async (commentKey) => {
     if(!user){ alert("Login required"); await signInWithPopup(auth, googleProvider); return; }
     if(!newReply.trim()) return;
@@ -348,15 +345,16 @@ export default function CrickClash() {
     setNewReply(""); setReplyTo(null);
   };
 
+  // FIX: battle dependency teesesam
   useEffect(() => {
-    if(!battle[0] ||!battle[1]) return;
     const battleKey = getBattleKey();
+    if(!battleKey) return;
     const unsubscribe = onValue(ref(db, `comments/${battleKey}`), (snap) => {
       const data = snap.val();
       setComments(data? Object.values(data).sort((a,b) => b.time - a.time) : []);
     });
     return () => unsubscribe();
-  }, [battle, battleNo, category]);
+  }, [category, battleNo]);
 
   const updateStreak = async () => {
     if(!user) return {newStreak: 0, newBadges: []};
@@ -378,7 +376,6 @@ export default function CrickClash() {
     const newBattleNo = battleNo + 1;
     setBattleNo(newBattleNo);
     await update(ref(db, `meta/${category}`), { battleNo: newBattleNo });
-    generateBattle(players, filter);
   };
 
   const handleShareResult = () => {
@@ -418,12 +415,13 @@ export default function CrickClash() {
     await update(ref(db, `players/${category}/${votedPlayerId}`), { votes: increment(1) });
     await update(ref(db, `meta/${category}`), { totalVotes: increment(1), battleNo: newBattleNo });
 
-    setTimeout(() => { setIsVoting(false); setVotesToday(prev => ({...prev, [category]: prev[category] + 1})); setBattleNo(newBattleNo); generateBattle(players, filter); }, 1000);
+    setTimeout(() => { setIsVoting(false); setVotesToday(prev => ({...prev, [category]: prev[category] + 1})); setBattleNo(newBattleNo); }, 1000);
   };
 
   const handleGoogleLogin = () => signInWithPopup(auth, googleProvider);
   const handleLogout = async () => { if(window.confirm("Logout?")) { await signOut(auth); setShowProfile(false); } };
 
+  // FIX: generateBattle ni ikkada nundi teesesam
   useEffect(() => {
     checkAndResetDaily();
     onValue(ref(db, `meta/${category}`), (snapshot) => {
@@ -436,7 +434,6 @@ export default function CrickClash() {
       if (data) {
         const playersArray = currentPlayers.map(p => ({...p, votes: data[p.id]?.votes || 0 }));
         setPlayers(playersArray);
-        generateBattle(playersArray, filter);
         const sorted = [...playersArray].sort((a,b) => b.votes - a.votes);
         setTopPlayer(sorted[0]);
         checkWeeklyWinner(sorted);
@@ -448,7 +445,6 @@ export default function CrickClash() {
       }
     });
 
-    // NEW: LOAD NOTIFICATIONS
     if(user) {
       onValue(ref(db, `notifications/${user.uid}`), (snap) => {
         const data = snap.val();
@@ -459,9 +455,7 @@ export default function CrickClash() {
     onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser); setLoading(false);
       if(currentUser) {
-        // NEW: SAVE USERNAME FOR MENTIONS
         set(ref(db, `usernames/${currentUser.uid}`), currentUser.displayName);
-
         onValue(ref(db, `users/${currentUser.uid}/${category}`), (snapshot) => {
           const userData = snapshot.val();
           if(userData){
@@ -471,14 +465,20 @@ export default function CrickClash() {
         });
       } else { setVotesToday({Cricket: 0, Football: 0, Movies: 0}); setStreak(0); setBadges([]); setBattleHistory([]); }
     });
-  }, [category, battle, battleNo, checkAndResetDaily, checkWeeklyWinner, filter, generateBattle, loadWeeklyWinner, user]);
+  }, [category, checkAndResetDaily, checkWeeklyWinner, generateBattle, loadWeeklyWinner, user]);
+
+  // NEW: BATTLE GENERATE CHESE KOSAM SEPARATE useEffect
+  useEffect(() => {
+    if(players.length > 1) {
+      generateBattle(players, filter);
+    }
+  }, [players, filter, battleNo, generateBattle]);
   if(loading) return <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center text-white">Loading...</div>;
 
   return (
     <div className="min-h-screen bg-[#0a0a0f] text-white flex-col">
       <style>{`@keyframes pop { 0%{transform:scale(1)} 50%{transform:scale(1.15)} 100%{transform:scale(1)} } @keyframes float { 0%{transform:translateY(0)} 50%{transform:translateY(-10px)} 100%{transform:translateY(0)} }.vote-pop { animation: pop 0.5s ease; }.float { animation: float 2s ease-in-out infinite; }`}</style>
 
-      {/* PLAYER DETAIL MODAL */}
       {selectedPlayer && (
         <div onClick={() => setSelectedPlayer(null)} className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
           <div onClick={e => e.stopPropagation()} className="bg-[#13131a] p-6 rounded-2xl w-full max-w-sm">
@@ -495,146 +495,69 @@ export default function CrickClash() {
       )}
 
       <div className="max-w-md mx-auto w-full flex-1 p-4">
-        {/* HEADER WITH BELL */}
         <header className="flex justify-between items-center mb-4">
           <div><h1 className="text-2xl font-bold">FanClash</h1><p className="text-xs text-gray-400">ANESH Innovation</p></div>
           <div className="flex gap-2 items-center">
             {user && (
               <div className="relative">
-                <button onClick={() => setShowNotifications(!showNotifications)} className="relative text-2xl">
-                  🔔
-                  {notifications.filter(n =>!n.read).length > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-red-500 text-xs w-5 h-5 rounded-full flex items-center justify-center">
-                      {notifications.filter(n =>!n.read).length}
-                    </span>
-                  )}
+                <button onClick={() => setShowNotifications(!showNotifications)} className="relative text-2xl">🔔
+                  {notifications.filter(n =>!n.read).length > 0 && (<span className="absolute -top-1 -right-1 bg-red-500 text-xs w-5 h-5 rounded-full flex items-center justify-center">{notifications.filter(n =>!n.read).length}</span>)}
                 </button>
                 {showNotifications && (
                   <div className="absolute right-0 mt-2 w-80 bg-[#1A1A1A] border-[#333] rounded-xl shadow-2xl z-50 p-3 max-h-96 overflow-y-auto">
                     <p className="font-bold mb-2">Notifications</p>
-                    {notifications.length === 0? <p className="text-gray-500 text-sm">No notifications</p> :
-                      notifications.map(n => (
-                        <div key={n.time} className="bg-[#0a0a0f] p-2 rounded-lg mb-2">
-                          <p className="text-sm"><span className="font-bold text-[#a8ff00]">@{n.from}</span> mentioned you</p>
-                          <p className="text-xs text-gray-400">"{n.text}"</p>
-                        </div>
-                      ))
-                    }
+                    {notifications.length === 0? <p className="text-gray-500 text-sm">No notifications</p> : notifications.map(n => (<div key={n.time} className="bg-[#0a0a0f] p-2 rounded-lg mb-2"><p className="text-sm"><span className="font-bold text-[#a8ff00]">@{n.from}</span> mentioned you</p><p className="text-xs text-gray-400">"{n.text}"</p></div>))}
                   </div>
                 )}
               </div>
             )}
             <div className="relative">
-              {user?
-                <img src={user.photoURL} onClick={() => setShowProfile(!showProfile)} className="w-10 h-10 rounded-full border-2 border-[#a8ff00] cursor-pointer hover:scale-110 transition" />
-                :
-                <button onClick={handleGoogleLogin} className="bg-[#a8ff00] text-black px-4 py-2 rounded-full font-bold text-sm">Login</button>
-              }
-              {showProfile && user && (
-                <div className="absolute right-0 mt-2 w-44 bg-[#1A1A1A] border-[#333] rounded-xl shadow-2xl z-50">
-                  <div className="px-4 py-3 border-b border-[#333]"><p className="text-white text-sm font-semibold">{user.displayName}</p><p className="text-gray-400 text-xs truncate">{user.email}</p></div>
-                  <button onClick={handleLogout} className="w-full text-left px-4 py-3 text-red-400 hover:bg-[#222] rounded-b-xl">Logout</button>
-                </div>
-              )}
+              {user? <img src={user.photoURL} onClick={() => setShowProfile(!showProfile)} className="w-10 h-10 rounded-full border-2 border-[#a8ff00] cursor-pointer hover:scale-110 transition" /> : <button onClick={handleGoogleLogin} className="bg-[#a8ff00] text-black px-4 py-2 rounded-full font-bold text-sm">Login</button>}
+              {showProfile && user && (<div className="absolute right-0 mt-2 w-44 bg-[#1A1A1A] border-[#333] rounded-xl shadow-2xl z-50"><div className="px-4 py-3 border-b border-[#333]"><p className="text-white text-sm font-semibold">{user.displayName}</p><p className="text-gray-400 text-xs truncate">{user.email}</p></div><button onClick={handleLogout} className="w-full text-left px-4 py-3 text-red-400 hover:bg-[#222] rounded-b-xl">Logout</button></div>)}
             </div>
           </div>
         </header>
 
-        {/* CATEGORY TABS */}
         <div className="flex justify-center gap-2 mb-4 bg-[#13131a] p-1 rounded-2xl">
-          {Object.keys(ALL_DATA).map(cat => (
-            <button key={cat} onClick={() => setCategory(cat)} className={`flex-1 py-2 rounded-xl font-bold text-sm transition ${category === cat? 'bg-[#a8ff00] text-black' : 'text-gray-400 hover:bg-[#222]'}`}>
-              {cat === 'Cricket' && '🏏 '}{cat === 'Football' && '⚽ '}{cat === 'Movies' && '🎬 '}{cat}
-            </button>
-          ))}
+          {Object.keys(ALL_DATA).map(cat => (<button key={cat} onClick={() => setCategory(cat)} className={`flex-1 py-2 rounded-xl font-bold text-sm transition ${category === cat? 'bg-[#a8ff00] text-black' : 'text-gray-400 hover:bg-[#222]'}`}>{cat === 'Cricket' && '🏏 '}{cat === 'Football' && '⚽ '}{cat === 'Movies' && '🎬 '}{cat}</button>))}
         </div>
 
         {!user && <div className="bg-[#a8ff00]/10 border-[#a8ff00] p-3 rounded-2xl mb-3 text-center text-sm">Login to get 3 votes per day 1 for each category</div>}
+        <div className="bg-gradient-to-r from-orange-600 to-red-600 p-3 rounded-2xl mb-3 text-center"><p className="text-sm font-bold">🔥 Daily Fan Battle</p><p className="text-lg font-bold">{category === 'Cricket' && 'Best Cricketer of All Time?'}{category === 'Football' && 'GOAT Football Debate'}{category === 'Movies' && 'King of Indian Cinema?'}</p><p className="text-xs">Resets in: {timeLeft}</p></div>
+        {weeklyWinner && (<div className="bg-gradient-to-r from-yellow-500 to-orange-500 p-3 rounded-2xl mb-3 text-center"><p className="text-sm font-bold text-black">👑 {category} WEEKLY CHAMPION</p><p className="text-lg font-bold text-black">{weeklyWinner.name} - {weeklyWinner.votes} Votes</p></div>)}
+        <div className="bg-[#13131a] p-3 rounded-2xl mb-3"><p className="text-sm text-gray-400 mb-2">Your {category} Badges</p><div className="flex gap-2 flex-wrap">{user? badges.map(b => <span key={b} className="bg-[#a8ff00] text-black px-3 py-1 rounded-full text-sm font-bold float">🏆 {b}</span>) : <span className="text-gray-500 text-sm">Login to see badges</span>}</div></div>
+        <div className="bg-[#13131a] p-4 rounded-2xl mb-4 text-center"><p className="text-gray-400 text-sm mb-2">Today's Votes Left</p><div className="grid grid-cols-3 gap-2"><div className={`bg-[#0a0a0f] p-2 rounded-xl ${votesToday.Cricket >= 1? 'opacity-50' : ''}`}><p className="text-2xl font-bold text-[#a8ff00]">{DAILY_VOTE_LIMIT - votesToday.Cricket}</p><p className="text-xs">🏏 Cricket</p></div><div className={`bg-[#0a0a0f] p-2 rounded-xl ${votesToday.Football >= 1? 'opacity-50' : ''}`}><p className="text-2xl font-bold text-[#a8ff00]">{DAILY_VOTE_LIMIT - votesToday.Football}</p><p className="text-xs">⚽ Football</p></div><div className={`bg-[#0a0a0f] p-2 rounded-xl ${votesToday.Movies >= 1? 'opacity-50' : ''}`}><p className="text-2xl font-bold text-[#a8ff00]">{DAILY_VOTE_LIMIT - votesToday.Movies}</p><p className="text-xs">🎬 Movies</p></div></div><p className="text-xs text-gray-500 mt-2">Reset in: {timeLeft}</p></div>
+        <div className="flex justify-around border-b border-gray-800 mb-4"><button onClick={() => setTab('Battle')} className={`pb-2 font-bold transition ${tab === 'Battle'? 'text-[#a8ff00] border-b-2 border-[#a8ff00]' : 'text-gray-500'}`}>⚔️ Battle</button><button onClick={() => setTab('Rankings')} className={`pb-2 font-bold transition ${tab === 'Rankings'? 'text-[#a8ff00] border-b-2 border-[#a8ff00]' : 'text-gray-500'}`}>🏆 Rankings</button><button onClick={() => setTab('History')} className={`pb-2 font-bold transition ${tab === 'History'? 'text-[#a8ff00] border-b-2 border-[#a8ff00]' : 'text-gray-500'}`}>📜 History</button></div>
 
-        {/* DAILY BATTLE HEADER */}
-        <div className="bg-gradient-to-r from-orange-600 to-red-600 p-3 rounded-2xl mb-3 text-center">
-          <p className="text-sm font-bold">🔥 Daily Fan Battle</p>
-          <p className="text-lg font-bold">
-            {category === 'Cricket' && 'Best Cricketer of All Time?'}
-            {category === 'Football' && 'GOAT Football Debate'}
-            {category === 'Movies' && 'King of Indian Cinema?'}
-          </p>
-          <p className="text-xs">Resets in: {timeLeft}</p>
-        </div>
-
-        {/* WEEKLY CHAMPION */}
-        {weeklyWinner && (
-          <div className="bg-gradient-to-r from-yellow-500 to-orange-500 p-3 rounded-2xl mb-3 text-center">
-            <p className="text-sm font-bold text-black">👑 {category} WEEKLY CHAMPION</p>
-            <p className="text-lg font-bold text-black">{weeklyWinner.name} - {weeklyWinner.votes} Votes</p>
-          </div>
-        )}
-
-        <div className="bg-[#13131a] p-3 rounded-2xl mb-3">
-          <p className="text-sm text-gray-400 mb-2">Your {category} Badges</p>
-          <div className="flex gap-2 flex-wrap">
-            {user? badges.map(b => <span key={b} className="bg-[#a8ff00] text-black px-3 py-1 rounded-full text-sm font-bold float">🏆 {b}</span>) : <span className="text-gray-500 text-sm">Login to see badges</span>}
-          </div>
-        </div>
-
-        {/* VOTES CARD */}
-        <div className="bg-[#13131a] p-4 rounded-2xl mb-4 text-center">
-          <p className="text-gray-400 text-sm mb-2">Today's Votes Left</p>
-          <div className="grid grid-cols-3 gap-2">
-            <div className={`bg-[#0a0a0f] p-2 rounded-xl ${votesToday.Cricket >= 1? 'opacity-50' : ''}`}><p className="text-2xl font-bold text-[#a8ff00]">{DAILY_VOTE_LIMIT - votesToday.Cricket}</p><p className="text-xs">🏏 Cricket</p></div>
-            <div className={`bg-[#0a0a0f] p-2 rounded-xl ${votesToday.Football >= 1? 'opacity-50' : ''}`}><p className="text-2xl font-bold text-[#a8ff00]">{DAILY_VOTE_LIMIT - votesToday.Football}</p><p className="text-xs">⚽ Football</p></div>
-            <div className={`bg-[#0a0a0f] p-2 rounded-xl ${votesToday.Movies >= 1? 'opacity-50' : ''}`}><p className="text-2xl font-bold text-[#a8ff00]">{DAILY_VOTE_LIMIT - votesToday.Movies}</p><p className="text-xs">🎬 Movies</p></div>
-          </div>
-          <p className="text-xs text-gray-500 mt-2">Reset in: {timeLeft}</p>
-        </div>
-
-        {/* TABS */}
-        <div className="flex justify-around border-b border-gray-800 mb-4">
-          <button onClick={() => setTab('Battle')} className={`pb-2 font-bold transition ${tab === 'Battle'? 'text-[#a8ff00] border-b-2 border-[#a8ff00]' : 'text-gray-500'}`}>⚔️ Battle</button>
-          <button onClick={() => setTab('Rankings')} className={`pb-2 font-bold transition ${tab === 'Rankings'? 'text-[#a8ff00] border-b-2 border-[#a8ff00]' : 'text-gray-500'}`}>🏆 Rankings</button>
-          <button onClick={() => setTab('History')} className={`pb-2 font-bold transition ${tab === 'History'? 'text-[#a8ff00] border-b-2 border-[#a8ff00]' : 'text-gray-500'}`}>📜 History</button>
-        </div>
-
-        {/* BATTLE TAB */}
         {tab === 'Battle' && (
-          <>
-            <div className="grid grid-cols-4 text-center mb-6">
-              <div><p className="text-2xl font-bold text-orange-400">{totalVotes}</p><p className="text-xs text-gray-400">TOTAL</p></div>
-              <div><p className="text-2xl font-bold text-orange-400">{battleNo-1}</p><p className="text-xs text-gray-400">BATTLES</p></div>
-              <div><p className="text-2xl font-bold text-orange-400 truncate">{topPlayer?.name.split(' ')[0] || 'None'}</p><p className="text-xs text-gray-400">TOP</p></div>
-              <div><p className="text-2xl font-bold text-orange-400">🔥{user? streak : 0}</p><p className="text-xs text-gray-400">STREAK</p></div>
-            </div>
-            <h2 className="text-center text-4xl font-bold mb-4">Battle <span className="text-[#a8ff00]">{battleNo}</span></h2>
-
-            {/* ROLE FILTERS */}
+          <><div className="grid grid-cols-4 text-center mb-6"><div><p className="text-2xl font-bold text-orange-400">{totalVotes}</p><p className="text-xs text-gray-400">TOTAL</p></div><div><p className="text-2xl font-bold text-orange-400">{battleNo-1}</p><p className="text-xs text-gray-400">BATTLES</p></div><div><p className="text-2xl font-bold text-orange-400 truncate">{topPlayer?.name.split(' ')[0] || 'None'}</p><p className="text-xs text-gray-400">TOP</p></div><div><p className="text-2xl font-bold text-orange-400">🔥{user? streak : 0}</p><p className="text-xs text-gray-400">STREAK</p></div></div><h2 className="text-center text-4xl font-bold mb-4">Battle <span className="text-[#a8ff00]">{battleNo}</span></h2>
             <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
-              {category === 'Cricket' && ['Any', 'BATTER', 'BOWLER', 'ALL-ROUNDER', 'KEEPER', 'CAPTAIN'].map(role => (
-                <button key={role} onClick={() => setFilter(role)} className={`px-4 py-2 rounded-full font-bold whitespace-nowrap ${filter === role? 'bg-[#a8ff00] text-black' : 'bg-[#13131a]'}`}>{role}</button>
-              ))}
-              {category === 'Football' && ['Any', 'FORWARD', 'MIDFIELDER', 'DEFENDER', 'GOALKEEPER'].map(role => (
-                <button key={role} onClick={() => setFilter(role)} className={`px-4 py-2 rounded-full font-bold whitespace-nowrap ${filter === role? 'bg-[#a8ff00] text-black' : 'bg-[#13131a]'}`}>{role}</button>
-              ))}
-              {category === 'Movies' && ['Any', 'HERO', 'VILLAIN'].map(role => (
-                <button key={role} onClick={() => setFilter(role)} className={`px-4 py-2 rounded-full font-bold whitespace-nowrap ${filter === role? 'bg-[#a8ff00] text-black' : 'bg-[#13131a]'}`}>{role}</button>
-              ))}
+              {category === 'Cricket' && ['Any', 'BATTER', 'BOWLER', 'ALL-ROUNDER', 'KEEPER', 'CAPTAIN'].map(role => (<button key={role} onClick={() => setFilter(role)} className={`px-4 py-2 rounded-full font-bold whitespace-nowrap ${filter === role? 'bg-[#a8ff00] text-black' : 'bg-[#13131a]'}`}>{role}</button>))}
+              {category === 'Football' && ['Any', 'FORWARD', 'MIDFIELDER', 'DEFENDER', 'GOALKEEPER'].map(role => (<button key={role} onClick={() => setFilter(role)} className={`px-4 py-2 rounded-full font-bold whitespace-nowrap ${filter === role? 'bg-[#a8ff00] text-black' : 'bg-[#13131a]'}`}>{role}</button>))}
+              {category === 'Movies' && ['Any', 'HERO', 'VILLAIN'].map(role => (<button key={role} onClick={() => setFilter(role)} className={`px-4 py-2 rounded-full font-bold whitespace-nowrap ${filter === role? 'bg-[#a8ff00] text-black' : 'bg-[#13131a]'}`}>{role}</button>))}
             </div>
-
             {battle[0] && battle[1]? (
               <div>
                 <div className="flex items-center justify-center gap-2">
-                  {[battle[0], battle[1]].map(p => (
+                  {[battle[0], battle[1]].map(p => {
+                    const hasVotedThisBattle = battleHistory.some(h => h.battleKey === getBattleKey());
+                    return (
                     <div key={p.id} onClick={() => setSelectedPlayer(p)} className={`bg-gradient-to-b from-[#1e3a5f] to-[#0a0e1a] p-4 rounded-2xl w-1/2 text-center ${voteAnim === p.id? 'vote-pop' : ''}`}>
                       <div className="w-20 h-20 rounded-full mx-auto mb-2 bg-[#a8ff00] text-black flex items-center justify-center text-3xl font-bold">{p.name[0]}</div>
                       <span className="px-3 py-1 rounded-full text-xs font-bold bg-gray-800">{p.role}</span>
                       <h3 className="text-xl font-bold mt-3">{p.name}</h3>
                       <p className="text-[#a8ff00] font-bold">{p.votes || 0} votes</p>
-                      <button onClick={(e) => {e.stopPropagation(); handleVote(p.id)}} disabled={isVoting || votesToday[category] >= DAILY_VOTE_LIMIT} className={`w-full py-3 rounded-xl font-bold mt-2 ${votesToday[category] >= DAILY_VOTE_LIMIT? 'bg-gray-700' : 'bg-[#a8ff00] text-black'}`}>
-                        {isVoting? 'VOTING...' : votesToday[category] >= DAILY_VOTE_LIMIT? 'VOTED TODAY' : 'VOTE'}
+                      <button
+                        onClick={(e) => {e.stopPropagation(); handleVote(p.id)}}
+                        disabled={isVoting || hasVotedThisBattle}
+                        className={`w-full py-3 rounded-xl font-bold mt-2 ${hasVotedThisBattle? 'bg-gray-700' : 'bg-[#a8ff00] text-black'}`}
+                      >
+                        {isVoting? 'VOTING...' : hasVotedThisBattle? 'VOTED' : 'VOTE'}
                       </button>
                     </div>
-                  ))}
+                  )})}
                 </div>
-                {/* DEBATE ZONE WITH REPLIES + MENTIONS + UPVOTE */}
+                {/* DEBATE ZONE */}
                 <div className="bg-[#13131a] p-4 rounded-2xl mt-4">
                   <h3 className="font-bold mb-3">💬 Debate Zone</h3>
                   <p className="text-xs text-gray-400 mb-2">Tip: @username ani type cheste notification vastundi</p>
@@ -664,24 +587,9 @@ export default function CrickClash() {
                               </div>
                             </div>
                           </div>
-
-                          {/* REPLIES */}
                           <div className="ml-10 mt-2 space-y-2 border-l-2 border-gray-800 pl-3">
-                            {replies.map((r) => (
-                              <div key={r.time} className="flex gap-2">
-                                <img src={r.photo} className="w-6 h-6 rounded-full"/>
-                                <div className="flex-1">
-                                  <p className="font-bold text-xs">{r.user}</p>
-                                  <p className="text-sm">{r.text}</p>
-                                </div>
-                              </div>
-                            ))}
-                            {replyTo === c.time && (
-                              <div className="flex gap-2 mt-2">
-                                <input value={newReply} onChange={e => setNewReply(e.target.value)} placeholder={`Reply to @${c.user}...`} className="w-full bg-[#13131a] p-2 rounded-lg outline-none text-sm" />
-                                <button onClick={() => handlePostReply(c.time)} className="bg-[#a8ff00] text-black px-3 rounded-lg font-bold text-sm">Send</button>
-                              </div>
-                            )}
+                            {replies.map((r) => (<div key={r.time} className="flex gap-2"><img src={r.photo} className="w-6 h-6 rounded-full"/><div className="flex-1"><p className="font-bold text-xs">{r.user}</p><p className="text-sm">{r.text}</p></div></div>))}
+                            {replyTo === c.time && (<div className="flex gap-2 mt-2"><input value={newReply} onChange={e => setNewReply(e.target.value)} placeholder={`Reply to @${c.user}...`} className="w-full bg-[#13131a] p-2 rounded-lg outline-none text-sm" /><button onClick={() => handlePostReply(c.time)} className="bg-[#a8ff00] text-black px-3 rounded-lg font-bold text-sm">Send</button></div>)}
                           </div>
                         </div>
                       )
@@ -705,89 +613,19 @@ export default function CrickClash() {
         )}
 
         {/* RANKINGS TAB */}
-        {tab === 'Rankings' && (
-          <div>
-            <h2 className="text-2xl font-bold text-[#a8ff00] mb-4 text-center">🏆 Top 10 {category} Players</h2>
-            {players.sort((a,b) => b.votes - a.votes).slice(0,10).map((p,i) => {
-                const percentage = totalVotes > 0? ((p.votes || 0) / totalVotes * 100).toFixed(1) : 0;
-                return (
-                  <div key={p.id} onClick={() => setSelectedPlayer(p)} className="bg-[#13131a] p-3 rounded-xl mb-3 flex items-center gap-3 cursor-pointer">
-                    <span className="text-xl font-bold text-[#a8ff00]">#{i+1}</span>
-                    <div className="w-12 h-12 rounded-full bg-[#a8ff00] text-black flex items-center justify-center text-lg font-bold">{p.name[0]}</div>
-                    <div className="flex-1">
-                      <div className="flex justify-between"><span className="font-bold">{p.name}</span><span className="text-[#a8ff00] font-bold text-sm">{percentage}%</span></div>
-                      <div className="flex justify-between text-xs text-gray-400 mb-1"><span>{p.votes||0} votes</span><span>{p.role}</span></div>
-                      <div className="w-full bg-gray-700 rounded-full h-2"><div className="bg-[#a8ff00] h-2 rounded-full" style={{width: `${percentage}%`}}></div></div>
-                    </div>
-                  </div>
-                )
-              })}
-          </div>
-        )}
+        {tab === 'Rankings' && (<div><h2 className="text-2xl font-bold text-[#a8ff00] mb-4 text-center">🏆 Top 10 {category} Players</h2>{players.sort((a,b) => b.votes - a.votes).slice(0,10).map((p,i) => {const percentage = totalVotes > 0? ((p.votes || 0) / totalVotes * 100).toFixed(1) : 0;return (<div key={p.id} onClick={() => setSelectedPlayer(p)} className="bg-[#13131a] p-3 rounded-xl mb-3 flex items-center gap-3 cursor-pointer"><span className="text-xl font-bold text-[#a8ff00]">#{i+1}</span><div className="w-12 h-12 rounded-full bg-[#a8ff00] text-black flex items-center justify-center text-lg font-bold">{p.name[0]}</div><div className="flex-1"><div className="flex justify-between"><span className="font-bold">{p.name}</span><span className="text-[#a8ff00] font-bold text-sm">{percentage}%</span></div><div className="flex justify-between text-xs text-gray-400 mb-1"><span>{p.votes||0} votes</span><span>{p.role}</span></div><div className="w-full bg-gray-700 rounded-full h-2"><div className="bg-[#a8ff00] h-2 rounded-full" style={{width: `${percentage}%`}}></div></div></div></div>)})}</div>)}
 
         {/* HISTORY TAB */}
-        {tab === 'History' && (
-          <div className="space-y-3">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-bold text-[#a8ff00]">📜 Your {category} Battle History</h2>
-              {user && battleHistory.length > 0 && <button onClick={handleDeleteHistory} className="bg-red-600 px-3 py-1 rounded-lg text-sm font-bold">🗑️ Clear</button>}
-            </div>
-            {!user? <p className="text-gray-500 text-center">Login required</p> : battleHistory.length === 0? <p className="text-gray-500 text-center">No battles yet</p> : battleHistory.map((h,i) => (
-              <div key={i} className="bg-[#13131a] p-3 rounded-xl">
-                <p className="text-sm text-gray-400">Battle {h.battleNo} • {h.date}</p>
-                <p className="font-bold">{h.players[0]} vs {h.players[1]}</p>
-                <p className="text-sm text-[#a8ff00]">You voted: {h.votedFor}</p>
-              </div>
-            ))}
-          </div>
-        )}
+        {tab === 'History' && (<div className="space-y-3"><div className="flex justify-between items-center mb-4"><h2 className="text-2xl font-bold text-[#a8ff00]">📜 Your {category} Battle History</h2>{user && battleHistory.length > 0 && <button onClick={handleDeleteHistory} className="bg-red-600 px-3 py-1 rounded-lg text-sm font-bold">🗑️ Clear</button>}</div>{!user? <p className="text-gray-500 text-center">Login required</p> : battleHistory.length === 0? <p className="text-gray-500 text-center">No battles yet</p> : battleHistory.map((h,i) => (<div key={i} className="bg-[#13131a] p-3 rounded-xl"><p className="text-sm text-gray-400">Battle {h.battleNo} • {h.date}</p><p className="font-bold">{h.players[0]} vs {h.players[1]}</p><p className="text-sm text-[#a8ff00]">You voted: {h.votedFor}</p></div>))}</div>)}
       </div>
 
       {/* MODAL 1: RESULT CARD */}
-      {showResultCard && battle[0] && battle[1] && (
-        <div onClick={() => setShowResultCard(false)} className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
-          <div onClick={e => e.stopPropagation()} className="bg-gradient-to-br from-[#1e3a5f] to-[#0a0e1a] p-6 rounded-3xl w-full max-w-sm border-2 border-[#a8ff00]">
-            <h2 className="text-center text-2xl font-bold mb-1">FanClash {category}</h2>
-            <p className="text-center text-gray-400 text-sm mb-4">Battle #{battleNo-1} Result</p>
-            <div className="flex gap-3 items-center mb-4">
-              {[battle[0], battle[1]].map(p => {
-                const total = battle[0].votes + battle[1].votes;
-                const percent = total > 0? ((p.votes / total) * 100).toFixed(0) : 50;
-                return (
-                  <div key={p.id} className="flex-1 text-center p-3 rounded-2xl bg-[#13131a]">
-                    <div className="w-16 h-16 rounded-full mx-auto mb-2 bg-[#a8ff00] text-black flex items-center justify-center text-2xl font-bold">{p.name[0]}</div>
-                    <p className="font-bold text-sm">{p.name}</p>
-                    <p className="text-2xl font-bold text-[#a8ff00]">{percent}%</p>
-                  </div>
-                )
-              })}
-            </div>
-            <button onClick={() => alert("Screenshot teesi share chey! 📸")} className="w-full bg-gradient-to-r from-purple-600 to-pink-600 py-3 rounded-xl font-bold">📸 Screenshot</button>
-            <button onClick={() => setShowResultCard(false)} className="w-full bg-[#23232b] py-2 rounded-xl font-bold mt-2">Close</button>
-          </div>
-        </div>
-      )}
+      {showResultCard && battle[0] && battle[1] && (<div onClick={() => setShowResultCard(false)} className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"><div onClick={e => e.stopPropagation()} className="bg-gradient-to-br from-[#1e3a5f] to-[#0a0e1a] p-6 rounded-3xl w-full max-w-sm border-2 border-[#a8ff00]"><h2 className="text-center text-2xl font-bold mb-1">FanClash {category}</h2><p className="text-center text-gray-400 text-sm mb-4">Battle #{battleNo-1} Result</p><div className="flex gap-3 items-center mb-4">{[battle[0], battle[1]].map(p => {const total = battle[0].votes + battle[1].votes;const percent = total > 0? ((p.votes / total) * 100).toFixed(0) : 50;return (<div key={p.id} className="flex-1 text-center p-3 rounded-2xl bg-[#13131a]"><div className="w-16 h-16 rounded-full mx-auto mb-2 bg-[#a8ff00] text-black flex items-center justify-center text-2xl font-bold">{p.name[0]}</div><p className="font-bold text-sm">{p.name}</p><p className="text-2xl font-bold text-[#a8ff00]">{percent}%</p></div>)})}</div><button onClick={() => alert("Screenshot teesi share chey! 📸")} className="w-full bg-gradient-to-r from-purple-600 to-pink-600 py-3 rounded-xl font-bold">📸 Screenshot</button><button onClick={() => setShowResultCard(false)} className="w-full bg-[#23232b] py-2 rounded-xl font-bold mt-2">Close</button></div></div>)}
 
       {/* MODAL 2: TOURNAMENT */}
-      {tournament && (
-        <div onClick={() => setTournament(null)} className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
-          <div onClick={e => e.stopPropagation()} className="bg-[#13131a] p-6 rounded-2xl w-full max-w-md">
-            <h2 className="text-2xl font-bold text-center mb-4">🏆 Round {tournament.round}</h2>
-            <div className="space-y-2">
-              {tournament.matches.map((match, i) => (
-                <div key={i} className="bg-[#0a0a0f] p-3 rounded-xl flex justify-between items-center">
-                  <span>{match[0].name}</span> <span className="text-[#a8ff00]">VS</span> <span>{match[1].name}</span>
-                </div>
-              ))}
-            </div>
-            <button onClick={() => setTournament(null)} className="w-full bg-[#23232b] py-2 rounded-xl mt-3 font-bold">Close</button>
-          </div>
-        </div>
-      )}
+      {tournament && (<div onClick={() => setTournament(null)} className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"><div onClick={e => e.stopPropagation()} className="bg-[#13131a] p-6 rounded-2xl w-full max-w-md"><h2 className="text-2xl font-bold text-center mb-4">🏆 Round {tournament.round}</h2><div className="space-y-2">{tournament.matches.map((match, i) => (<div key={i} className="bg-[#0a0a0f] p-3 rounded-xl flex justify-between items-center"><span>{match[0].name}</span> <span className="text-[#a8ff00]">VS</span> <span>{match[1].name}</span></div>))}</div><button onClick={() => setTournament(null)} className="w-full bg-[#23232b] py-2 rounded-xl mt-3 font-bold">Close</button></div></div>)}
 
-      <footer className="text-center mt-10 pb-6 text-gray-500 text-sm border-t border-gray-800 pt-4">
-        <p>© 2026 <span className="text-white font-bold">FanClash™</span> | By <span className="text-white font-bold">ANESH</span></p>
-      </footer>
+      <footer className="text-center mt-10 pb-6 text-gray-500 text-sm border-t border-gray-800 pt-4"><p>© 2026 <span className="text-white font-bold">FanClash™</span> | By <span className="text-white font-bold">ANESH</span></p></footer>
     </div>
   );
-                }
+                  }
