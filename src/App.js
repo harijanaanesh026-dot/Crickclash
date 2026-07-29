@@ -315,7 +315,7 @@ export default function CrickClash() {
     setBattle([p1, p2]);
   }, []);
 
-  // UPDATED: WITH MENTION
+  // UPDATED: POST COMMENT WITH MENTION
   const handlePostComment = async () => {
     if(!user){ alert("Login required"); await signInWithPopup(auth, googleProvider); return; }
     if(!newComment.trim() ||!battle[0] ||!battle[1]) return;
@@ -326,15 +326,18 @@ export default function CrickClash() {
     setNewComment("");
   };
 
-  const handleLikeComment = async (commentKey) => {
+  // FIXED: UPVOTE / DOWNVOTE - Iddhi lekapothe build fail avutundi
+  const handleVoteComment = async (commentKey, voteType) => {
     if(!user) return alert("Login required");
     const battleKey = getBattleKey();
-    const likeRef = ref(db, `comments/${battleKey}/${commentKey}/likes/${user.uid}`);
-    const snap = await get(likeRef);
-    if(snap.exists()){ await remove(likeRef); } else { await set(likeRef, true); }
+    const voteRef = ref(db, `comments/${battleKey}/${commentKey}/likes/${user.uid}`);
+    const snap = await get(voteRef);
+    const currentVote = snap.val();
+    if(currentVote === voteType){ await remove(voteRef); }
+    else { await set(voteRef, voteType); }
   };
 
-  // UPDATED: WITH MENTION
+  // UPDATED: POST REPLY WITH MENTION
   const handlePostReply = async (commentKey) => {
     if(!user){ alert("Login required"); await signInWithPopup(auth, googleProvider); return; }
     if(!newReply.trim()) return;
@@ -388,8 +391,8 @@ export default function CrickClash() {
   const handleRefer = async () => {
     if(!user) return alert("Login required");
     const refLink = `${window.location.origin}?ref=${user.uid}`;
-    navigator.clipboard.writeText(`Vote now on FanClash! ${refLink}`);
-    alert("Referral link copied! you can get an extra vote");
+    navigator.clipboard.writeText(`FanClash lo vote chey! ${refLink}`);
+    alert("Referral link copied! Extra vote vastundi 🔥");
     await update(ref(db, `users/${user.uid}/${category}`), { votesToday: increment(-REFERRAL_BONUS_VOTE) });
     setVotesToday(prev => ({...prev, [category]: Math.max(0, prev[category] - 1)}));
   }
@@ -415,7 +418,7 @@ export default function CrickClash() {
     await update(ref(db, `players/${category}/${votedPlayerId}`), { votes: increment(1) });
     await update(ref(db, `meta/${category}`), { totalVotes: increment(1), battleNo: newBattleNo });
 
-    setTimeout(() => { setIsVoting(false); setBattleNo(newBattleNo); generateBattle(players, filter); }, 1000);
+    setTimeout(() => { setIsVoting(false); setVotesToday(prev => ({...prev, [category]: prev[category] + 1})); setBattleNo(newBattleNo); generateBattle(players, filter); }, 1000);
   };
 
   const handleGoogleLogin = () => signInWithPopup(auth, googleProvider);
@@ -468,9 +471,8 @@ export default function CrickClash() {
         });
       } else { setVotesToday({Cricket: 0, Football: 0, Movies: 0}); setStreak(0); setBadges([]); setBattleHistory([]); }
     });
-  }, [category, checkAndResetDaily, checkWeeklyWinner, filter, generateBattle, loadWeeklyWinner, user]);
-
-if(loading) return <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center text-white">Loading...</div>;
+  }, [category, battle, battleNo, checkAndResetDaily, checkWeeklyWinner, filter, generateBattle, loadWeeklyWinner, user]);
+  if(loading) return <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center text-white">Loading...</div>;
 
   return (
     <div className="min-h-screen bg-[#0a0a0f] text-white flex-col">
@@ -493,12 +495,10 @@ if(loading) return <div className="min-h-screen bg-[#0a0a0f] flex items-center j
       )}
 
       <div className="max-w-md mx-auto w-full flex-1 p-4">
-        {/* UPDATED HEADER WITH BELL */}
+        {/* HEADER WITH BELL */}
         <header className="flex justify-between items-center mb-4">
-          <div><h1 className="text-2xl font-bold">FanClash</h1><p className="text-xs text-gray-400">🏏 ⚽ 🎬</p></div>
+          <div><h1 className="text-2xl font-bold">FanClash</h1><p className="text-xs text-gray-400">ANESH Innovation</p></div>
           <div className="flex gap-2 items-center">
-
-            {/* NEW: NOTIFICATION BELL */}
             {user && (
               <div className="relative">
                 <button onClick={() => setShowNotifications(!showNotifications)} className="relative text-2xl">
@@ -524,7 +524,6 @@ if(loading) return <div className="min-h-screen bg-[#0a0a0f] flex items-center j
                 )}
               </div>
             )}
-
             <div className="relative">
               {user?
                 <img src={user.photoURL} onClick={() => setShowProfile(!showProfile)} className="w-10 h-10 rounded-full border-2 border-[#a8ff00] cursor-pointer hover:scale-110 transition" />
@@ -635,7 +634,7 @@ if(loading) return <div className="min-h-screen bg-[#0a0a0f] flex items-center j
                     </div>
                   ))}
                 </div>
-                {/* UPDATED DEBATE ZONE WITH REPLIES + MENTIONS + UPVOTE */}
+                {/* DEBATE ZONE WITH REPLIES + MENTIONS + UPVOTE */}
                 <div className="bg-[#13131a] p-4 rounded-2xl mt-4">
                   <h3 className="font-bold mb-3">💬 Debate Zone</h3>
                   <p className="text-xs text-gray-400 mb-2">Tip: @username ani type cheste notification vastundi</p>
@@ -763,7 +762,7 @@ if(loading) return <div className="min-h-screen bg-[#0a0a0f] flex items-center j
                 )
               })}
             </div>
-            <button onClick={() => alert("Take screenshot and share it! 📸")} className="w-full bg-gradient-to-r from-purple-600 to-pink-600 py-3 rounded-xl font-bold">📸 Screenshot</button>
+            <button onClick={() => alert("Screenshot teesi share chey! 📸")} className="w-full bg-gradient-to-r from-purple-600 to-pink-600 py-3 rounded-xl font-bold">📸 Screenshot</button>
             <button onClick={() => setShowResultCard(false)} className="w-full bg-[#23232b] py-2 rounded-xl font-bold mt-2">Close</button>
           </div>
         </div>
@@ -787,8 +786,8 @@ if(loading) return <div className="min-h-screen bg-[#0a0a0f] flex items-center j
       )}
 
       <footer className="text-center mt-10 pb-6 text-gray-500 text-sm border-t border-gray-800 pt-4">
-        <p>© 2026 <span className="text-white font-bold">FanClash™</span> | A Production By <span className="text-white font-bold">ANESH</span></p>
+        <p>© 2026 <span className="text-white font-bold">FanClash™</span> | By <span className="text-white font-bold">ANESH</span></p>
       </footer>
     </div>
   );
-              }
+                }
