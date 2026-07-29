@@ -209,7 +209,7 @@ export default function CrickClash() {
   const [newComment, setNewComment] = useState("");
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [weeklyWinner, setWeeklyWinner] = useState(null);
-  const [replyTo, setReplyTo] = useState(null);
+  const [replyTo, setReplyTo] = useState(null); // "main-123" or "reply-456"
   const [newReply, setNewReply] = useState("");
   const [showResultCard, setShowResultCard] = useState(false);
   const [tournament, setTournament] = useState(null);
@@ -299,7 +299,6 @@ export default function CrickClash() {
     if(window.confirm("Are you sure?")){ await remove(ref(db, `users/${user.uid}/${category}/history`)); setBattleHistory([]); }
   };
 
-  // FIX 1: SAME BATTLE MALLI SET CHEYYAKUNDA
   const generateBattle = useCallback((playerList, role) => {
     if(playerList.length < 2) return;
     let filtered = role === 'Any'? playerList : playerList.filter(p => p.role === role);
@@ -308,7 +307,7 @@ export default function CrickClash() {
     let p2 = filtered[Math.floor(Math.random() * filtered.length)];
     let attempts = 0;
     while(p1.id === p2.id && attempts < 20) { p2 = filtered[Math.floor(Math.random() * filtered.length)]; attempts++; }
-    if(battle[0]?.id === p1.id && battle[1]?.id === p2.id) return; // same unte skip
+    if(battle[0]?.id === p1.id && battle[1]?.id === p2.id) return;
     setBattle([p1, p2]);
   }, [battle]);
 
@@ -332,17 +331,18 @@ export default function CrickClash() {
     else { await set(voteRef, voteType); }
   };
 
-  const handlePostReply = async (commentKey) => {
+  // FIX: replyToId add chesam
+  const handlePostReply = async (commentKey, replyToId = null) => {
     if(!user){ alert("Login required"); await signInWithPopup(auth, googleProvider); return; }
     if(!newReply.trim()) return;
     const time = Date.now();
     const battleKey = getBattleKey();
-    await set(ref(db, `comments/${battleKey}/${commentKey}/replies/${time}`), { text: newReply, user: user.displayName, photo: user.photoURL, time: time });
+    const replyData = { text: newReply, user: user.displayName, photo: user.photoURL, time: time, replyTo: replyToId };
+    await set(ref(db, `comments/${battleKey}/${commentKey}/replies/${time}`), replyData);
     const mentions = extractMentions(newReply); mentions.forEach(name => sendNotification(name, newReply, time));
     setNewReply(""); setReplyTo(null);
   };
 
-  // FIX 2: [battle] dependency teesesam. Loop stop
   useEffect(() => {
     const battleKey = getBattleKey();
     if(!battleKey) return;
@@ -373,7 +373,6 @@ export default function CrickClash() {
     const newBattleNo = battleNo + 1;
     setBattleNo(newBattleNo);
     await update(ref(db, `meta/${category}`), { battleNo: newBattleNo });
-    // generateBattle ikkada call cheyyodhu. useEffect chuskuntundi
   };
 
   const handleShareResult = () => {
@@ -398,7 +397,6 @@ export default function CrickClash() {
     setTournament({ round: 1, matches: [[shuffled[0], shuffled[1]], [shuffled[2], shuffled[3]], [shuffled[4], shuffled[5]], [shuffled[6], shuffled[7]]], winner: null });
   }
 
-  // FIX 3: battleKey add chesi ee battle ki vote chesava ani check
   const handleVote = async (votedPlayerId) => {
     if(!user){ alert("Login required"); await signInWithPopup(auth, googleProvider); return; }
     const battleKey = getBattleKey();
@@ -407,7 +405,7 @@ export default function CrickClash() {
     const {newStreak, newBadges} = await updateStreak();
     const today = getToday();
     const votedPlayer = ALL_DATA[category].find(p => p.id === votedPlayerId);
-    const historyEntry = {battleNo, battleKey, category, players: [battle[0]?.name, battle[1]?.name], votedFor: votedPlayer.name, date: today}; // battleKey add chesam
+    const historyEntry = {battleNo, battleKey, category, players: [battle[0]?.name, battle[1]?.name], votedFor: votedPlayer.name, date: today};
     const newHistory = [historyEntry,...battleHistory].slice(0, 50);
     const newBattleNo = battleNo + 1;
 
@@ -421,7 +419,6 @@ export default function CrickClash() {
   const handleGoogleLogin = () => signInWithPopup(auth, googleProvider);
   const handleLogout = async () => { if(window.confirm("Logout?")) { await signOut(auth); setShowProfile(false); } };
 
-  // FIX 4: players lo generateBattle call teesesam
   useEffect(() => {
     checkAndResetDaily();
     onValue(ref(db, `meta/${category}`), (snapshot) => {
@@ -434,7 +431,6 @@ export default function CrickClash() {
       if (data) {
         const playersArray = currentPlayers.map(p => ({...p, votes: data[p.id]?.votes || 0 }));
         setPlayers(playersArray);
-        // generateBattle(playersArray, filter); <-- idhi teesesam
         const sorted = [...playersArray].sort((a,b) => b.votes - a.votes);
         setTopPlayer(sorted[0]);
         checkWeeklyWinner(sorted);
@@ -468,7 +464,6 @@ export default function CrickClash() {
     });
   }, [category, checkAndResetDaily, checkWeeklyWinner, generateBattle, loadWeeklyWinner, user]);
 
-  // NEW: BATTLE GENERATE CHESE KOSAM SEPARATE useEffect
   useEffect(() => {
     if(players.length > 1) {
       generateBattle(players, filter);
@@ -625,7 +620,7 @@ export default function CrickClash() {
               <div>
                 <div className="flex items-center justify-center gap-2">
                   {[battle[0], battle[1]].map(p => {
-                    const hasVotedThisBattle = battleHistory.some(h => h.battleKey === getBattleKey()); // FIX
+                    const hasVotedThisBattle = battleHistory.some(h => h.battleKey === getBattleKey());
                     return (
                     <div key={p.id} onClick={() => setSelectedPlayer(p)} className={`bg-gradient-to-b from-[#1e3a5f] to-[#0a0e1a] p-4 rounded-2xl w-1/2 text-center ${voteAnim === p.id? 'vote-pop' : ''}`}>
                       <div className="w-20 h-20 rounded-full mx-auto mb-2 bg-[#a8ff00] text-black flex items-center justify-center text-3xl font-bold">{p.name[0]}</div>
@@ -642,7 +637,8 @@ export default function CrickClash() {
                     </div>
                   )})}
                 </div>
-                {/* DEBATE ZONE WITH REPLIES + MENTIONS + UPVOTE */}
+
+                {/* DEBATE ZONE WITH NESTED REPLY + MENTIONS FIX */}
                 <div className="bg-[#13131a] p-4 rounded-2xl mt-4">
                   <h3 className="font-bold mb-3">💬 Debate Zone</h3>
                   <p className="text-xs text-gray-400 mb-2">Tip: @username ani type cheste notification vastundi</p>
@@ -673,21 +669,34 @@ export default function CrickClash() {
                             </div>
                           </div>
 
-                          {/* REPLIES */}
+                          {/* REPLIES LEVEL 1 */}
                           <div className="ml-10 mt-2 space-y-2 border-l-2 border-gray-800 pl-3">
                             {replies.map((r) => (
-                              <div key={r.time} className="flex gap-2">
-                                <img src={r.photo} className="w-6 h-6 rounded-full"/>
-                                <div className="flex-1">
-                                  <p className="font-bold text-xs">{r.user}</p>
-                                  <p className="text-sm">{r.text}</p>
+                              <div key={r.time}>
+                                <div className="flex gap-2">
+                                  <img src={r.photo} className="w-6 h-6 rounded-full"/>
+                                  <div className="flex-1">
+                                    <p className="font-bold text-xs">{r.user}</p>
+                                    <p className="text-sm">{r.text}</p>
+                                    <button onClick={() => setReplyTo(`reply-${r.time}`)} className="text-xs text-gray-400 mt-1">Reply</button>
+                                  </div>
                                 </div>
+
+                                {/* REPLY TO REPLY INPUT BOX */}
+                                {replyTo === `reply-${r.time}` && (
+                                  <div className="flex gap-2 mt-2 ml-8">
+                                    <input value={newReply} onChange={e => setNewReply(e.target.value)} placeholder={`Reply to @${r.user}...`} className="w-full bg-[#13131a] p-2 rounded-lg outline-none text-sm" />
+                                    <button onClick={() => handlePostReply(c.time, r.time)} className="bg-[#a8ff00] text-black px-3 rounded-lg font-bold text-sm">Send</button>
+                                  </div>
+                                )}
                               </div>
                             ))}
+
+                            {/* MAIN REPLY INPUT BOX */}
                             {replyTo === c.time && (
                               <div className="flex gap-2 mt-2">
                                 <input value={newReply} onChange={e => setNewReply(e.target.value)} placeholder={`Reply to @${c.user}...`} className="w-full bg-[#13131a] p-2 rounded-lg outline-none text-sm" />
-                                <button onClick={() => handlePostReply(c.time)} className="bg-[#a8ff00] text-black px-3 rounded-lg font-bold text-sm">Send</button>
+                                <button onClick={() => handlePostReply(c.time, null)} className="bg-[#a8ff00] text-black px-3 rounded-lg font-bold text-sm">Send</button>
                               </div>
                             )}
                           </div>
@@ -696,7 +705,6 @@ export default function CrickClash() {
                     })}
                   </div>
                 </div>
-
                 {/* 5 BUTTONS */}
                 <div className="flex gap-2 mt-4">
                   <button onClick={handleShareResult} className="flex-1 bg-[#23232b] py-3 rounded-xl font-bold">📤 Share</button>
@@ -798,4 +806,4 @@ export default function CrickClash() {
       </footer>
     </div>
   );
-                                                                                                         }
+              }
