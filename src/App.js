@@ -18,7 +18,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
 const googleProvider = new GoogleAuthProvider();
-const WEEKLY_VOTE_LIMIT = 7;
+const DAILY_VOTE_LIMIT = 1;
 const REFERRAL_BONUS_VOTE = 1; // NEW
 
 // ============= CRICKET PLAYERS - 70 =============
@@ -196,7 +196,7 @@ export default function CrickClash() {
   const [filter, setFilter] = useState('Any');
   const [tab, setTab] = useState('Battle');
   const [streak, setStreak] = useState(0);
-  const [votesLeft, setVotesLeft] = useState(WEEKLY_VOTE_LIMIT); // CHANGED
+  const [votesToday, setVotesToday] = useState({Cricket: 0, Football: 0, Movies: 0});
   const [totalVotes, setTotalVotes] = useState(0);
   const [topPlayer, setTopPlayer] = useState(null);
   const [badges, setBadges] = useState([]);
@@ -211,29 +211,52 @@ export default function CrickClash() {
   const [weeklyWinner, setWeeklyWinner] = useState(null);
   const [replyTo, setReplyTo] = useState(null);
   const [newReply, setNewReply] = useState("");
+
+  // NEW TOP 3 STATES
   const [showResultCard, setShowResultCard] = useState(false);
   const [tournament, setTournament] = useState(null);
 
-  const getWeekNumber = () => {
-    const d = new Date();
-    d.setHours(0,0,0);
-    d.setDate(d.getDate() + 4 - (d.getDay()||7));
-    return d.getFullYear() + '-W' + String(Math.ceil(((d - new Date(d.getFullYear(),0,1))/86400000 + 1)/7)).padStart(2,'0');
+  // NEW: NOTIFICATION STATES
+  const [notifications, setNotifications] = useState([]);
+  const [showNotifications, setShowNotifications] = useState(false);
+
+  const getToday = () => new Date().toISOString().split('T')[0];
+  const getWeekNumber = () => { const d = new Date(); d.setHours(0,0,0); d.setDate(d.getDate() + 4 - (d.getDay()||7)); return d.getFullYear() + '-W' + String(Math.ceil(((d - new Date(d.getFullYear(),0,1))/86400000 + 1)/7)).padStart(2,'0'); };
+  const getBattleKey = () => battle[0] && battle[1]? `${category}-${battle[0].id}-${battle[1].id}-B${battleNo}` : null;
+
+  // NEW: MENTION FUNCTIONS
+  const extractMentions = (text) => {
+    const mentionRegex = /@(\w+)/g;
+    const mentions = [];
+    let match;
+    while ((match = mentionRegex.exec(text))!== null) { mentions.push(match[1]); }
+    return mentions;
   };
 
-  // Countdown to next Monday
+  const sendNotification = async (mentionedUsername, commentText, commentId) => {
+    const usersRef = ref(db, `usernames`);
+    const snap = await get(usersRef);
+    const usernames = snap.val();
+    const mentionedUserId = Object.keys(usernames || {}).find(uid => usernames[uid] === mentionedUsername);
+    if(mentionedUserId && mentionedUserId!== user.uid) {
+      const notifId = Date.now();
+      await set(ref(db, `notifications/${mentionedUserId}/${notifId}`), {
+        type: 'mention', from: user.displayName, text: commentText, battleKey: getBattleKey(), commentId: commentId, time: notifId, read: false
+      });
+    }
+  };
+
   useEffect(() => {
     const updateTimer = () => {
       const now = new Date();
-      const nextMonday = new Date(now);
-      nextMonday.setDate(now.getDate() + ((8 - now.getDay()) % 7 || 7));
-      nextMonday.setHours(0, 0, 0, 0);
-      const diff = nextMonday - now;
-      const d = Math.floor(diff / 1000 / 60 / 60 / 24);
-      const h = Math.floor(diff / 1000 / 60 / 60) % 24;
+      const tomorrow = new Date();
+      tomorrow.setDate(now.getDate() + 1);
+      tomorrow.setHours(0, 0, 0, 0);
+      const diff = tomorrow - now;
+      const h = Math.floor(diff / 1000 / 60 / 60);
       const m = Math.floor(diff / 1000 / 60) % 60;
       const s = Math.floor(diff / 1000) % 60;
-      setTimeLeft(`${d}d ${h}h ${m}m ${s}s`);
+      setTimeLeft(`${h}h ${m}m ${s}s`);
     };
     updateTimer();
     const interval = setInterval(updateTimer, 1000);
@@ -246,16 +269,16 @@ export default function CrickClash() {
     setCategory(days[todayIndex]);
   }, []);
 
-  const checkAndResetWeekly = useCallback(async () => {
-    const currentWeek = getWeekNumber();
+  const checkAndResetDaily = useCallback(async () => {
+    const today = getToday();
     const metaRef = ref(db, `meta/${category}`);
     const snap = await get(metaRef);
     const metaData = snap.val();
-    if (!metaData || metaData.lastResetWeek!== currentWeek) {
+    if (!metaData || metaData.lastResetDate!== today) {
       const resetPlayers = {};
       ALL_DATA[category].forEach(p => { resetPlayers[p.id] = {...p, votes: 0}; });
       await set(ref(db, `players/${category}`), resetPlayers);
-      await set(metaRef, { lastResetWeek: currentWeek, totalVotes: 0, battleNo: 1 });
+      await set(metaRef, { lastResetDate: today, totalVotes: 0, battleNo: 1 });
     }
   }, [category]);
 
@@ -292,14 +315,14 @@ export default function CrickClash() {
     setBattle([p1, p2]);
   }, []);
 
-  const getBattleKey = () => battle[0] && battle[1]? `${category}-${battle[0].id}-${battle[1].id}-B${battleNo}` : null;
-
+  // UPDATED: WITH MENTION
   const handlePostComment = async () => {
     if(!user){ alert("Login required"); await signInWithPopup(auth, googleProvider); return; }
     if(!newComment.trim() ||!battle[0] ||!battle[1]) return;
     const time = Date.now();
     const battleKey = getBattleKey();
     await set(ref(db, `comments/${battleKey}/${time}`), { text: newComment, user: user.displayName, photo: user.photoURL, time: time, likes: {}, replies: {} });
+    const mentions = extractMentions(newComment); mentions.forEach(name => sendNotification(name, newComment, time));
     setNewComment("");
   };
 
@@ -311,17 +334,39 @@ export default function CrickClash() {
     if(snap.exists()){ await remove(likeRef); } else { await set(likeRef, true); }
   };
 
+  // UPDATED: WITH MENTION
+  const handlePostReply = async (commentKey) => {
+    if(!user){ alert("Login required"); await signInWithPopup(auth, googleProvider); return; }
+    if(!newReply.trim()) return;
+    const time = Date.now();
+    const battleKey = getBattleKey();
+    await set(ref(db, `comments/${battleKey}/${commentKey}/replies/${time}`), { text: newReply, user: user.displayName, photo: user.photoURL, time: time });
+    const mentions = extractMentions(newReply); mentions.forEach(name => sendNotification(name, newReply, time));
+    setNewReply(""); setReplyTo(null);
+  };
+
+  useEffect(() => {
+    if(!battle[0] ||!battle[1]) return;
+    const battleKey = getBattleKey();
+    const unsubscribe = onValue(ref(db, `comments/${battleKey}`), (snap) => {
+      const data = snap.val();
+      setComments(data? Object.values(data).sort((a,b) => b.time - a.time) : []);
+    });
+    return () => unsubscribe();
+  }, [battle, battleNo, category]);
+
   const updateStreak = async () => {
     if(!user) return {newStreak: 0, newBadges: []};
     const userRef = ref(db, `users/${user.uid}/${category}`);
-    const currentWeek = getWeekNumber();
+    const today = getToday();
+    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
     const snap = await get(userRef);
     const data = snap.val() || {};
     let newStreak = 1;
-    if(data.lastVoteWeek === currentWeek) newStreak = (data.streak || 0) + 1;
+    if(data.lastVoteDate === yesterday) newStreak = (data.streak || 0) + 1;
     let newBadges = [...(data.badges || [])];
-    if([1,3,5].includes(newStreak) &&!newBadges.includes(`${newStreak} Week Streak`)){ newBadges.push(`${newStreak} Week Streak`); }
-    if(votesLeft === WEEKLY_VOTE_LIMIT &&!newBadges.includes(`First ${category} Vote`)) newBadges.push(`First ${category} Vote`);
+    if([3,7,30].includes(newStreak) &&!newBadges.includes(`${newStreak} Day Streak`)){ newBadges.push(`${newStreak} Day Streak`); }
+    if(votesToday[category] === 0 &&!newBadges.includes(`First ${category} Vote`)) newBadges.push(`First ${category} Vote`);
     if(!newBadges.includes(`${category} Fan`)) newBadges.push(`${category} Fan`);
     return {newStreak, newBadges};
   };
@@ -334,7 +379,7 @@ export default function CrickClash() {
   };
 
   const handleShareResult = () => {
-    const text = `Who's your pick ${battle[0]?.name} vs ${battle[1]?.name} vote on FanClash ${category}! ⚔️`;
+    const text = `Who's your pick ${battle[0]?.name} vs ${battle[1]?.name} on FanClash ${category}! ⚔️`;
     const url = window.location.href;
     if (navigator.share) { navigator.share({title: 'FanClash', text: text, url: url}); }
     else { navigator.clipboard.writeText(`${text} ${url}`); alert("Copied!"); }
@@ -345,8 +390,8 @@ export default function CrickClash() {
     const refLink = `${window.location.origin}?ref=${user.uid}`;
     navigator.clipboard.writeText(`Vote now on FanClash! ${refLink}`);
     alert("Referral link copied! you can get an extra vote");
-    await update(ref(db, `users/${user.uid}/${category}`), { votesLeft: increment(REFERRAL_BONUS_VOTE) });
-    setVotesLeft(prev => prev + REFERRAL_BONUS_VOTE);
+    await update(ref(db, `users/${user.uid}/${category}`), { votesToday: increment(-REFERRAL_BONUS_VOTE) });
+    setVotesToday(prev => ({...prev, [category]: Math.max(0, prev[category] - 1)}));
   }
 
   const startTournament = () => {
@@ -357,27 +402,27 @@ export default function CrickClash() {
 
   const handleVote = async (votedPlayerId) => {
     if(!user){ alert("Login required"); await signInWithPopup(auth, googleProvider); return; }
-    if(votesLeft <= 0 || isVoting) return alert(`This week's votes are over! They will reset next Monday.`);
+    if(votesToday[category] >= DAILY_VOTE_LIMIT || isVoting) return alert(`Roju ${DAILY_VOTE_LIMIT} vote maatrame!`);
     setIsVoting(true); setVoteAnim(votedPlayerId); setTimeout(() => setVoteAnim(null), 500);
     const {newStreak, newBadges} = await updateStreak();
-    const currentWeek = getWeekNumber();
+    const today = getToday();
     const votedPlayer = ALL_DATA[category].find(p => p.id === votedPlayerId);
-    const historyEntry = {battleNo, category, players: [battle[0]?.name, battle[1]?.name], votedFor: votedPlayer.name, week: currentWeek};
+    const historyEntry = {battleNo, category, players: [battle[0]?.name, battle[1]?.name], votedFor: votedPlayer.name, date: today};
     const newHistory = [historyEntry,...battleHistory].slice(0, 50);
     const newBattleNo = battleNo + 1;
 
-    await update(ref(db, `users/${user.uid}/${category}`), { votesLeft: increment(-1), lastVoteWeek: currentWeek, streak: newStreak, badges: newBadges, history: newHistory });
+    await update(ref(db, `users/${user.uid}/${category}`), { votesToday: increment(1), lastVoteDate: today, streak: newStreak, badges: newBadges, history: newHistory });
     await update(ref(db, `players/${category}/${votedPlayerId}`), { votes: increment(1) });
     await update(ref(db, `meta/${category}`), { totalVotes: increment(1), battleNo: newBattleNo });
 
-    setTimeout(() => { setIsVoting(false); setVotesLeft(prev => prev - 1); setBattleNo(newBattleNo); generateBattle(players, filter); }, 1000);
+    setTimeout(() => { setIsVoting(false); setBattleNo(newBattleNo); generateBattle(players, filter); }, 1000);
   };
 
   const handleGoogleLogin = () => signInWithPopup(auth, googleProvider);
   const handleLogout = async () => { if(window.confirm("Logout?")) { await signOut(auth); setShowProfile(false); } };
 
   useEffect(() => {
-    checkAndResetWeekly();
+    checkAndResetDaily();
     onValue(ref(db, `meta/${category}`), (snapshot) => {
       const metaData = snapshot.val();
       if (metaData) { setBattleNo(metaData.battleNo || 1); setTotalVotes(metaData.totalVotes || 0); }
@@ -396,25 +441,36 @@ export default function CrickClash() {
         const initialPlayers = {};
         currentPlayers.forEach((p) => { initialPlayers[p.id] = {...p}; });
         set(ref(db, `players/${category}`), initialPlayers);
-        set(ref(db, `meta/${category}`), { lastResetWeek: getWeekNumber(), totalVotes: 0, battleNo: 1 });
+        set(ref(db, `meta/${category}`), { lastResetDate: getToday(), totalVotes: 0, battleNo: 1 });
       }
     });
+
+    // NEW: LOAD NOTIFICATIONS
+    if(user) {
+      onValue(ref(db, `notifications/${user.uid}`), (snap) => {
+        const data = snap.val();
+        if(data) setNotifications(Object.values(data).sort((a,b) => b.time - a.time));
+      });
+    }
+
     onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser); setLoading(false);
       if(currentUser) {
+        // NEW: SAVE USERNAME FOR MENTIONS
+        set(ref(db, `usernames/${currentUser.uid}`), currentUser.displayName);
+
         onValue(ref(db, `users/${currentUser.uid}/${category}`), (snapshot) => {
           const userData = snapshot.val();
-          const currentWeek = getWeekNumber();
           if(userData){
-            const userVotesLeft = userData.lastVoteWeek === currentWeek? userData.votesLeft : WEEKLY_VOTE_LIMIT;
-            setVotesLeft(userVotesLeft || WEEKLY_VOTE_LIMIT)
+            setVotesToday(prev => ({...prev, [category]: userData.lastVoteDate === getToday()? userData.votesToday || 0 : 0}))
             setStreak(userData.streak || 0); setBadges(userData.badges || []); setBattleHistory(userData.history || []);
-          } else { setVotesLeft(WEEKLY_VOTE_LIMIT) }
+          }
         });
-      } else { setVotesLeft(WEEKLY_VOTE_LIMIT); setStreak(0); setBadges([]); setBattleHistory([]); }
+      } else { setVotesToday({Cricket: 0, Football: 0, Movies: 0}); setStreak(0); setBadges([]); setBattleHistory([]); }
     });
-  }, [category, checkAndResetWeekly, checkWeeklyWinner, filter, generateBattle, loadWeeklyWinner]);
-    if(loading) return <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center text-white">Loading...</div>;
+  }, [category, checkAndResetDaily, checkWeeklyWinner, filter, generateBattle, loadWeeklyWinner, user]);
+
+if(loading) return <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center text-white">Loading...</div>;
 
   return (
     <div className="min-h-screen bg-[#0a0a0f] text-white flex-col">
@@ -437,20 +493,51 @@ export default function CrickClash() {
       )}
 
       <div className="max-w-md mx-auto w-full flex-1 p-4">
+        {/* UPDATED HEADER WITH BELL */}
         <header className="flex justify-between items-center mb-4">
           <div><h1 className="text-2xl font-bold">FanClash</h1><p className="text-xs text-gray-400">🏏 ⚽ 🎬</p></div>
-          <div className="relative">
-            {user?
-              <img src={user.photoURL} onClick={() => setShowProfile(!showProfile)} className="w-10 h-10 rounded-full border-2 border-[#a8ff00] cursor-pointer hover:scale-110 transition" />
-              :
-              <button onClick={handleGoogleLogin} className="bg-[#a8ff00] text-black px-4 py-2 rounded-full font-bold text-sm">Login</button>
-            }
-            {showProfile && user && (
-              <div className="absolute right-0 mt-2 w-44 bg-[#1A1A1A] border-[#333] rounded-xl shadow-2xl z-50">
-                <div className="px-4 py-3 border-b border-[#333]"><p className="text-white text-sm font-semibold">{user.displayName}</p><p className="text-gray-400 text-xs truncate">{user.email}</p></div>
-                <button onClick={handleLogout} className="w-full text-left px-4 py-3 text-red-400 hover:bg-[#222] rounded-b-xl">Logout</button>
+          <div className="flex gap-2 items-center">
+
+            {/* NEW: NOTIFICATION BELL */}
+            {user && (
+              <div className="relative">
+                <button onClick={() => setShowNotifications(!showNotifications)} className="relative text-2xl">
+                  🔔
+                  {notifications.filter(n =>!n.read).length > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-xs w-5 h-5 rounded-full flex items-center justify-center">
+                      {notifications.filter(n =>!n.read).length}
+                    </span>
+                  )}
+                </button>
+                {showNotifications && (
+                  <div className="absolute right-0 mt-2 w-80 bg-[#1A1A1A] border-[#333] rounded-xl shadow-2xl z-50 p-3 max-h-96 overflow-y-auto">
+                    <p className="font-bold mb-2">Notifications</p>
+                    {notifications.length === 0? <p className="text-gray-500 text-sm">No notifications</p> :
+                      notifications.map(n => (
+                        <div key={n.time} className="bg-[#0a0a0f] p-2 rounded-lg mb-2">
+                          <p className="text-sm"><span className="font-bold text-[#a8ff00]">@{n.from}</span> mentioned you</p>
+                          <p className="text-xs text-gray-400">"{n.text}"</p>
+                        </div>
+                      ))
+                    }
+                  </div>
+                )}
               </div>
             )}
+
+            <div className="relative">
+              {user?
+                <img src={user.photoURL} onClick={() => setShowProfile(!showProfile)} className="w-10 h-10 rounded-full border-2 border-[#a8ff00] cursor-pointer hover:scale-110 transition" />
+                :
+                <button onClick={handleGoogleLogin} className="bg-[#a8ff00] text-black px-4 py-2 rounded-full font-bold text-sm">Login</button>
+              }
+              {showProfile && user && (
+                <div className="absolute right-0 mt-2 w-44 bg-[#1A1A1A] border-[#333] rounded-xl shadow-2xl z-50">
+                  <div className="px-4 py-3 border-b border-[#333]"><p className="text-white text-sm font-semibold">{user.displayName}</p><p className="text-gray-400 text-xs truncate">{user.email}</p></div>
+                  <button onClick={handleLogout} className="w-full text-left px-4 py-3 text-red-400 hover:bg-[#222] rounded-b-xl">Logout</button>
+                </div>
+              )}
+            </div>
           </div>
         </header>
 
@@ -463,17 +550,17 @@ export default function CrickClash() {
           ))}
         </div>
 
-        {!user && <div className="bg-[#a8ff00]/10 border-[#a8ff00] p-3 rounded-2xl mb-3 text-center text-sm">Login to get 7 votes per week</div>}
+        {!user && <div className="bg-[#a8ff00]/10 border-[#a8ff00] p-3 rounded-2xl mb-3 text-center text-sm">Login to get 3 votes per day 1 for each category</div>}
 
-        {/* WEEKLY BATTLE HEADER */}
+        {/* DAILY BATTLE HEADER */}
         <div className="bg-gradient-to-r from-orange-600 to-red-600 p-3 rounded-2xl mb-3 text-center">
-          <p className="text-sm font-bold">🔥 Weekly Fan Battle</p>
+          <p className="text-sm font-bold">🔥 Daily Fan Battle</p>
           <p className="text-lg font-bold">
             {category === 'Cricket' && 'Best Cricketer of All Time?'}
             {category === 'Football' && 'GOAT Football Debate'}
             {category === 'Movies' && 'King of Indian Cinema?'}
           </p>
-          <p className="text-xs">Resets Monday: {timeLeft}</p>
+          <p className="text-xs">Resets in: {timeLeft}</p>
         </div>
 
         {/* WEEKLY CHAMPION */}
@@ -491,14 +578,15 @@ export default function CrickClash() {
           </div>
         </div>
 
-        {/* WEEKLY VOTES CARD */}
+        {/* VOTES CARD */}
         <div className="bg-[#13131a] p-4 rounded-2xl mb-4 text-center">
-          <p className="text-gray-400 text-sm mb-2">This Week's Votes Left</p>
-          <div className="bg-[#0a0a0f] p-3 rounded-xl">
-            <p className="text-4xl font-bold text-[#a8ff00]">{votesLeft}</p>
-            <p className="text-xs">/ {WEEKLY_VOTE_LIMIT} Votes</p>
+          <p className="text-gray-400 text-sm mb-2">Today's Votes Left</p>
+          <div className="grid grid-cols-3 gap-2">
+            <div className={`bg-[#0a0a0f] p-2 rounded-xl ${votesToday.Cricket >= 1? 'opacity-50' : ''}`}><p className="text-2xl font-bold text-[#a8ff00]">{DAILY_VOTE_LIMIT - votesToday.Cricket}</p><p className="text-xs">🏏 Cricket</p></div>
+            <div className={`bg-[#0a0a0f] p-2 rounded-xl ${votesToday.Football >= 1? 'opacity-50' : ''}`}><p className="text-2xl font-bold text-[#a8ff00]">{DAILY_VOTE_LIMIT - votesToday.Football}</p><p className="text-xs">⚽ Football</p></div>
+            <div className={`bg-[#0a0a0f] p-2 rounded-xl ${votesToday.Movies >= 1? 'opacity-50' : ''}`}><p className="text-2xl font-bold text-[#a8ff00]">{DAILY_VOTE_LIMIT - votesToday.Movies}</p><p className="text-xs">🎬 Movies</p></div>
           </div>
-          <button onClick={handleRefer} className="text-xs text-[#a8ff00] mt-2 underline">Invite Friend = +1 Vote 🔥</button>
+          <p className="text-xs text-gray-500 mt-2">Reset in: {timeLeft}</p>
         </div>
 
         {/* TABS */}
@@ -515,7 +603,7 @@ export default function CrickClash() {
               <div><p className="text-2xl font-bold text-orange-400">{totalVotes}</p><p className="text-xs text-gray-400">TOTAL</p></div>
               <div><p className="text-2xl font-bold text-orange-400">{battleNo-1}</p><p className="text-xs text-gray-400">BATTLES</p></div>
               <div><p className="text-2xl font-bold text-orange-400 truncate">{topPlayer?.name.split(' ')[0] || 'None'}</p><p className="text-xs text-gray-400">TOP</p></div>
-              <div><p className="text-2xl font-bold text-orange-400">🔥{user? streak : 0}</p><p className="text-xs text-gray-400">WEEKS</p></div>
+              <div><p className="text-2xl font-bold text-orange-400">🔥{user? streak : 0}</p><p className="text-xs text-gray-400">STREAK</p></div>
             </div>
             <h2 className="text-center text-4xl font-bold mb-4">Battle <span className="text-[#a8ff00]">{battleNo}</span></h2>
 
@@ -541,29 +629,61 @@ export default function CrickClash() {
                       <span className="px-3 py-1 rounded-full text-xs font-bold bg-gray-800">{p.role}</span>
                       <h3 className="text-xl font-bold mt-3">{p.name}</h3>
                       <p className="text-[#a8ff00] font-bold">{p.votes || 0} votes</p>
-                      <button onClick={(e) => {e.stopPropagation(); handleVote(p.id)}} disabled={isVoting || votesLeft <= 0} className={`w-full py-3 rounded-xl font-bold mt-2 ${votesLeft <= 0? 'bg-gray-700' : 'bg-[#a8ff00] text-black'}`}>
-                        {isVoting? 'VOTING...' : votesLeft <= 0? 'NO VOTES LEFT' : 'VOTE'}
+                      <button onClick={(e) => {e.stopPropagation(); handleVote(p.id)}} disabled={isVoting || votesToday[category] >= DAILY_VOTE_LIMIT} className={`w-full py-3 rounded-xl font-bold mt-2 ${votesToday[category] >= DAILY_VOTE_LIMIT? 'bg-gray-700' : 'bg-[#a8ff00] text-black'}`}>
+                        {isVoting? 'VOTING...' : votesToday[category] >= DAILY_VOTE_LIMIT? 'VOTED TODAY' : 'VOTE'}
                       </button>
                     </div>
                   ))}
                 </div>
-
-                {/* DEBATE ZONE */}
+                {/* UPDATED DEBATE ZONE WITH REPLIES + MENTIONS + UPVOTE */}
                 <div className="bg-[#13131a] p-4 rounded-2xl mt-4">
                   <h3 className="font-bold mb-3">💬 Debate Zone</h3>
+                  <p className="text-xs text-gray-400 mb-2">Tip: @username ani type cheste notification vastundi</p>
                   <div className="flex gap-2 mb-3">
-                    <input value={newComment} onChange={e => setNewComment(e.target.value)} placeholder="Who will win?" className="w-full bg-[#0a0a0f] p-2 rounded-lg outline-none" />
+                    <input value={newComment} onChange={e => setNewComment(e.target.value)} placeholder="Reply to @Name: Kohli is GOAT" className="w-full bg-[#0a0a0f] p-2 rounded-lg outline-none" />
                     <button onClick={handlePostComment} className="bg-[#a8ff00] text-black px-4 rounded-lg font-bold">Post</button>
                   </div>
                   <div className="space-y-3 max-h-60 overflow-y-auto">
                     {comments.length === 0 && <p className="text-gray-500 text-sm">No comments yet. Be first!</p>}
                     {comments.map((c) => {
-                      const likeCount = c.likes? Object.keys(c.likes).length : 0;
+                      const likes = c.likes? Object.values(c.likes) : [];
+                      const upvotes = likes.filter(v => v === 'up').length;
+                      const downvotes = likes.filter(v => v === 'down').length;
+                      const userVote = user && c.likes? c.likes[user.uid] : null;
+                      const replies = c.replies? Object.values(c.replies).sort((a,b) => a.time - b.time) : [];
                       return (
                         <div key={c.time} className="bg-[#0a0a0f] p-3 rounded-lg">
-                          <p className="font-bold text-xs">{c.user}</p>
-                          <p className="text-sm">{c.text}</p>
-                          <button onClick={() => handleLikeComment(c.time)} className="text-xs text-gray-400 mt-1">❤️ {likeCount}</button>
+                          <div className="flex gap-2">
+                            <img src={c.photo} className="w-8 h-8 rounded-full"/>
+                            <div className="flex-1">
+                              <p className="font-bold text-xs">{c.user}</p>
+                              <p className="text-sm">{c.text}</p>
+                              <div className="flex gap-3 mt-1 items-center">
+                                <button onClick={() => handleVoteComment(c.time, 'up')} className={`text-xs flex items-center gap-1 ${userVote === 'up'? 'text-green-400' : 'text-gray-400'}`}>⬆️ {upvotes}</button>
+                                <button onClick={() => handleVoteComment(c.time, 'down')} className={`text-xs flex items-center gap-1 ${userVote === 'down'? 'text-red-400' : 'text-gray-400'}`}>⬇️ {downvotes}</button>
+                                <button onClick={() => setReplyTo(replyTo === c.time? null : c.time)} className="text-xs text-gray-400">Reply</button>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* REPLIES */}
+                          <div className="ml-10 mt-2 space-y-2 border-l-2 border-gray-800 pl-3">
+                            {replies.map((r) => (
+                              <div key={r.time} className="flex gap-2">
+                                <img src={r.photo} className="w-6 h-6 rounded-full"/>
+                                <div className="flex-1">
+                                  <p className="font-bold text-xs">{r.user}</p>
+                                  <p className="text-sm">{r.text}</p>
+                                </div>
+                              </div>
+                            ))}
+                            {replyTo === c.time && (
+                              <div className="flex gap-2 mt-2">
+                                <input value={newReply} onChange={e => setNewReply(e.target.value)} placeholder={`Reply to @${c.user}...`} className="w-full bg-[#13131a] p-2 rounded-lg outline-none text-sm" />
+                                <button onClick={() => handlePostReply(c.time)} className="bg-[#a8ff00] text-black px-3 rounded-lg font-bold text-sm">Send</button>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       )
                     })}
@@ -605,6 +725,7 @@ export default function CrickClash() {
               })}
           </div>
         )}
+
         {/* HISTORY TAB */}
         {tab === 'History' && (
           <div className="space-y-3">
@@ -614,7 +735,7 @@ export default function CrickClash() {
             </div>
             {!user? <p className="text-gray-500 text-center">Login required</p> : battleHistory.length === 0? <p className="text-gray-500 text-center">No battles yet</p> : battleHistory.map((h,i) => (
               <div key={i} className="bg-[#13131a] p-3 rounded-xl">
-                <p className="text-sm text-gray-400">Battle {h.battleNo} • Week: {h.week}</p>
+                <p className="text-sm text-gray-400">Battle {h.battleNo} • {h.date}</p>
                 <p className="font-bold">{h.players[0]} vs {h.players[1]}</p>
                 <p className="text-sm text-[#a8ff00]">You voted: {h.votedFor}</p>
               </div>
@@ -642,7 +763,7 @@ export default function CrickClash() {
                 )
               })}
             </div>
-            <button onClick={() => alert("Take screenshot and shre it! 📸")} className="w-full bg-gradient-to-r from-purple-600 to-pink-600 py-3 rounded-xl font-bold">📸 Screenshot</button>
+            <button onClick={() => alert("Take screenshot and share it! 📸")} className="w-full bg-gradient-to-r from-purple-600 to-pink-600 py-3 rounded-xl font-bold">📸 Screenshot</button>
             <button onClick={() => setShowResultCard(false)} className="w-full bg-[#23232b] py-2 rounded-xl font-bold mt-2">Close</button>
           </div>
         </div>
