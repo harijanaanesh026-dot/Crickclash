@@ -181,7 +181,6 @@ const MOVIES_PLAYERS = [
   { id: "jagapathi-babu", name: 'Jagapathi Babu', role: 'VILLAIN', votes: 0 },
   { id: "srikanth", name: 'SriKanth', role: 'VILLAIN', votes: 0 },
   { id: "Sunil", name: 'Sunil', role: 'VILLAIN', votes: 0 },
-  const MOVIES_PLAYERS = [
   { id: "sr-ntr", name: "sr NTR", image: "/images/movies/jr-ntr.jpg" },
   { id: " prabhas", name: "sr Prabhas", image: "/images/movies/prabhas.jpg" },
   { id: "allu-arjun", name: "sr Allu Arjun", image: "/images/movies/allu-arjun.jpg" },
@@ -191,7 +190,7 @@ const MOVIES_PLAYERS = [
   { id: "nani", name: "sr Nani", image: "/images/movies/nani.jpg" },
   { id: "ravi-teja", name: "sr Ravi Teja", image: "/images/movies/ravi-teja.jpg" }
 ];
-];
+
 
 
 
