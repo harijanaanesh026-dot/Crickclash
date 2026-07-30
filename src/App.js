@@ -230,7 +230,7 @@ export default function CrickClash() {
   const [tournament, setTournament] = useState(null);
   const [yesterdayWinners, setYesterdayWinners] = useState({Cricket: null, Football: null, Movies: null});
 
-  // NEW STATES FOR ATTRACTION
+  // NEW STATES
   const [dailyRewardClaimed, setDailyRewardClaimed] = useState(false);
   const [topFans, setTopFans] = useState([]);
 
@@ -255,7 +255,7 @@ export default function CrickClash() {
     return () => clearInterval(interval);
   }, []);
 
-  // GLOBAL 12AM RESET FOR 3 CATEGORIES
+  // GLOBAL 12AM RESET
   useEffect(() => {
     const checkGlobalReset = async () => {
       const today = getToday();
@@ -284,7 +284,7 @@ export default function CrickClash() {
   const claimDailyReward = async () => {
     if(!user || dailyRewardClaimed) return;
     await update(ref(db, `users/${user.uid}/${category}`), {
-      votesToday: increment(-1), // -1 ante +1 bonus
+      votesToday: increment(-1),
       [`${category}LastRewardDate`]: getToday()
     });
     setDailyRewardClaimed(true);
@@ -348,13 +348,22 @@ export default function CrickClash() {
     setBattle([p1, p2]);
   }, []);
 
-  // AUTH + DATA LOAD
+  // AUTH + ANONYMOUS FIX
   useEffect(() => {
     setLoading(true);
     const authUnsub = onAuthStateChanged(auth, async (currentUser) => {
       setLoading(false);
       if(currentUser) {
         const today = getToday();
+
+        // FIX: SAVE USER DETAILS TO FIREBASE
+        await update(ref(db, `users/${currentUser.uid}`), {
+          displayName: currentUser.displayName,
+          photoURL: currentUser.photoURL,
+          email: currentUser.email,
+          lastLogin: Date.now()
+        })
+
         const userSnap = await get(ref(db, `users/${currentUser.uid}`));
         const userData = userSnap.val() || {};
 
@@ -526,7 +535,7 @@ export default function CrickClash() {
         if(catData?.votesToday > 0) {
           fansList.push({
             name: u.displayName || "Anonymous",
-            photo: u.photoURL || `https://ui-avatars.com/api/?name=${u.displayName}`,
+            photo: u.photoURL || `https://ui-avatars.com/api/?name=${u.displayName || 'A'}`,
             votes: catData.votesToday
           })
         }
@@ -588,7 +597,7 @@ export default function CrickClash() {
         {comment.replies && Object.values(comment.replies).sort((a,b) => a.time - b.time).map((reply) => (<CommentItem key={reply.key} comment={reply} commentKey={reply.key} depth={depth + 1}/>))}
       </div>
     );
-    }
+      }
 
   if(loading) return <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center text-white">Loading...</div>;
 
@@ -596,7 +605,6 @@ export default function CrickClash() {
     <div className="min-h-screen bg-[#0a0a0f] text-white flex-col">
       <style>{`@keyframes pop { 0%{transform:scale(1)} 50%{transform:scale(1.15)} 100%{transform:scale(1)} }.vote-pop { animation: pop 0.5s ease; }`}</style>
 
-      {/* PLAYER DETAIL MODAL */}
       {selectedPlayer && (
         <div onClick={() => setSelectedPlayer(null)} className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
           <div onClick={e => e.stopPropagation()} className="bg-[#13131a] p-6 rounded-2xl w-full max-w-sm">
@@ -612,7 +620,6 @@ export default function CrickClash() {
         </div>
       )}
 
-      {/* PROFILE MODAL */}
       {showProfile && user && (
         <div onClick={() => setShowProfile(false)} className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
           <div onClick={e => e.stopPropagation()} className="bg-[#13131a] p-6 rounded-2xl w-full max-w-sm">
@@ -642,7 +649,7 @@ export default function CrickClash() {
 
         <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-3 rounded-2xl mb-3"><p className="text-sm font-bold text-center mb-2">👑 Yesterday's Winners</p><div className="grid grid-cols-3 gap-2">{Object.entries(yesterdayWinners).map(([cat, winner]) => (<div key={cat} className="bg-black/20 p-2 rounded-xl text-center"><p className="text-xs">{cat === 'Cricket' && '🏏'}{cat === 'Football' && '⚽'}{cat === 'Movies' && '🎬'} {cat}</p>{winner? (<><div className="w-10 h-10 rounded-full mx-auto my-1 bg-[#a8ff00] text-black flex items-center justify-center text-lg font-bold">{winner.name[0]}</div><p className="text-xs font-bold truncate">{winner.name}</p><p className="text-xs text-[#a8ff00]">{winner.votes} votes</p></>) : (<p className="text-xs text-gray-300">No data</p>)}</div>))}</div></div>
 
-        {/* NEW: DAILY STREAK + REWARD CARD */}
+        {/* DAILY REWARD */}
         <div className="bg-gradient-to-r from-purple-600 to-pink-600 p-3 rounded-2xl mb-3">
           <div className="flex justify-between items-center">
             <div>
@@ -666,7 +673,7 @@ export default function CrickClash() {
           {getTimeUntilNextVote(user?.[`${category}LastVoteTime`]) > 0 && (<p className="text-xs text-yellow-300">Next vote in: {Math.floor(getTimeUntilNextVote(user?.[`${category}LastVoteTime`])/1000/60/60)}h {Math.floor(getTimeUntilNextVote(user?.[`${category}LastVoteTime`])/1000/60%60)}m</p>)}
         </div>
 
-        {weeklyWinner && (<div className="bg-gradient-to-r from-yellow-500 to-orange-500 p-3 rounded-2xl mb-3 text-center"><p className="text-sm font-bold text-black">👑 {category} WEEKLY CHAMPION</p><p className="text-lg font-bold text-black">{weeklyWinner.name} - {weeklyWinner.votes} Votes</p></div>)}
+        {weeklyWinner && (<div className="bg-gradient-to-r from-yellow-500 to-orange-500 p-3 rounded-2xl mb-3 text-center"><p className="text-sm font-bold text-black">👑 {category} WEEKLY CHAMPION</p><p className="text-lg font-bold text-black">{weeklyWinner.name} - {weeklyWinner.votes} Vote{weeklyWinner.votes > 1? 's' : ''}</p></div>)}
 
         <div className="bg-[#13131a] p-4 rounded-2xl mb-4 text-center"><p className="text-gray-400 text-sm mb-2">Today's Votes Left</p><div className="grid grid-cols-3 gap-2"><div className={`bg-[#0a0a0f] p-2 rounded-xl ${votesToday.Cricket >= DAILY_VOTE_LIMIT? 'opacity-50' : ''}`}><p className="text-2xl font-bold text-[#a8ff00]">{DAILY_VOTE_LIMIT - votesToday.Cricket}</p><p className="text-xs">🏏 Cricket</p></div><div className={`bg-[#0a0a0f] p-2 rounded-xl ${votesToday.Football >= DAILY_VOTE_LIMIT? 'opacity-50' : ''}`}><p className="text-2xl font-bold text-[#a8ff00]">{DAILY_VOTE_LIMIT - votesToday.Football}</p><p className="text-xs">⚽ Football</p></div><div className={`bg-[#0a0a0f] p-2 rounded-xl ${votesToday.Movies >= DAILY_VOTE_LIMIT? 'opacity-50' : ''}`}><p className="text-2xl font-bold text-[#a8ff00]">{DAILY_VOTE_LIMIT - votesToday.Movies}</p><p className="text-xs">🎬 Movies</p></div></div><p className="text-xs text-gray-500 mt-2">Daily Reset in: {timeLeft}</p></div>
 
@@ -744,7 +751,7 @@ export default function CrickClash() {
           </div>
         )}
 
-        {/* NEW: TOP FANS TAB */}
+        {/* TOP FANS TAB */}
         {tab === 'Fans' && (
           <div>
             <h2 className="text-2xl font-bold text-[#a8ff00] mb-4 text-center">👑 Top 10 Fans - {category}</h2>
@@ -801,4 +808,4 @@ export default function CrickClash() {
       <footer className="text-center mt-10 pb-6 text-gray-500 text-sm border-t border-gray-800 pt-4"><p>© 2026 <span className="text-white font-bold">FanClash™</span> | By <span className="text-white font-bold">ANESH</span></p></footer>
     </div>
   );
-        }
+          }
