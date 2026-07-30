@@ -18,173 +18,50 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
 const googleProvider = new GoogleAuthProvider();
-const DAILY_VOTE_LIMIT = 6; // rojuki 6 votes 
-const VOTE_COOLDOWN_HOURS = 4; // 4 hours ki 1 vote
-const REFERRAL_BONUS_VOTE = 1; // NEW
-const GUEST_FREE_VOTES = 3;
-// ============= CRICKET PLAYERS - 70 =============
-// ============= CRICKET PLAYERS - 70 =============
+
+// ============= CONSTANTS =============
+const DAILY_VOTE_LIMIT = 6;
+const VOTE_COOLDOWN_HOURS = 4;
+const REFERRAL_BONUS_VOTE = 1;
+const GUEST_FREE_VOTES = 3; // NEW
+
+// ============= 3 CATEGORIES DATA =============
 const CRICKET_PLAYERS = [
   { id: "virat-kohli-bat", name: 'Virat Kohli', role: 'BATTER', votes: 0 },
   { id: "sachin-tendulkar", name: 'Sachin Tendulkar', role: 'BATTER', votes: 0 },
   { id: "rohit-sharma-bat", name: 'Rohit Sharma', role: 'BATTER', votes: 0 },
-  { id: "vaibhav-sooryavanshi", name: 'Vaibhav Sooryavanshi', role: 'BATTER', votes: 0 },
-  { id: "rajat-patidar-bat", name: 'Rajat Patidar', role: 'BATTER', votes: 0 },
-  { id: "abhishek-sharma", name: 'Abhishek Sharma', role: 'BATTER', votes: 0 },
-  { id: "shreyas-iyer", name: 'Shreyas Iyer', role: 'BATTER', votes: 0 },
-  { id: "kl-rahul-bat", name: 'KL Rahul', role: 'BATTER', votes: 0 },
-  { id: "shubman-gill-bat", name: 'Shubman Gill', role: 'BATTER', votes: 0 },
-  { id: "sai-sudarshan", name: 'Sai Sudarshan', role: 'BATTER', votes: 0 },
-  { id: "rahul-dravid-bat", name: 'Rahul Dravid', role: 'BATTER', votes: 0 },
-  { id: "virendra-sehwag", name: 'Virendra Sehwag', role: 'BATTER', votes: 0 },
-  { id: "shikhar-dhawan", name: 'Shikhar Dhawan', role: 'BATTER', votes: 0 },
-  { id: "suresh-raina", name: 'Suresh Raina', role: 'BATTER', votes: 0 },
-  { id: "yashasvi-jaiswal", name: 'Yashasvi Jaiswal', role: 'BATTER', votes: 0 },
   { id: "ms-dhoni-bat", name: 'MS Dhoni', role: 'BATTER', votes: 0 },
-  { id: "dinesh-karthik-bat", name: 'Dinesh Karthik', role: 'BATTER', votes: 0 },
-  { id: "priyansh-arya", name: 'Priyansh Arya', role: 'BATTER', votes: 0 },
-  { id: "tilak-varma", name: 'Tilak Varma', role: 'BATTER', votes: 0 },
-  { id: "ishan-kishan-bat", name: 'Ishan Kishan', role: 'BATTER', votes: 0 },
-  { id: "yuvraj-singh-bat", name: 'Yuvraj Singh', role: 'BATTER', votes: 0 },
-  { id: "sanju-samson-bat", name: 'Sanju Samson', role: 'BATTER', votes: 0 },
-  { id: "ruturaj-gaikwad-bat", name: 'Ruturaj Gaikwad', role: 'BATTER', votes: 0 },
-  { id: "rishabh-pant-bat", name: 'Rishabh Pant', role: 'BATTER', votes: 0 },
-  { id: "dhruv-jurel-bat", name: 'Dhruv Jurel', role: 'BATTER', votes: 0 },
-  { id: "jitesh-sharma-bat", name: 'Jitesh Sharma', role: 'BATTER', votes: 0 },
-  { id: "washington-sundar-bat", name: 'Washington Sundar', role: 'BATTER', votes: 0 },
-  { id: "shivam-dube-bat", name: 'Shivam Dube', role: 'BATTER', votes: 0 },
-  { id: "nitish-kumar-reddy-bat", name: 'Nitish Kumar Reddy', role: 'BATTER', votes: 0 },
-  { id: "krunal-pandya-bat", name: 'Krunal Pandya', role: 'BATTER', votes: 0 },
   { id: "jasprit-bumrah", name: 'Jasprit Bumrah', role: 'BOWLER', votes: 0 },
-  { id: "bhuvaneswar-kumar", name: 'Bhuvaneswar Kumar', role: 'BOWLER', votes: 0 },
-  { id: "mohammed-shami", name: 'Mohammed Shami', role: 'BOWLER', votes: 0 },
-  { id: "mohammed-siraj", name: 'Mohammed Siraj', role: 'BOWLER', votes: 0 },
-  { id: "prasidh-krishna", name: 'Prasidh Krishna', role: 'BOWLER', votes: 0 },
-  { id: "harshit-rana", name: 'Harshit Rana', role: 'BOWLER', votes: 0 },
-  { id: "ishant-sharma", name: 'Ishant Sharma', role: 'BOWLER', votes: 0 },
-  { id: "umesh-yadav", name: 'Umesh Yadav', role: 'BOWLER', votes: 0 },
-  { id: "axar-patel-bowl", name: 'Axar Patel', role: 'BOWLER', votes: 0 },
-  { id: "yuzvendra-chahal", name: 'Yuzvendra Chahal', role: 'BOWLER', votes: 0 },
-  { id: "deepak-chahar", name: 'Deepak Chahar', role: 'BOWLER', votes: 0 },
-  { id: "arshdeep-singh", name: 'Arshdeep Singh', role: 'BOWLER', votes: 0 },
-  { id: "ravindra-jadeja-bowl", name: 'Ravindra Jadeja', role: 'BOWLER', votes: 0 },
-  { id: "anil-kumble", name: 'Anil Kumble', role: 'BOWLER', votes: 0 },
-  { id: "kapil-dev-bowl", name: 'Kapil Dev', role: 'BOWLER', votes: 0 },
-  { id: "harbhajan-singh", name: 'Harbhajan Singh', role: 'BOWLER', votes: 0 },
-  { id: "ravichandran-ashwin-bowl", name: 'Ravichandran Ashwin', role: 'BOWLER', votes: 0 },
-  { id: "kuldeep-yadav", name: 'Kuldeep Yadav', role: 'BOWLER', votes: 0 },
-  { id: "kapil-dev-ar", name: 'Kapil Dev', role: 'ALL-ROUNDER', votes: 0 },
   { id: "ravindra-jadeja-ar", name: 'Ravindra Jadeja', role: 'ALL-ROUNDER', votes: 0 },
-  { id: "yuvraj-singh-ar", name: 'Yuvraj Singh', role: 'ALL-ROUNDER', votes: 0 },
-  { id: "ravichandran-ashwin-ar", name: 'Ravichandran Ashwin', role: 'ALL-ROUNDER', votes: 0 },
   { id: "hardik-pandya-ar", name: 'Hardik Pandya', role: 'ALL-ROUNDER', votes: 0 },
-  { id: "krunal-pandya-ar", name: 'Krunal Pandya', role: 'ALL-ROUNDER', votes: 0 },
-  { id: "axar-patel-ar", name: 'Axar Patel', role: 'ALL-ROUNDER', votes: 0 },
-  { id: "washington-sundar-ar", name: 'Washington Sundar', role: 'ALL-ROUNDER', votes: 0 },
-  { id: "shivam-dube-ar", name: 'Shivam Dube', role: 'ALL-ROUNDER', votes: 0 },
-  { id: "nitish-kumar-reddy-ar", name: 'Nitish Kumar Reddy', role: 'ALL-ROUNDER', votes: 0 },
-  { id: "shardul-thakur", name: 'Shardul Thakur', role: 'ALL-ROUNDER', votes: 0 },
-  { id: "ms-dhoni-kp", name: 'MS Dhoni', role: 'KEEPER', votes: 0 },
-  { id: "jitesh-sharma-kp", name: 'Jitesh Sharma', role: 'KEEPER', votes: 0 },
-  { id: "dhruv-jurel-kp", name: 'Dhruv Jurel', role: 'KEEPER', votes: 0 },
-  { id: "sanju-samson-kp", name: 'Sanju Samson', role: 'KEEPER', votes: 0 },
-  { id: "kl-rahul-kp", name: 'KL Rahul', role: 'KEEPER', votes: 0 },
-  { id: "ishan-kishan-kp", name: 'Ishan Kishan', role: 'KEEPER', votes: 0 },
   { id: "rishabh-pant-kp", name: 'Rishabh Pant', role: 'KEEPER', votes: 0 },
-  { id: "dinesh-karthik-kp", name: 'Dinesh Karthik', role: 'KEEPER', votes: 0 },
   { id: "virat-kohli-cap", name: 'Virat Kohli', role: 'CAPTAIN', votes: 0 },
-  { id: "ms-dhoni-cap", name: 'MS Dhoni', role: 'CAPTAIN', votes: 0 },
-  { id: "rohit-sharma-cap", name: 'Rohit Sharma', role: 'CAPTAIN', votes: 0 },
-  { id: "rajat-patidar-cap", name: 'Rajat Patidar', role: 'CAPTAIN', votes: 0 },
-  { id: "hardik-pandya-cap", name: 'Hardik Pandya', role: 'CAPTAIN', votes: 0 },
-  { id: "shubman-gill-cap", name: 'Shubman Gill', role: 'CAPTAIN', votes: 0 },
-  { id: "ruturaj-gaikwad-cap", name: 'Ruturaj Gaikwad', role: 'CAPTAIN', votes: 0 },
-  { id: "kapil-dev-cap", name: 'Kapil Dev', role: 'CAPTAIN', votes: 0 },
 ];
 
-// ============= FOOTBALL =============
 const FOOTBALL_PLAYERS = [
-  // ===== FORWARDS - 12 =====
-  { id: "ronaldo", name: 'Cristiano Ronaldo', role: 'FORWARD', votes: 0 },
   { id: "messi", name: 'Lionel Messi', role: 'FORWARD', votes: 0 },
+  { id: "ronaldo", name: 'Cristiano Ronaldo', role: 'FORWARD', votes: 0 },
   { id: "mbappe", name: 'Kylian Mbappe', role: 'FORWARD', votes: 0 },
-  { id: "neymar", name: 'Neymar Jr', role: 'FORWARD', votes: 0 },
   { id: "haaland", name: 'Erling Haaland', role: 'FORWARD', votes: 0 },
-  { id: "vinicius", name: 'Vinicius Jr', role: 'FORWARD', votes: 0 },
-  { id: "salah", name: 'Mohamed Salah', role: 'FORWARD', votes: 0 },
-  { id: "lewandowski", name: 'Robert Lewandowski', role: 'FORWARD', votes: 0 },
-  { id: "kane", name: 'Harry Kane', role: 'FORWARD', votes: 0 },
-  { id: "benzema", name: 'Karim Benzema', role: 'FORWARD', votes: 0 },
-  { id: "mane", name: 'Sadio Mane', role: 'FORWARD', votes: 0 },
-  { id: "rashford", name: 'Marcus Rashford', role: 'FORWARD', votes: 0 },
-
-  // ===== MIDFIELDERS - 14 =====
-  { id: "de-bruyne", name: 'Kevin De Bruyne', role: 'MIDFIELDER', votes: 0 },
+  { id: "neymar", name: 'Neymar Jr', role: 'FORWARD', votes: 0 },
   { id: "modric", name: 'Luka Modric', role: 'MIDFIELDER', votes: 0 },
-  { id: "bellingham", name: 'Jude Bellingham', role: 'MIDFIELDER', votes: 0 },
-  { id: "pedri", name: 'Pedri', role: 'MIDFIELDER', votes: 0 },
-  { id: "kroos", name: 'Toni Kroos', role: 'MIDFIELDER', votes: 0 },
-  { id: "rodri", name: 'Rodri', role: 'MIDFIELDER', votes: 0 },
-  { id: "valverde", name: 'Federico Valverde', role: 'MIDFIELDER', votes: 0 },
-  { id: "fernandez", name: 'Bruno Fernandes', role: 'MIDFIELDER', votes: 0 },
-  { id: "griezmann", name: 'Antoine Griezmann', role: 'MIDFIELDER', votes: 0 },
-  { id: "casemiro", name: 'Casemiro', role: 'MIDFIELDER', votes: 0 },
-  { id: "kamavinga", name: 'Eduardo Camavinga', role: 'MIDFIELDER', votes: 0 },
-  { id: "musiala", name: 'Jamal Musiala', role: 'MIDFIELDER', votes: 0 },
-  { id: "foden", name: 'Phil Foden', role: 'MIDFIELDER', votes: 0 },
-  { id: "palmer", name: 'Cole Palmer', role: 'MIDFIELDER', votes: 0 },
-
-  // ===== DEFENDERS - 10 =====
+  { id: "de-bruyne", name: 'Kevin De Bruyne', role: 'MIDFIELDER', votes: 0 },
   { id: "ramos", name: 'Sergio Ramos', role: 'DEFENDER', votes: 0 },
-  { id: "vvd", name: 'Virgil van Dijk', role: 'DEFENDER', votes: 0 },
-  { id: "dias", name: 'Ruben Dias', role: 'DEFENDER', votes: 0 },
-  { id: "hakimi", name: 'Achraf Hakimi', role: 'DEFENDER', votes: 0 },
-  { id: "trent", name: 'Trent Alexander-Arnold', role: 'DEFENDER', votes: 0 },
-  { id: "robertson", name: 'Andrew Robertson', role: 'DEFENDER', votes: 0 },
-  { id: "alaba", name: 'David Alaba', role: 'DEFENDER', votes: 0 },
-  { id: "rudiger", name: 'Antonio Rudiger', role: 'DEFENDER', votes: 0 },
-  { id: "marquinhos", name: 'Marquinhos', role: 'DEFENDER', votes: 0 },
-  { id: "araujo", name: 'Ronald Araujo', role: 'DEFENDER', votes: 0 },
-
-  // ===== GOALKEEPERS - 4 =====
   { id: "courtois", name: 'Thibaut Courtois', role: 'GOALKEEPER', votes: 0 },
-  { id: "ter-stegen", name: 'Marc-Andre ter Stegen', role: 'GOALKEEPER', votes: 0 },
-  { id: "alisson", name: 'Alisson Becker', role: 'GOALKEEPER', votes: 0 },
-  { id: "ederson", name: 'Ederson', role: 'GOALKEEPER', votes: 0 },
 ];
 
-// ============= MOVIES =============
 const MOVIES_PLAYERS = [
-  { id: "jr ntr", name: 'Jr NTR', role: 'HERO', votes: 0 },
   { id: "prabhas", name: 'Prabhas', role: 'HERO', votes: 0 },
+  { id: "jr-ntr", name: 'Jr NTR', role: 'HERO', votes: 0 },
   { id: "allu-arjun", name: 'Allu Arjun', role: 'HERO', votes: 0 },
   { id: "ram-charan", name: 'Ram Charan', role: 'HERO', votes: 0 },
   { id: "pawan-kalyan", name: 'Pawan Kalyan', role: 'HERO', votes: 0 },
   { id: "mahesh-babu", name: 'Mahesh Babu', role: 'HERO', votes: 0 },
-  { id: "nani", name: 'Nani', role: 'HERO', votes: 0 },
-  { id: "ravi-teja", name: 'Ravi Teja', role: 'HERO', votes: 0 },
-  { id: "ram", name: 'Ram', role: 'HERO', votes: 0 },
-  { id: "chiranjeevi", name: 'Chiranjeevi', role: 'HERO', votes: 0 },
-  { id: "nagarjuna", name: 'Nagarjuna', role: 'HERO', votes: 0 },
-  { id: "balakrishna", name: 'Balakrishna', role: 'HERO', votes: 0 },
-  { id: "venkatesh", name: 'Venkatesh', role: 'HERO', votes: 0 },
-  { id: "vijay-devarakonda", name: 'Vijay Devarakonda', role: 'HERO', votes: 0 },
-  { id: "sai-dharam-tej", name: 'Sai Dharam Tej', role: 'HERO', votes: 0 },
-  { id: "siddu", name: 'Siddu', role: 'HERO', votes: 0 },
-  { id: "naga-chaitanya", name: 'Naga Chaitanya', role: 'HERO', votes: 0 },
-  { id: "akhil", name: 'Akhil', role: 'HERO', votes: 0 },
+  { id: "vijay", name: 'Thalapathy Vijay', role: 'HERO', votes: 0 },
+  { id: "srk", name: 'Shah Rukh Khan', role: 'HERO', votes: 0 },
   { id: "prakash-raj", name: 'Prakash Raj', role: 'VILLAIN', votes: 0 },
   { id: "sonu-sood", name: 'Sonu Sood', role: 'VILLAIN', votes: 0 },
-  { id: "rana", name: 'Rana Daggubati', role: 'VILLAIN', votes: 0 },
-  { id: "Gopichand", name: 'Gopichand', role: 'VILLAIN', votes: 0 },
-  { id: "sudeep", name: 'Sudeep', role: 'VILLAIN', votes: 0 },
-  { id: "vijay-sethupathi", name: 'Vijay Sethupathi', role: 'VILLAIN', votes: 0 },
-  { id: "fahadh-faasl", name: 'Fahadh Faasil', role: 'VILLAIN', votes: 0 },
-  { id: "jagapathi-babu", name: 'Jagapathi Babu', role: 'VILLAIN', votes: 0 },
-  { id: "srikanth", name: 'SriKanth', role: 'VILLAIN', votes: 0 },
-  { id: "Sunil", name: 'Sunil', role: 'VILLAIN', votes: 0 },
 ];
-
 
 const ALL_DATA = { Cricket: CRICKET_PLAYERS, Football: FOOTBALL_PLAYERS, Movies: MOVIES_PLAYERS };
 
@@ -256,7 +133,7 @@ export default function CrickClash() {
       await set(theirRef, true);
       await push(ref(db, `notifications/${targetUid}`), {type: 'follow', from: user.uid, fromName: username, time: Date.now(), read: false});
     }
-    }
+}
     // PART 2: CHAT STATES
   const [chatTab, setChatTab] = useState('DM');
   const [messages, setMessages] = useState([]);
@@ -274,7 +151,7 @@ export default function CrickClash() {
   // PART 3: VOICE + CALL FUNCTIONS
   const startRecording = async () => { const stream = await navigator.mediaDevices.getUserMedia({audio: true}); const recorder = new MediaRecorder(stream); recorder.onstop = async () => { await set(push(ref(db, `chats/${activeChat.id}/messages`)), {from: user.uid, fromName: username, text: '🎤 Voice message', time: Date.now(), type: 'voice'}); }; recorder.start(); mediaRecorderRef.current = recorder; setIsRecording(true); }
   const stopRecording = () => { mediaRecorderRef.current.stop(); setIsRecording(false); }
-  const startCall = () => alert("Add Agora SDK for real 1-1 / Group Voice & Video Calls");
+  const startCall = () => alert("Add Agora SDK for real 1-1 / Group Voice & Video Calls"); 
     // PART 4A: NOTIFICATION STATES
   const [showNotif, setShowNotif] = useState(false);
   const [notifications, setNotifications] = useState([]);
@@ -564,7 +441,7 @@ export default function CrickClash() {
         {comment.replies && Object.values(comment.replies).sort((a,b) => a.time - b.time).map((reply) => (<CommentItem key={reply.key} comment={reply} commentKey={reply.key} depth={depth + 1}/>))}
       </div>
     );
-    }
+                     }
   if(loading) return <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center text-white">Loading...</div>;
 
   return (
@@ -683,4 +560,4 @@ export default function CrickClash() {
       </div>
     </div>
   );
-        }
+          }
