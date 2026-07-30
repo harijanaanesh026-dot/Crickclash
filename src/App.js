@@ -281,14 +281,15 @@ export default function CrickClash() {
     return votesUsed < DAILY_VOTE_LIMIT && timeLeft === 0;
   }
 
+  // FIX: +1 BONUS VOTE
   const claimDailyReward = async () => {
     if(!user || dailyRewardClaimed) return;
     await update(ref(db, `users/${user.uid}/${category}`), {
-      votesToday: increment(-1),
+      votesToday: increment(1), // +1 bonus
       [`${category}LastRewardDate`]: getToday()
     });
     setDailyRewardClaimed(true);
-    setVotesToday(prev => ({...prev, [category]: Math.max(0, prev[category] - 1)}));
+    setVotesToday(prev => ({...prev, [category]: prev[category] + 1}));
     alert("🎁 +1 Bonus Vote Claimed! 🔥");
   }
 
@@ -356,8 +357,8 @@ export default function CrickClash() {
       if(currentUser) {
         const today = getToday();
 
-        // FIX: SAVE USER DETAILS TO FIREBASE
-        await update(ref(db, `users/${currentUser.uid}`), {
+        // FIX: SAVE USER PROFILE TO FIREBASE
+        await set(ref(db, `users/${currentUser.uid}/profile`), {
           displayName: currentUser.displayName,
           photoURL: currentUser.photoURL,
           email: currentUser.email,
@@ -524,7 +525,7 @@ export default function CrickClash() {
       }
     });
 
-    // TOP 10 FANS LEADERBOARD
+    // FIX: TOP 10 FANS WITH REAL NAME
     const fansRef = ref(db, `users`);
     const fansUnsub = onValue(fansRef, (snap) => {
       const allUsers = snap.val() || {};
@@ -532,10 +533,11 @@ export default function CrickClash() {
       Object.keys(allUsers).forEach(uid => {
         const u = allUsers[uid];
         const catData = u[category];
+        const profile = u.profile; // profile nunchi name teeskuntunnam
         if(catData?.votesToday > 0) {
           fansList.push({
-            name: u.displayName || "Anonymous",
-            photo: u.photoURL || `https://ui-avatars.com/api/?name=${u.displayName || 'A'}`,
+            name: profile?.displayName || "Anonymous",
+            photo: profile?.photoURL || `https://ui-avatars.com/api/?name=${profile?.displayName || 'A'}`,
             votes: catData.votesToday
           })
         }
@@ -597,9 +599,9 @@ export default function CrickClash() {
         {comment.replies && Object.values(comment.replies).sort((a,b) => a.time - b.time).map((reply) => (<CommentItem key={reply.key} comment={reply} commentKey={reply.key} depth={depth + 1}/>))}
       </div>
     );
-      }
+            }
 
-  if(loading) return <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center text-white">Loading...</div>;
+              if(loading) return <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center text-white">Loading...</div>;
 
   return (
     <div className="min-h-screen bg-[#0a0a0f] text-white flex-col">
@@ -649,7 +651,7 @@ export default function CrickClash() {
 
         <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-3 rounded-2xl mb-3"><p className="text-sm font-bold text-center mb-2">👑 Yesterday's Winners</p><div className="grid grid-cols-3 gap-2">{Object.entries(yesterdayWinners).map(([cat, winner]) => (<div key={cat} className="bg-black/20 p-2 rounded-xl text-center"><p className="text-xs">{cat === 'Cricket' && '🏏'}{cat === 'Football' && '⚽'}{cat === 'Movies' && '🎬'} {cat}</p>{winner? (<><div className="w-10 h-10 rounded-full mx-auto my-1 bg-[#a8ff00] text-black flex items-center justify-center text-lg font-bold">{winner.name[0]}</div><p className="text-xs font-bold truncate">{winner.name}</p><p className="text-xs text-[#a8ff00]">{winner.votes} votes</p></>) : (<p className="text-xs text-gray-300">No data</p>)}</div>))}</div></div>
 
-        {/* DAILY REWARD */}
+        {/* DAILY REWARD + STREAK */}
         <div className="bg-gradient-to-r from-purple-600 to-pink-600 p-3 rounded-2xl mb-3">
           <div className="flex justify-between items-center">
             <div>
@@ -751,7 +753,7 @@ export default function CrickClash() {
           </div>
         )}
 
-        {/* TOP FANS TAB */}
+        {/* TOP FANS TAB - REAL NAMES */}
         {tab === 'Fans' && (
           <div>
             <h2 className="text-2xl font-bold text-[#a8ff00] mb-4 text-center">👑 Top 10 Fans - {category}</h2>
@@ -808,4 +810,4 @@ export default function CrickClash() {
       <footer className="text-center mt-10 pb-6 text-gray-500 text-sm border-t border-gray-800 pt-4"><p>© 2026 <span className="text-white font-bold">FanClash™</span> | By <span className="text-white font-bold">ANESH</span></p></footer>
     </div>
   );
-          }
+}
