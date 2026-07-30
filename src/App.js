@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInWithPopup, signOut, onAuthStateChanged, GoogleAuthProvider } from 'firebase/auth';
-import { getDatabase, ref, set, update, onValue, get, remove, increment } from 'firebase/database';
+import { getDatabase, ref, set, update, onValue, get, remove, increment, push } from 'firebase/database';
 
 // ============= FIREBASE CONFIG =============
 const firebaseConfig = {
@@ -21,7 +21,7 @@ const googleProvider = new GoogleAuthProvider();
 const DAILY_VOTE_LIMIT = 6; // rojuki 6 votes 
 const VOTE_COOLDOWN_HOURS = 4; // 4 hours ki 1 vote
 const REFERRAL_BONUS_VOTE = 1; // NEW
-
+const GUEST_FREE_VOTES = 3;
 // ============= CRICKET PLAYERS - 70 =============
 // ============= CRICKET PLAYERS - 70 =============
 const CRICKET_PLAYERS = [
