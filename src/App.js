@@ -290,7 +290,7 @@ export default function CrickClash() {
     });
     setDailyRewardClaimed(true);
     setVotesToday(prev => ({...prev, [category]: prev[category] + 1}));
-    alert("🎁 +1 Bonus Vote Claimed! 🔥");
+    alert("🎁 +1 Bonus Vote Claimed!");
   }
 
   const checkAndResetDaily = useCallback(async () => {
@@ -426,7 +426,7 @@ export default function CrickClash() {
     const timeLeftMs = getTimeUntilNextVote(userLastVoteTime);
     if(votesToday[category] >= DAILY_VOTE_LIMIT || timeLeftMs > 0 || isVoting) {
       const mins = Math.ceil(timeLeftMs / 1000 / 60);
-      return alert(`${category} lo ${DAILY_VOTE_LIMIT} votes ayipoyayi! Next vote in ${Math.floor(mins/60)}h ${mins%60}m`);
+      return alert(`${category} lo ${DAILY_VOTE_LIMIT} votes is over! Next vote in ${Math.floor(mins/60)}h ${mins%60}m`);
     }
     setIsVoting(true); setVoteAnim(votedPlayerId); setTimeout(() => setVoteAnim(null), 500);
     const {newStreak, newBadges} = await updateStreak();
@@ -454,7 +454,7 @@ export default function CrickClash() {
   };
 
   const handleShareResult = () => {
-    const text = `Who's your pick ${battle[0]?.name} vs ${battle[1]?.name} on FanClash ${category}! ⚔️`;
+    const text = `Who's your favourite ${battle[0]?.name} vs ${battle[1]?.name} Vote on FanClash ${category}! ⚔️`;
     const url = window.location.href;
     if (navigator.share) { navigator.share({title: 'FanClash', text: text, url: url}); }
     else { navigator.clipboard.writeText(`${text} ${url}`); alert("Copied!"); }
@@ -463,8 +463,8 @@ export default function CrickClash() {
   const handleRefer = async () => {
     if(!user) return alert("Login required");
     const refLink = `${window.location.origin}?ref=${user.uid}`;
-    navigator.clipboard.writeText(`FanClash lo vote chey! ${refLink}`);
-    alert("Referral link copied! Extra vote vastundi 🔥");
+    navigator.clipboard.writeText(`Vote now on FanClash! ${refLink}`);
+    alert("Refer your friend! you can get an extra vote");
     await update(ref(db, `users/${user.uid}/${category}`), { votesToday: increment(-REFERRAL_BONUS_VOTE) });
     setVotesToday(prev => ({...prev, [category]: Math.max(0, prev[category] - 1)}));
   }
@@ -645,7 +645,7 @@ export default function CrickClash() {
       )}
 
       <div className="max-w-md mx-auto w-full flex-1 p-4">
-        <header className="flex justify-between items-center mb-4"><div><h1 className="text-2xl font-bold">FanClash</h1><p className="text-xs text-gray-400">ANESH Innovation</p></div><div>{user? <img src={user.photoURL} onClick={() => setShowProfile(!showProfile)} className="w-10 h-10 rounded-full border-2 border-[#a8ff00] cursor-pointer" /> : <button onClick={handleGoogleLogin} className="bg-[#a8ff00] text-black px-4 py-2 rounded-full font-bold text-sm">Login</button>}</div></header>
+        <header className="flex justify-between items-center mb-4"><div><h1 className="text-2xl font-bold">FanClash</h1><p className="text-xs text-gray-400">🏏 ⚽ 🎬</p></div><div>{user? <img src={user.photoURL} onClick={() => setShowProfile(!showProfile)} className="w-10 h-10 rounded-full border-2 border-[#a8ff00] cursor-pointer" /> : <button onClick={handleGoogleLogin} className="bg-[#a8ff00] text-black px-4 py-2 rounded-full font-bold text-sm">Login</button>}</div></header>
 
         <div className="flex justify-center gap-2 mb-4 bg-[#13131a] p-1 rounded-2xl">{Object.keys(ALL_DATA).map(cat => (<button key={cat} onClick={() => setCategory(cat)} className={`flex-1 py-2 rounded-xl font-bold text-sm ${category === cat? 'bg-[#a8ff00] text-black' : 'text-gray-400'}`}>{cat === 'Cricket' && '🏏 '}{cat === 'Football' && '⚽ '}{cat === 'Movies' && '🎬 '}{cat}</button>))}</div>
 
@@ -756,7 +756,7 @@ export default function CrickClash() {
         {/* TOP FANS TAB - REAL NAMES */}
         {tab === 'Fans' && (
           <div>
-            <h2 className="text-2xl font-bold text-[#a8ff00] mb-4 text-center">👑 Top 10 Fans - {category}</h2>
+            <h2 className="text-2xl font-bold text-[#a8ff00] mb-4 text-center">👑 Top Fans - {category}</h2>
             {topFans.length === 0? <p className="text-center text-gray-500">No votes today</p> :
               topFans.map((fan, i) => (
                 <div key={i} className="bg-[#13131a] p-3 rounded-xl mb-3 flex items-center gap-3">
@@ -790,7 +790,7 @@ export default function CrickClash() {
           <div onClick={e => e.stopPropagation()} className="bg-gradient-to-br from-[#1e3a5f] to-[#0a0e1a] p-6 rounded-3xl w-full max-w-sm border-2 border-[#a8ff00]">
             <h2 className="text-center text-2xl font-bold mb-1">FanClash {category}</h2><p className="text-center text-gray-400 text-sm mb-4">Battle #{battleNo-1} Result</p>
             <div className="flex gap-3 items-center mb-4">{[battle[0], battle[1]].map(p => {const total = battle[0].votes + battle[1].votes; const percent = total > 0? ((p.votes / total) * 100).toFixed(0) : 50; return (<div key={p.id} className="flex-1 text-center p-3 rounded-2xl bg-[#13131a]"><div className="w-16 h-16 rounded-full mx-auto mb-2 bg-[#a8ff00] text-black flex items-center justify-center text-2xl font-bold">{p.name[0]}</div><p className="font-bold text-sm">{p.name}</p><p className="text-2xl font-bold text-[#a8ff00]">{percent}%</p></div>)})}</div>
-            <button onClick={() => alert("Screenshot teesi share chey! 📸")} className="w-full bg-gradient-to-r from-purple-600 to-pink-600 py-3 rounded-xl font-bold">📸 Screenshot</button>
+            <button onClick={() => alert("Take screenshot and share it! 📸")} className="w-full bg-gradient-to-r from-purple-600 to-pink-600 py-3 rounded-xl font-bold">📸 Screenshot</button>
             <button onClick={() => setShowResultCard(false)} className="w-full bg-[#23232b] py-2 rounded-xl font-bold mt-2">Close</button>
           </div>
         </div>
@@ -807,7 +807,7 @@ export default function CrickClash() {
         </div>
       )}
 
-      <footer className="text-center mt-10 pb-6 text-gray-500 text-sm border-t border-gray-800 pt-4"><p>© 2026 <span className="text-white font-bold">FanClash™</span> | By <span className="text-white font-bold">ANESH</span></p></footer>
+      <footer className="text-center mt-10 pb-6 text-gray-500 text-sm border-t border-gray-800 pt-4"><p>© 2026 <span className="text-white font-bold">FanClash™</span> | A Production By <span className="text-white font-bold">ANESH</span></p></footer>
     </div>
   );
 }
