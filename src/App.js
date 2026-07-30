@@ -184,7 +184,6 @@ const MOVIES_PLAYERS = [
   { id: "Sunil", name: 'Sunil', role: 'VILLAIN', votes: 0 },
 ];
 
-
 const ALL_DATA = { Cricket: CRICKET_PLAYERS, Football: FOOTBALL_PLAYERS, Movies: MOVIES_PLAYERS };
 
 export default function CrickClash() {
@@ -214,11 +213,12 @@ export default function CrickClash() {
   const [newReply, setNewReply] = useState("");
   const [showResultCard, setShowResultCard] = useState(false);
   const [tournament, setTournament] = useState(null);
+  const [yesterdayWinners, setYesterdayWinners] = useState({Cricket: null, Football: null, Movies: null}); // NEW
 
   const getToday = () => new Date().toISOString().split('T')[0];
   const getWeekNumber = () => { const d = new Date(); d.setHours(0,0,0); d.setDate(d.getDate() + 4 - (d.getDay()||7)); return d.getFullYear() + '-W' + String(Math.ceil(((d - new Date(d.getFullYear(),0,1))/86400000 + 1)/7)).padStart(2,'0'); };
 
-  // NEW: COOLDOWN HELPER
+  // COOLDOWN HELPER
   const getTimeUntilNextVote = (lastVoteTime) => {
     if (!lastVoteTime) return 0;
     const nextVoteTime = new Date(lastVoteTime).getTime() + VOTE_COOLDOWN_HOURS * 60 * 60 * 1000;
@@ -231,8 +231,7 @@ export default function CrickClash() {
     const votesUsed = votesToday[category];
     return votesUsed < DAILY_VOTE_LIMIT && timeLeft === 0;
   }
-
-  useEffect(() => {
+    useEffect(() => {
     const updateTimer = () => {
       const now = new Date();
       const tomorrow = new Date();
@@ -254,12 +253,22 @@ export default function CrickClash() {
     const todayIndex = new Date().getDay() % 3;
     setCategory(days[todayIndex]);
   }, []);
-    const checkAndResetDaily = useCallback(async () => {
+
+  const checkAndResetDaily = useCallback(async () => {
     const today = getToday();
     const metaRef = ref(db, `meta/${category}`);
     const snap = await get(metaRef);
     const metaData = snap.val();
     if (!metaData || metaData.lastResetDate!== today) {
+      // Reset chese mundu winner save chey
+      const playersRef = ref(db, `players/${category}`);
+      const pSnap = await get(playersRef);
+      const pData = pSnap.val();
+      if(pData) {
+        const sorted = Object.values(pData).sort((a,b) => b.votes - a.votes);
+        if(sorted[0]) await set(ref(db, `yesterdayWinners/${category}`), { name: sorted[0].name, votes: sorted[0].votes });
+      }
+
       const resetPlayers = {};
       ALL_DATA[category].forEach(p => { resetPlayers[p.id] = {...p, votes: 0}; });
       await set(ref(db, `players/${category}`), resetPlayers);
@@ -283,12 +292,14 @@ export default function CrickClash() {
     setWeeklyWinner(snap.exists()? snap.val() : null);
   }, [category]);
 
-  useEffect(() => { loadWeeklyWinner(); }, [category, loadWeeklyWinner]);
-
-  const handleDeleteHistory = async () => {
-    if(!user) return alert("Login required");
-    if(window.confirm("Are you sure?")){ await remove(ref(db, `users/${user.uid}/${category}/history`)); setBattleHistory([]); }
-  };
+  const loadYesterdayWinners = useCallback(async () => {
+    const winners = {};
+    for(const cat of ['Cricket', 'Football', 'Movies']) {
+      const snap = await get(ref(db, `yesterdayWinners/${cat}`));
+      winners[cat] = snap.exists()? snap.val() : null;
+    }
+    setYesterdayWinners(winners);
+  }, []);
 
   const generateBattle = useCallback((playerList, role) => {
     if(playerList.length < 2) return;
@@ -308,7 +319,7 @@ export default function CrickClash() {
     if(!newComment.trim() ||!battle[0] ||!battle[1]) return;
     const time = Date.now();
     const battleKey = getBattleKey();
-    await set(ref(db, `comments/${battleKey}/${time}`), { text: newComment, user: user.displayName, photo: user.photoURL, time: time, likes: {}, replies: {} });
+    await set(ref(db, `comments/${battleKey}/${time}`), { text: newComment, user: user.displayName, photo: user.photoURL, time: time, key: time, likes: {}, replies: {} });
     setNewComment("");
   };
 
@@ -325,19 +336,9 @@ export default function CrickClash() {
     if(!newReply.trim()) return;
     const time = Date.now();
     const battleKey = getBattleKey();
-    await set(ref(db, `comments/${battleKey}/${commentKey}/replies/${time}`), { text: newReply, user: user.displayName, photo: user.photoURL, time: time });
+    await set(ref(db, `comments/${battleKey}/${commentKey}/replies/${time}`), { text: newReply, user: user.displayName, photo: user.photoURL, time: time, key: time });
     setNewReply(""); setReplyTo(null);
   };
-
-  useEffect(() => {
-    if(!battle[0] ||!battle[1]) return;
-    const battleKey = getBattleKey();
-    const unsubscribe = onValue(ref(db, `comments/${battleKey}`), (snap) => {
-      const data = snap.val();
-      setComments(data? Object.values(data).sort((a,b) => b.time - a.time) : []);
-    });
-    return () => unsubscribe();
-  }, [battle, battleNo, category]);
 
   const updateStreak = async () => {
     if(!user) return {newStreak: 0, newBadges: []};
@@ -355,11 +356,47 @@ export default function CrickClash() {
     return {newStreak, newBadges};
   };
 
+  const handleVote = async (votedPlayerId) => {
+    if(!user){ alert("Login required"); await signInWithPopup(auth, googleProvider); return; }
+
+    const timeLeftMs = getTimeUntilNextVote(user?.lastVoteTime);
+    if(votesToday[category] >= DAILY_VOTE_LIMIT || timeLeftMs > 0 || isVoting) {
+      const mins = Math.ceil(timeLeftMs / 1000 / 60);
+      return alert(`Votes ayipoyayi! Next vote in ${mins} mins`);
+    }
+
+    setIsVoting(true); setVoteAnim(votedPlayerId); setTimeout(() => setVoteAnim(null), 500);
+    const {newStreak, newBadges} = await updateStreak();
+    const today = getToday();
+    const votedPlayer = ALL_DATA[category].find(p => p.id === votedPlayerId);
+    const historyEntry = {battleNo, category, players: [battle[0]?.name, battle[1]?.name], votedFor: votedPlayer.name, date: today};
+    const newHistory = [historyEntry,...battleHistory].slice(0, 50);
+    const newBattleNo = battleNo + 1;
+
+    await update(ref(db, `users/${user.uid}/${category}`), {
+      votesToday: increment(1),
+      lastVoteDate: today,
+      lastVoteTime: Date.now(),
+      streak: newStreak,
+      badges: newBadges,
+      history: newHistory
+    });
+    await update(ref(db, `players/${category}/${votedPlayerId}`), { votes: increment(1) });
+    await update(ref(db, `meta/${category}`), { totalVotes: increment(1), battleNo: newBattleNo });
+
+    setTimeout(() => { setIsVoting(false); setBattleNo(newBattleNo); generateBattle(players, filter); }, 1000);
+  };
+
   const handleSkip = async () => {
     const newBattleNo = battleNo + 1;
     setBattleNo(newBattleNo);
     await update(ref(db, `meta/${category}`), { battleNo: newBattleNo });
     generateBattle(players, filter);
+  };
+
+  const handleDeleteHistory = async () => {
+    if(!user) return alert("Login required");
+    if(window.confirm("Are you sure?")){ await remove(ref(db, `users/${user.uid}/${category}/history`)); setBattleHistory([]); }
   };
 
   const handleShareResult = () => {
@@ -384,46 +421,18 @@ export default function CrickClash() {
     setTournament({ round: 1, matches: [[shuffled[0], shuffled[1]], [shuffled[2], shuffled[3]], [shuffled[4], shuffled[5]], [shuffled[6], shuffled[7]]], winner: null });
   }
 
-  // UPDATED VOTE FUNCTION WITH 4 VOTES + 3HR COOLDOWN
-  const handleVote = async (votedPlayerId) => {
-    if(!user){ alert("Login required"); await signInWithPopup(auth, googleProvider); return; }
-
-    const timeLeftMs = getTimeUntilNextVote(user?.lastVoteTime);
-    if(votesToday[category] >= DAILY_VOTE_LIMIT || timeLeftMs > 0 || isVoting) {
-      const mins = Math.ceil(timeLeftMs / 1000 / 60);
-      return alert(`Votes ayipoyayi! Next vote in ${mins} mins`);
-    }
-
-    setIsVoting(true); setVoteAnim(votedPlayerId); setTimeout(() => setVoteAnim(null), 500);
-    const {newStreak, newBadges} = await updateStreak();
-    const today = getToday();
-    const votedPlayer = ALL_DATA[category].find(p => p.id === votedPlayerId);
-    const historyEntry = {battleNo, category, players: [battle[0]?.name, battle[1]?.name], votedFor: votedPlayer.name, date: today};
-    const newHistory = [historyEntry,...battleHistory].slice(0, 50);
-    const newBattleNo = battleNo + 1;
-
-    await update(ref(db, `users/${user.uid}/${category}`), {
-      votesToday: increment(1),
-      lastVoteDate: today,
-      lastVoteTime: Date.now(), // NEW
-      streak: newStreak,
-      badges: newBadges,
-      history: newHistory
-    });
-    await update(ref(db, `players/${category}/${votedPlayerId}`), { votes: increment(1) });
-    await update(ref(db, `meta/${category}`), { totalVotes: increment(1), battleNo: newBattleNo });
-
-    setTimeout(() => { setIsVoting(false); setBattleNo(newBattleNo); generateBattle(players, filter); }, 1000);
-  };
-
   const handleGoogleLogin = () => signInWithPopup(auth, googleProvider);
   const handleLogout = async () => { if(window.confirm("Logout?")) { await signOut(auth); setShowProfile(false); } };
     useEffect(() => {
     checkAndResetDaily();
+    loadWeeklyWinner();
+    loadYesterdayWinners();
+
     onValue(ref(db, `meta/${category}`), (snapshot) => {
       const metaData = snapshot.val();
       if (metaData) { setBattleNo(metaData.battleNo || 1); setTotalVotes(metaData.totalVotes || 0); }
     });
+
     onValue(ref(db, `players/${category}`), (snapshot) => {
       const data = snapshot.val();
       const currentPlayers = ALL_DATA[category];
@@ -441,6 +450,7 @@ export default function CrickClash() {
         set(ref(db, `meta/${category}`), { lastResetDate: getToday(), totalVotes: 0, battleNo: 1 });
       }
     });
+
     onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser); setLoading(false);
       if(currentUser) {
@@ -449,12 +459,27 @@ export default function CrickClash() {
           if(userData){
             setVotesToday(prev => ({...prev, [category]: userData.lastVoteDate === getToday()? userData.votesToday || 0 : 0}))
             setStreak(userData.streak || 0); setBadges(userData.badges || []); setBattleHistory(userData.history || []);
-            setUser({...currentUser, lastVoteTime: userData.lastVoteTime}); // NEW
+            setUser({...currentUser, lastVoteTime: userData.lastVoteTime});
           }
         });
-      } else { setVotesToday({Cricket: 0, Football: 0, Movies: 0}); setStreak(0); setBadges([]); setBattleHistory([]); }
+      } else { setVotesToday({Cricket: 0, Football: 0, Movies: 0}); setStreak(0); setBadges([]); setBattleHistory([]); setUser(null); }
     });
-  }, [category, checkAndResetDaily, checkWeeklyWinner, filter, generateBattle, loadWeeklyWinner]);
+  }, [category, checkAndResetDaily, checkWeeklyWinner, filter, generateBattle, loadWeeklyWinner, loadYesterdayWinners]);
+
+  useEffect(() => {
+    if(!battle[0] ||!battle[1]) return;
+    const battleKey = getBattleKey();
+    const unsubscribe = onValue(ref(db, `comments/${battleKey}`), (snap) => {
+      const data = snap.val();
+      if(data) {
+        const commentsArray = Object.values(data).map(v => v);
+        setComments(commentsArray.sort((a,b) => b.time - a.time));
+      } else {
+        setComments([]);
+      }
+    });
+    return () => unsubscribe();
+  }, [battle, battleNo, category]);
 
   // NESTED COMMENT COMPONENT
   const CommentItem = ({comment, commentKey, depth = 0}) => {
@@ -467,26 +492,23 @@ export default function CrickClash() {
           </div>
           <p className="text-sm mt-1">{comment.text}</p>
           <div className="flex gap-3 mt-2">
-            <button onClick={() => handleLikeComment(commentKey)} className="text-xs text-gray-400">Like {Object.keys(comment.likes || {}).length}</button>
-            <button onClick={() => setReplyTo(replyTo === commentKey? null : commentKey)} className="text-xs text-[#a8ff00]">Reply</button>
+            <button onClick={() => handleLikeComment(comment.key)} className="text-xs text-gray-400">🤍 {Object.keys(comment.likes || {}).length}</button>
+            <button onClick={() => setReplyTo(replyTo === comment.key? null : comment.key)} className="text-xs text-[#a8ff00]">Reply</button>
           </div>
-
-          {replyTo === commentKey && (
+          {replyTo === comment.key && (
             <div className="flex gap-2 mt-2">
               <input value={newReply} onChange={(e) => setNewReply(e.target.value)} placeholder="Reply..." className="flex-1 bg-[#0a0a0f] p-2 rounded-lg text-sm"/>
-              <button onClick={() => handlePostReply(commentKey)} className="bg-[#a8ff00] text-black px-3 rounded-lg text-sm">Send</button>
+              <button onClick={() => handlePostReply(comment.key)} className="bg-[#a8ff00] text-black px-3 rounded-lg text-sm">Send</button>
             </div>
           )}
         </div>
-
-        {comment.replies && Object.entries(comment.replies).map(([key, reply]) => (
-          <CommentItem key={key} comment={reply} commentKey={key} depth={depth + 1}/>
+        {comment.replies && Object.values(comment.replies).map((reply) => (
+          <CommentItem key={reply.key} comment={reply} commentKey={reply.key} depth={depth + 1}/>
         ))}
       </div>
     );
-  }
-
-if(loading) return <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center text-white">Loading...</div>;
+      }
+  if(loading) return <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center text-white">Loading...</div>;
 
   return (
     <div className="min-h-screen bg-[#0a0a0f] text-white flex-col">
@@ -512,61 +534,41 @@ if(loading) return <div className="min-h-screen bg-[#0a0a0f] flex items-center j
         <header className="flex justify-between items-center mb-4">
           <div><h1 className="text-2xl font-bold">FanClash</h1><p className="text-xs text-gray-400">ANESH Innovation</p></div>
           <div className="relative">
-            {user?
-              <img src={user.photoURL} onClick={() => setShowProfile(!showProfile)} className="w-10 h-10 rounded-full border-2 border-[#a8ff00] cursor-pointer hover:scale-110 transition" />
-              :
-              <button onClick={handleGoogleLogin} className="bg-[#a8ff00] text-black px-4 py-2 rounded-full font-bold text-sm">Login</button>
-            }
-            {showProfile && user && (
-              <div className="absolute right-0 mt-2 w-44 bg-[#1A1A1A] border-[#333] rounded-xl shadow-2xl z-50">
-                <div className="px-4 py-3 border-b border-[#333]"><p className="text-white text-sm font-semibold">{user.displayName}</p><p className="text-gray-400 text-xs truncate">{user.email}</p></div>
-                <button onClick={handleLogout} className="w-full text-left px-4 py-3 text-red-400 hover:bg-[#222] rounded-b-xl">Logout</button>
-              </div>
-            )}
+            {user? <img src={user.photoURL} onClick={() => setShowProfile(!showProfile)} className="w-10 h-10 rounded-full border-2 border-[#a8ff00] cursor-pointer hover:scale-110 transition" /> : <button onClick={handleGoogleLogin} className="bg-[#a8ff00] text-black px-4 py-2 rounded-full font-bold text-sm">Login</button>}
+            {showProfile && user && (<div className="absolute right-0 mt-2 w-44 bg-[#1A1A1A] border-[#333] rounded-xl shadow-2xl z-50"><div className="px-4 py-3 border-b border-[#333]"><p className="text-white text-sm font-semibold">{user.displayName}</p><p className="text-gray-400 text-xs truncate">{user.email}</p></div><button onClick={handleLogout} className="w-full text-left px-4 py-3 text-red-400 hover:bg-[#222] rounded-b-xl">Logout</button></div>)}
           </div>
         </header>
 
         {/* CATEGORY TABS */}
         <div className="flex justify-center gap-2 mb-4 bg-[#13131a] p-1 rounded-2xl">
-          {Object.keys(ALL_DATA).map(cat => (
-            <button key={cat} onClick={() => setCategory(cat)} className={`flex-1 py-2 rounded-xl font-bold text-sm transition ${category === cat? 'bg-[#a8ff00] text-black' : 'text-gray-400 hover:bg-[#222]'}`}>
-              {cat === 'Cricket' && '🏏 '}{cat === 'Football' && '⚽ '}{cat === 'Movies' && '🎬 '}{cat}
-            </button>
-          ))}
+          {Object.keys(ALL_DATA).map(cat => (<button key={cat} onClick={() => setCategory(cat)} className={`flex-1 py-2 rounded-xl font-bold text-sm transition ${category === cat? 'bg-[#a8ff00] text-black' : 'text-gray-400 hover:bg-[#222]'}`}>{cat === 'Cricket' && '🏏 '}{cat === 'Football' && '⚽ '}{cat === 'Movies' && '🎬 '}{cat}</button>))}
         </div>
 
         {!user && <div className="bg-[#a8ff00]/10 border-[#a8ff00] p-3 rounded-2xl mb-3 text-center text-sm">Login to get 4 votes per day</div>}
 
-        {/* DAILY BATTLE HEADER WITH COOLDOWN */}
+        {/* YESTERDAY WINNERS */}
+        <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-3 rounded-2xl mb-3">
+          <p className="text-sm font-bold text-center mb-2">👑 Yesterday's Winners</p>
+          <div className="grid grid-cols-3 gap-2">
+            {Object.entries(yesterdayWinners).map(([cat, winner]) => (
+              <div key={cat} className="bg-black/20 p-2 rounded-xl text-center">
+                <p className="text-xs">{cat === 'Cricket' && '🏏'}{cat === 'Football' && '⚽'}{cat === 'Movies' && '🎬'} {cat}</p>
+                {winner? (<><div className="w-10 h-10 rounded-full mx-auto my-1 bg-[#a8ff00] text-black flex items-center justify-center text-lg font-bold">{winner.name[0]}</div><p className="text-xs font-bold truncate">{winner.name}</p><p className="text-xs text-[#a8ff00]">{winner.votes} votes</p></>) : (<p className="text-xs text-gray-300">No data</p>)}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* DAILY BATTLE HEADER */}
         <div className="bg-gradient-to-r from-orange-600 to-red-600 p-3 rounded-2xl mb-3 text-center">
           <p className="text-sm font-bold">🔥 Daily Fan Battle</p>
-          <p className="text-lg font-bold">
-            {category === 'Cricket' && 'Best Cricketer of All Time?'}
-            {category === 'Football' && 'GOAT Football Debate'}
-            {category === 'Movies' && 'King of Indian Cinema?'}
-          </p>
+          <p className="text-lg font-bold">{category === 'Cricket' && 'Best Cricketer of All Time?'}{category === 'Football' && 'GOAT Football Debate'}{category === 'Movies' && 'King of Indian Cinema?'}</p>
           <p className="text-xs">Votes Left: {DAILY_VOTE_LIMIT - votesToday[category]}/4</p>
-          {getTimeUntilNextVote(user?.lastVoteTime) > 0 && (
-            <p className="text-xs text-yellow-300">
-              Next vote in: {Math.floor(getTimeUntilNextVote(user?.lastVoteTime)/1000/60)}m {Math.floor(getTimeUntilNextVote(user?.lastVoteTime)/1000%60)}s
-            </p>
-          )}
+          {getTimeUntilNextVote(user?.lastVoteTime) > 0 && (<p className="text-xs text-yellow-300">Next vote in: {Math.floor(getTimeUntilNextVote(user?.lastVoteTime)/1000/60)}m {Math.floor(getTimeUntilNextVote(user?.lastVoteTime)/1000%60)}s</p>)}
         </div>
 
         {/* WEEKLY CHAMPION */}
-        {weeklyWinner && (
-          <div className="bg-gradient-to-r from-yellow-500 to-orange-500 p-3 rounded-2xl mb-3 text-center">
-            <p className="text-sm font-bold text-black">👑 {category} WEEKLY CHAMPION</p>
-            <p className="text-lg font-bold text-black">{weeklyWinner.name} - {weeklyWinner.votes} Votes</p>
-          </div>
-        )}
-
-        <div className="bg-[#13131a] p-3 rounded-2xl mb-3">
-          <p className="text-sm text-gray-400 mb-2">Your {category} Badges</p>
-          <div className="flex gap-2 flex-wrap">
-            {user? badges.map(b => <span key={b} className="bg-[#a8ff00] text-black px-3 py-1 rounded-full text-sm font-bold float">🏆 {b}</span>) : <span className="text-gray-500 text-sm">Login to see badges</span>}
-          </div>
-        </div>
+        {weeklyWinner && (<div className="bg-gradient-to-r from-yellow-500 to-orange-500 p-3 rounded-2xl mb-3 text-center"><p className="text-sm font-bold text-black">👑 {category} WEEKLY CHAMPION</p><p className="text-lg font-bold text-black">{weeklyWinner.name} - {weeklyWinner.votes} Votes</p></div>)}
 
         {/* VOTES CARD */}
         <div className="bg-[#13131a] p-4 rounded-2xl mb-4 text-center">
@@ -580,84 +582,36 @@ if(loading) return <div className="min-h-screen bg-[#0a0a0f] flex items-center j
         </div>
 
         {/* TABS */}
-        <div className="flex justify-around border-b border-gray-800 mb-4">
-          <button onClick={() => setTab('Battle')} className={`pb-2 font-bold transition ${tab === 'Battle'? 'text-[#a8ff00] border-b-2 border-[#a8ff00]' : 'text-gray-500'}`}>⚔️ Battle</button>
-          <button onClick={() => setTab('Rankings')} className={`pb-2 font-bold transition ${tab === 'Rankings'? 'text-[#a8ff00] border-b-2 border-[#a8ff00]' : 'text-gray-500'}`}>🏆 Rankings</button>
-          <button onClick={() => setTab('History')} className={`pb-2 font-bold transition ${tab === 'History'? 'text-[#a8ff00] border-b-2 border-[#a8ff00]' : 'text-gray-500'}`}>📜 History</button>
-        </div>
+        <div className="flex justify-around border-b border-gray-800 mb-4"><button onClick={() => setTab('Battle')} className={`pb-2 font-bold transition ${tab === 'Battle'? 'text-[#a8ff00] border-b-2 border-[#a8ff00]' : 'text-gray-500'}`}>⚔️ Battle</button><button onClick={() => setTab('Rankings')} className={`pb-2 font-bold transition ${tab === 'Rankings'? 'text-[#a8ff00] border-b-2 border-[#a8ff00]' : 'text-gray-500'}`}>🏆 Rankings</button><button onClick={() => setTab('History')} className={`pb-2 font-bold transition ${tab === 'History'? 'text-[#a8ff00] border-b-2 border-[#a8ff00]' : 'text-gray-500'}`}>📜 History</button></div>
 
         {/* BATTLE TAB */}
-        {tab === 'Battle' && (
-          <>
-            <div className="grid grid-cols-4 text-center mb-6">
-              <div><p className="text-2xl font-bold text-orange-400">{totalVotes}</p><p className="text-xs text-gray-400">TOTAL</p></div>
-              <div><p className="text-2xl font-bold text-orange-400">{battleNo-1}</p><p className="text-xs text-gray-400">BATTLES</p></div>
-              <div><p className="text-2xl font-bold text-orange-400 truncate">{topPlayer?.name.split(' ')[0] || 'None'}</p><p className="text-xs text-gray-400">TOP</p></div>
-              <div><p className="text-2xl font-bold text-orange-400">🔥{user? streak : 0}</p><p className="text-xs text-gray-400">STREAK</p></div>
-            </div>
+        {tab === 'Battle' && battle[0] && battle[1] && (
+          <div>
+            <div className="grid grid-cols-4 text-center mb-6"><div><p className="text-2xl font-bold text-orange-400">{totalVotes}</p><p className="text-xs text-gray-400">TOTAL</p></div><div><p className="text-2xl font-bold text-orange-400">{battleNo-1}</p><p className="text-xs text-gray-400">BATTLES</p></div><div><p className="text-2xl font-bold text-orange-400 truncate">{topPlayer?.name.split(' ')[0] || 'None'}</p><p className="text-xs text-gray-400">TOP</p></div><div><p className="text-2xl font-bold text-orange-400">🔥{user? streak : 0}</p><p className="text-xs text-gray-400">STREAK</p></div></div>
             <h2 className="text-center text-4xl font-bold mb-4">Battle <span className="text-[#a8ff00]">{battleNo}</span></h2>
 
-            {/* ROLE FILTERS */}
-            <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
-              {category === 'Cricket' && ['Any', 'BATTER', 'BOWLER', 'ALL-ROUNDER', 'KEEPER', 'CAPTAIN'].map(role => (
-                <button key={role} onClick={() => setFilter(role)} className={`px-4 py-2 rounded-full font-bold whitespace-nowrap ${filter === role? 'bg-[#a8ff00] text-black' : 'bg-[#13131a]'}`}>{role}</button>
-              ))}
-              {category === 'Football' && ['Any', 'FORWARD', 'MIDFIELDER', 'DEFENDER', 'GOALKEEPER'].map(role => (
-                <button key={role} onClick={() => setFilter(role)} className={`px-4 py-2 rounded-full font-bold whitespace-nowrap ${filter === role? 'bg-[#a8ff00] text-black' : 'bg-[#13131a]'}`}>{role}</button>
-              ))}
-              {category === 'Movies' && ['Any', 'HERO', 'VILLAIN'].map(role => (
-                <button key={role} onClick={() => setFilter(role)} className={`px-4 py-2 rounded-full font-bold whitespace-nowrap ${filter === role? 'bg-[#a8ff00] text-black' : 'bg-[#13131a]'}`}>{role}</button>
+            <div className="flex items-center justify-center gap-2">
+              {[battle[0], battle[1]].map(p => (
+                <div key={p.id} onClick={() => setSelectedPlayer(p)} className={`bg-gradient-to-b from-[#1e3a5f] to-[#0a0e1a] p-4 rounded-2xl w-1/2 text-center ${voteAnim === p.id? 'vote-pop' : ''}`}>
+                  <div className="w-20 h-20 rounded-full mx-auto mb-2 bg-[#a8ff00] text-black flex items-center justify-center text-3xl font-bold">{p.name[0]}</div>
+                  <span className="px-3 py-1 rounded-full text-xs font-bold bg-gray-800">{p.role}</span>
+                  <h3 className="text-xl font-bold mt-3">{p.name}</h3>
+                  <p className="text-[#a8ff00] font-bold">{p.votes || 0} votes</p>
+                  <button onClick={(e) => {e.stopPropagation(); handleVote(p.id)}} disabled={isVoting ||!canVoteNow()} className={`w-full py-3 rounded-xl font-bold mt-2 ${!canVoteNow()? 'bg-gray-700' : 'bg-[#a8ff00] text-black'}`}>{isVoting? 'VOTING...' :!canVoteNow()? `WAIT ${Math.ceil(getTimeUntilNextVote(user?.lastVoteTime)/1000/60)}m` : 'VOTE'}</button>
+                </div>
               ))}
             </div>
+            {/* DEBATE ZONE */}
+            <div className="bg-[#13131a] p-4 rounded-2xl mt-4">
+              <h3 className="font-bold mb-3">💬 Debate Zone</h3>
+              <div className="flex gap-2 mb-3"><input value={newComment} onChange={e => setNewComment(e.target.value)} placeholder="Who will win?" className="w-full bg-[#0a0a0f] p-2 rounded-lg outline-none" /><button onClick={handlePostComment} className="bg-[#a8ff00] text-black px-4 rounded-lg font-bold">Post</button></div>
+              <div className="space-y-3 max-h-60 overflow-y-auto">{comments.length === 0 && <p className="text-gray-500 text-sm">No comments yet. Be first!</p>}{comments.map((c) => (<CommentItem key={c.key} comment={c} commentKey={c.key} />))}</div>
+            </div>
 
-            {battle[0] && battle[1]? (
-              <div>
-                <div className="flex items-center justify-center gap-2">
-                  {[battle[0], battle[1]].map(p => (
-                    <div key={p.id} onClick={() => setSelectedPlayer(p)} className={`bg-gradient-to-b from-[#1e3a5f] to-[#0a0e1a] p-4 rounded-2xl w-1/2 text-center ${voteAnim === p.id? 'vote-pop' : ''}`}>
-                      <div className="w-20 h-20 rounded-full mx-auto mb-2 bg-[#a8ff00] text-black flex items-center justify-center text-3xl font-bold">{p.name[0]}</div>
-                      <span className="px-3 py-1 rounded-full text-xs font-bold bg-gray-800">{p.role}</span>
-                      <h3 className="text-xl font-bold mt-3">{p.name}</h3>
-                      <p className="text-[#a8ff00] font-bold">{p.votes || 0} votes</p>
-                      <button
-                        onClick={(e) => {e.stopPropagation(); handleVote(p.id)}}
-                        disabled={isVoting ||!canVoteNow()}
-                        className={`w-full py-3 rounded-xl font-bold mt-2 ${!canVoteNow()? 'bg-gray-700' : 'bg-[#a8ff00] text-black'}`}
-                      >
-                        {isVoting? 'VOTING...' :!canVoteNow()? `WAIT ${Math.ceil(getTimeUntilNextVote(user?.lastVoteTime)/1000/60)}m` : 'VOTE'}
-                      </button>
-                    </div>
-                  ))}
-                </div>
-
-                {/* DEBATE ZONE WITH NESTED REPLY */}
-                <div className="bg-[#13131a] p-4 rounded-2xl mt-4">
-                  <h3 className="font-bold mb-3">💬 Debate Zone</h3>
-                  <div className="flex gap-2 mb-3">
-                    <input value={newComment} onChange={e => setNewComment(e.target.value)} placeholder="Who will win?" className="w-full bg-[#0a0a0f] p-2 rounded-lg outline-none" />
-                    <button onClick={handlePostComment} className="bg-[#a8ff00] text-black px-4 rounded-lg font-bold">Post</button>
-                  </div>
-                  <div className="space-y-3 max-h-60 overflow-y-auto">
-                    {comments.length === 0 && <p className="text-gray-500 text-sm">No comments yet. Be first!</p>}
-                    {comments.map((c, i) => (
-                      <CommentItem key={i} comment={c} commentKey={Object.keys(comments)[i]} />
-                    ))}
-                  </div>
-                </div>
-
-                {/* 5 BUTTONS */}
-                <div className="flex gap-2 mt-4">
-                  <button onClick={handleShareResult} className="flex-1 bg-[#23232b] py-3 rounded-xl font-bold">📤 Share</button>
-                  <button onClick={() => setShowResultCard(true)} className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 py-3 rounded-xl font-bold">📸 Result</button>
-                  <button onClick={handleSkip} className="flex-1 bg-[#23232b] py-3 rounded-xl font-bold">⏭️ Skip</button>
-                </div>
-                <div className="flex gap-2 mt-3">
-                  <button onClick={handleRefer} className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 py-3 rounded-xl font-bold">👥 Refer</button>
-                  <button onClick={startTournament} className="flex-1 bg-gradient-to-r from-yellow-600 to-orange-600 py-3 rounded-xl font-bold">🏆 Tournament</button>
-                </div>
-              </div>
-            ) : <p className="text-center">Loading Players...</p>}
-          </>
+            {/* 5 BUTTONS */}
+            <div className="flex gap-2 mt-4"><button onClick={handleShareResult} className="flex-1 bg-[#23232b] py-3 rounded-xl font-bold">📤 Share</button><button onClick={() => setShowResultCard(true)} className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 py-3 rounded-xl font-bold">📸 Result</button><button onClick={handleSkip} className="flex-1 bg-[#23232b] py-3 rounded-xl font-bold">⏭️ Skip</button></div>
+            <div className="flex gap-2 mt-3"><button onClick={handleRefer} className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 py-3 rounded-xl font-bold">👥 Refer</button><button onClick={startTournament} className="flex-1 bg-gradient-to-r from-yellow-600 to-orange-600 py-3 rounded-xl font-bold">🏆 Tournament</button></div>
+          </div>
         )}
 
         {/* RANKINGS TAB */}
@@ -684,68 +638,36 @@ if(loading) return <div className="min-h-screen bg-[#0a0a0f] flex items-center j
         {/* HISTORY TAB */}
         {tab === 'History' && (
           <div className="space-y-3">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-bold text-[#a8ff00]">📜 Your {category} Battle History</h2>
-              {user && battleHistory.length > 0 && <button onClick={handleDeleteHistory} className="bg-red-600 px-3 py-1 rounded-lg text-sm font-bold">🗑️ Clear</button>}
-            </div>
-            {!user? <p className="text-gray-500 text-center">Login required</p> : battleHistory.length === 0? <p className="text-gray-500 text-center">No battles yet</p> : battleHistory.map((h,i) => (
-              <div key={i} className="bg-[#13131a] p-3 rounded-xl">
-                <p className="text-sm text-gray-400">Battle {h.battleNo} • {h.date}</p>
-                <p className="font-bold">{h.players[0]} vs {h.players[1]}</p>
-                <p className="text-sm text-[#a8ff00]">You voted: {h.votedFor}</p>
-              </div>
-            ))}
+            <div className="flex justify-between items-center mb-4"><h2 className="text-2xl font-bold text-[#a8ff00]">📜 Your {category} Battle History</h2>{user && battleHistory.length > 0 && <button onClick={handleDeleteHistory} className="bg-red-600 px-3 py-1 rounded-lg text-sm font-bold">🗑️ Clear</button>}</div>
+            {!user? <p className="text-gray-500 text-center">Login required</p> : battleHistory.length === 0? <p className="text-gray-500 text-center">No battles yet</p> : battleHistory.map((h,i) => (<div key={i} className="bg-[#13131a] p-3 rounded-xl"><p className="text-sm text-gray-400">Battle {h.battleNo} • {h.date}</p><p className="font-bold">{h.players[0]} vs {h.players[1]}</p><p className="text-sm text-[#a8ff00]">You voted: {h.votedFor}</p></div>))}
           </div>
         )}
       </div>
 
-      {/* MODAL 1: RESULT CARD */}
+      {/* RESULT CARD MODAL */}
       {showResultCard && battle[0] && battle[1] && (
         <div onClick={() => setShowResultCard(false)} className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
           <div onClick={e => e.stopPropagation()} className="bg-gradient-to-br from-[#1e3a5f] to-[#0a0e1a] p-6 rounded-3xl w-full max-w-sm border-2 border-[#a8ff00]">
-            <h2 className="text-center text-2xl font-bold mb-1">FanClash {category}</h2>
-            <p className="text-center text-gray-400 text-sm mb-4">Battle #{battleNo-1} Result</p>
-            <div className="flex gap-3 items-center mb-4">
-              {[battle[0], battle[1]].map(p => {
-                const total = battle[0].votes + battle[1].votes;
-                const percent = total > 0? ((p.votes / total) * 100).toFixed(0) : 50;
-                return (
-                  <div key={p.id} className="flex-1 text-center p-3 rounded-2xl bg-[#13131a]">
-                    <div className="w-16 h-16 rounded-full mx-auto mb-2 bg-[#a8ff00] text-black flex items-center justify-center text-2xl font-bold">{p.name[0]}</div>
-                    <p className="font-bold text-sm">{p.name}</p>
-                    <p className="text-2xl font-bold text-[#a8ff00]">{percent}%</p>
-                  </div>
-                )
-              })}
-            </div>
+            <h2 className="text-center text-2xl font-bold mb-1">FanClash {category}</h2><p className="text-center text-gray-400 text-sm mb-4">Battle #{battleNo-1} Result</p>
+            <div className="flex gap-3 items-center mb-4">{[battle[0], battle[1]].map(p => {const total = battle[0].votes + battle[1].votes; const percent = total > 0? ((p.votes / total) * 100).toFixed(0) : 50; return (<div key={p.id} className="flex-1 text-center p-3 rounded-2xl bg-[#13131a]"><div className="w-16 h-16 rounded-full mx-auto mb-2 bg-[#a8ff00] text-black flex items-center justify-center text-2xl font-bold">{p.name[0]}</div><p className="font-bold text-sm">{p.name}</p><p className="text-2xl font-bold text-[#a8ff00]">{percent}%</p></div>)})}</div>
             <button onClick={() => alert("Screenshot teesi share chey! 📸")} className="w-full bg-gradient-to-r from-purple-600 to-pink-600 py-3 rounded-xl font-bold">📸 Screenshot</button>
             <button onClick={() => setShowResultCard(false)} className="w-full bg-[#23232b] py-2 rounded-xl font-bold mt-2">Close</button>
           </div>
         </div>
       )}
 
-      {/* MODAL 2: TOURNAMENT */}
+      {/* TOURNAMENT MODAL */}
       {tournament && (
         <div onClick={() => setTournament(null)} className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
           <div onClick={e => e.stopPropagation()} className="bg-[#13131a] p-6 rounded-2xl w-full max-w-md">
             <h2 className="text-2xl font-bold text-center mb-4">🏆 Round {tournament.round}</h2>
-            <div className="space-y-2">
-              {tournament.matches.map((match, i) => (
-                <div key={i} className="bg-[#0a0a0f] p-3 rounded-xl flex justify-between items-center">
-                  <span>{match[0].name}</span> <span className="text-[#a8ff00]">VS</span> <span>{match[1].name}</span>
-                </div>
-              ))}
-            </div>
+            <div className="space-y-2">{tournament.matches.map((match, i) => (<div key={i} className="bg-[#0a0a0f] p-3 rounded-xl flex justify-between items-center"><span>{match[0].name}</span> <span className="text-[#a8ff00]">VS</span> <span>{match[1].name}</span></div>))}</div>
             <button onClick={() => setTournament(null)} className="w-full bg-[#23232b] py-2 rounded-xl mt-3 font-bold">Close</button>
           </div>
         </div>
       )}
 
-      <footer className="text-center mt-10 pb-6 text-gray-500 text-sm border-t border-gray-800 pt-4">
-        <p>© 2026 <span className="text-white font-bold">FanClash™</span> | By <span className="text-white font-bold">ANESH</span></p>
-      </footer>
+      <footer className="text-center mt-10 pb-6 text-gray-500 text-sm border-t border-gray-800 pt-4"><p>© 2026 <span className="text-white font-bold">FanClash™</span> | A Production By <span className="text-white font-bold">ANESH</span></p></footer>
     </div>
   );
-                  }
-
-  
+          }
