@@ -230,6 +230,10 @@ export default function CrickClash() {
   const [tournament, setTournament] = useState(null);
   const [yesterdayWinners, setYesterdayWinners] = useState({Cricket: null, Football: null, Movies: null});
 
+  // NEW STATES FOR ATTRACTION
+  const [dailyRewardClaimed, setDailyRewardClaimed] = useState(false);
+  const [topFans, setTopFans] = useState([]);
+
   const getBattleKey = () => battle[0] && battle[1]? `${category}-${battle[0].id}-${battle[1].id}-B${battleNo}` : null;
 
   // 12AM IST TIMER
@@ -275,6 +279,17 @@ export default function CrickClash() {
     const timeLeft = getTimeUntilNextVote(user?.[`${category}LastVoteTime`]);
     const votesUsed = votesToday[category];
     return votesUsed < DAILY_VOTE_LIMIT && timeLeft === 0;
+  }
+
+  const claimDailyReward = async () => {
+    if(!user || dailyRewardClaimed) return;
+    await update(ref(db, `users/${user.uid}/${category}`), {
+      votesToday: increment(-1), // -1 ante +1 bonus
+      [`${category}LastRewardDate`]: getToday()
+    });
+    setDailyRewardClaimed(true);
+    setVotesToday(prev => ({...prev, [category]: Math.max(0, prev[category] - 1)}));
+    alert("🎁 +1 Bonus Vote Claimed! 🔥");
   }
 
   const checkAndResetDaily = useCallback(async () => {
@@ -359,6 +374,7 @@ export default function CrickClash() {
           Movies: userData.Movies?.votesToday || 0
         });
         setUser(prev => ({...currentUser, CricketLastVoteTime: userData.Cricket?.lastVoteTime, FootballLastVoteTime: userData.Football?.lastVoteTime, MoviesLastVoteTime: userData.Movies?.lastVoteTime}));
+        setDailyRewardClaimed(userData[`${category}LastRewardDate`] === today);
 
         const userUnsub = onValue(ref(db, `users/${currentUser.uid}/${category}`), (snapshot) => {
           const catData = snapshot.val();
@@ -372,7 +388,7 @@ export default function CrickClash() {
         return () => userUnsub();
       } else {
         setVotesToday({Cricket: 0, Football: 0, Movies: 0});
-        setStreak(0); setBadges([]); setBattleHistory([]); setUser(null);
+        setStreak(0); setBadges([]); setBattleHistory([]); setUser(null); setDailyRewardClaimed(false);
       }
     });
     return () => authUnsub();
@@ -428,7 +444,7 @@ export default function CrickClash() {
   };
 
   const handleShareResult = () => {
-    const text = `Who's your favourite ${battle[0]?.name} vs ${battle[1]?.name} Vote on FanClash ${category}! ⚔️`;
+    const text = `Who's your pick ${battle[0]?.name} vs ${battle[1]?.name} on FanClash ${category}! ⚔️`;
     const url = window.location.href;
     if (navigator.share) { navigator.share({title: 'FanClash', text: text, url: url}); }
     else { navigator.clipboard.writeText(`${text} ${url}`); alert("Copied!"); }
@@ -437,8 +453,8 @@ export default function CrickClash() {
   const handleRefer = async () => {
     if(!user) return alert("Login required");
     const refLink = `${window.location.origin}?ref=${user.uid}`;
-    navigator.clipboard.writeText(`Vote now on FanClash! ${refLink}`);
-    alert("Refer your friend! you can get an extra vote.");
+    navigator.clipboard.writeText(`FanClash lo vote chey! ${refLink}`);
+    alert("Referral link copied! Extra vote vastundi 🔥");
     await update(ref(db, `users/${user.uid}/${category}`), { votesToday: increment(-REFERRAL_BONUS_VOTE) });
     setVotesToday(prev => ({...prev, [category]: Math.max(0, prev[category] - 1)}));
   }
@@ -461,7 +477,6 @@ export default function CrickClash() {
   };
 
   useEffect(() => {
-    // category marchina appudu 3 categories votes correct ga chupinchadaniki
     if(user) {
       get(ref(db, `users/${user.uid}`)).then(snap => {
         const d = snap.val() || {};
@@ -470,6 +485,7 @@ export default function CrickClash() {
           Football: d.Football?.lastVoteDate === getToday()? d.Football?.votesToday || 0 : 0,
           Movies: d.Movies?.lastVoteDate === getToday()? d.Movies?.votesToday || 0 : 0
         });
+        setDailyRewardClaimed(d[`${category}LastRewardDate`] === getToday());
       })
     }
     checkAndResetDaily();
@@ -499,10 +515,29 @@ export default function CrickClash() {
       }
     });
 
-    return () => { metaUnsub(); playersUnsub(); }
+    // TOP 10 FANS LEADERBOARD
+    const fansRef = ref(db, `users`);
+    const fansUnsub = onValue(fansRef, (snap) => {
+      const allUsers = snap.val() || {};
+      let fansList = [];
+      Object.keys(allUsers).forEach(uid => {
+        const u = allUsers[uid];
+        const catData = u[category];
+        if(catData?.votesToday > 0) {
+          fansList.push({
+            name: u.displayName || "Anonymous",
+            photo: u.photoURL || `https://ui-avatars.com/api/?name=${u.displayName}`,
+            votes: catData.votesToday
+          })
+        }
+      });
+      fansList.sort((a,b) => b.votes - a.votes);
+      setTopFans(fansList.slice(0,10));
+    })
+
+    return () => { metaUnsub(); playersUnsub(); fansUnsub(); }
   }, [category, checkAndResetDaily, checkWeeklyWinner, filter, generateBattle, loadWeeklyWinner, loadYesterdayWinners]);
 
-  // COMMENTS LOAD
   useEffect(() => {
     if(!battle[0] ||!battle[1]) return;
     const battleKey = getBattleKey();
@@ -547,13 +582,14 @@ export default function CrickClash() {
         <div className="bg-[#1A1A1A] p-3 rounded-xl mb-2">
           <div className="flex items-center gap-2"><img src={comment.photo || '/default-avatar.png'} className="w-8 h-8 rounded-full"/><b className="text-sm">{comment.user}</b></div>
           <p className="text-sm mt-1">{comment.text}</p>
-          <div className="flex gap-3 mt-2"><button onClick={() => handleLikeComment(commentId)} className="text-xs text-gray-400">❤️ {Object.keys(comment.likes || {}).length}</button><button onClick={() => setReplyTo(replyTo === commentId? null : commentId)} className="text-xs text-[#a8ff00]">Reply</button></div>
+          <div className="flex gap-3 mt-2"><button onClick={() => handleLikeComment(commentId)} className="text-xs text-gray-400">🤍 {Object.keys(comment.likes || {}).length}</button><button onClick={() => setReplyTo(replyTo === commentId? null : commentId)} className="text-xs text-[#a8ff00]">Reply</button></div>
           {replyTo === commentId && (<div className="flex gap-2 mt-2"><input value={newReply} onChange={(e) => setNewReply(e.target.value)} placeholder="Reply..." className="flex-1 bg-[#0a0a0f] p-2 rounded-lg text-sm"/><button onClick={() => handlePostReply(commentId)} className="bg-[#a8ff00] text-black px-3 rounded-lg text-sm">Send</button></div>)}
         </div>
         {comment.replies && Object.values(comment.replies).sort((a,b) => a.time - b.time).map((reply) => (<CommentItem key={reply.key} comment={reply} commentKey={reply.key} depth={depth + 1}/>))}
       </div>
     );
-            }
+    }
+
   if(loading) return <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center text-white">Loading...</div>;
 
   return (
@@ -600,11 +636,28 @@ export default function CrickClash() {
       )}
 
       <div className="max-w-md mx-auto w-full flex-1 p-4">
-        <header className="flex justify-between items-center mb-4"><div><h1 className="text-2xl font-bold">FanClash</h1><p className="text-xs text-gray-400">🏏 ⚽ 🎬</p></div><div>{user? <img src={user.photoURL} onClick={() => setShowProfile(!showProfile)} className="w-10 h-10 rounded-full border-2 border-[#a8ff00] cursor-pointer" /> : <button onClick={handleGoogleLogin} className="bg-[#a8ff00] text-black px-4 py-2 rounded-full font-bold text-sm">Login</button>}</div></header>
+        <header className="flex justify-between items-center mb-4"><div><h1 className="text-2xl font-bold">FanClash</h1><p className="text-xs text-gray-400">ANESH Innovation</p></div><div>{user? <img src={user.photoURL} onClick={() => setShowProfile(!showProfile)} className="w-10 h-10 rounded-full border-2 border-[#a8ff00] cursor-pointer" /> : <button onClick={handleGoogleLogin} className="bg-[#a8ff00] text-black px-4 py-2 rounded-full font-bold text-sm">Login</button>}</div></header>
 
         <div className="flex justify-center gap-2 mb-4 bg-[#13131a] p-1 rounded-2xl">{Object.keys(ALL_DATA).map(cat => (<button key={cat} onClick={() => setCategory(cat)} className={`flex-1 py-2 rounded-xl font-bold text-sm ${category === cat? 'bg-[#a8ff00] text-black' : 'text-gray-400'}`}>{cat === 'Cricket' && '🏏 '}{cat === 'Football' && '⚽ '}{cat === 'Movies' && '🎬 '}{cat}</button>))}</div>
 
         <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-3 rounded-2xl mb-3"><p className="text-sm font-bold text-center mb-2">👑 Yesterday's Winners</p><div className="grid grid-cols-3 gap-2">{Object.entries(yesterdayWinners).map(([cat, winner]) => (<div key={cat} className="bg-black/20 p-2 rounded-xl text-center"><p className="text-xs">{cat === 'Cricket' && '🏏'}{cat === 'Football' && '⚽'}{cat === 'Movies' && '🎬'} {cat}</p>{winner? (<><div className="w-10 h-10 rounded-full mx-auto my-1 bg-[#a8ff00] text-black flex items-center justify-center text-lg font-bold">{winner.name[0]}</div><p className="text-xs font-bold truncate">{winner.name}</p><p className="text-xs text-[#a8ff00]">{winner.votes} votes</p></>) : (<p className="text-xs text-gray-300">No data</p>)}</div>))}</div></div>
+
+        {/* NEW: DAILY STREAK + REWARD CARD */}
+        <div className="bg-gradient-to-r from-purple-600 to-pink-600 p-3 rounded-2xl mb-3">
+          <div className="flex justify-between items-center">
+            <div>
+              <p className="text-sm font-bold">🔥 {streak} Day Streak</p>
+              <p className="text-xs">Come back tomorrow for +1 Bonus</p>
+            </div>
+            <button
+              onClick={claimDailyReward}
+              disabled={dailyRewardClaimed}
+              className={`px-4 py-2 rounded-xl font-bold text-sm ${dailyRewardClaimed? 'bg-gray-700' : 'bg-[#a8ff00] text-black'}`}
+            >
+              {dailyRewardClaimed? 'Claimed' : 'Claim +1 Vote'}
+            </button>
+          </div>
+        </div>
 
         <div className="bg-gradient-to-r from-orange-600 to-red-600 p-3 rounded-2xl mb-3 text-center">
           <p className="text-sm font-bold">🔥 Daily Fan Battle</p>
@@ -617,7 +670,12 @@ export default function CrickClash() {
 
         <div className="bg-[#13131a] p-4 rounded-2xl mb-4 text-center"><p className="text-gray-400 text-sm mb-2">Today's Votes Left</p><div className="grid grid-cols-3 gap-2"><div className={`bg-[#0a0a0f] p-2 rounded-xl ${votesToday.Cricket >= DAILY_VOTE_LIMIT? 'opacity-50' : ''}`}><p className="text-2xl font-bold text-[#a8ff00]">{DAILY_VOTE_LIMIT - votesToday.Cricket}</p><p className="text-xs">🏏 Cricket</p></div><div className={`bg-[#0a0a0f] p-2 rounded-xl ${votesToday.Football >= DAILY_VOTE_LIMIT? 'opacity-50' : ''}`}><p className="text-2xl font-bold text-[#a8ff00]">{DAILY_VOTE_LIMIT - votesToday.Football}</p><p className="text-xs">⚽ Football</p></div><div className={`bg-[#0a0a0f] p-2 rounded-xl ${votesToday.Movies >= DAILY_VOTE_LIMIT? 'opacity-50' : ''}`}><p className="text-2xl font-bold text-[#a8ff00]">{DAILY_VOTE_LIMIT - votesToday.Movies}</p><p className="text-xs">🎬 Movies</p></div></div><p className="text-xs text-gray-500 mt-2">Daily Reset in: {timeLeft}</p></div>
 
-        <div className="flex justify-around border-b border-gray-800 mb-4"><button onClick={() => setTab('Battle')} className={`pb-2 font-bold ${tab === 'Battle'? 'text-[#a8ff00] border-b-2 border-[#a8ff00]' : 'text-gray-500'}`}>⚔️ Battle</button><button onClick={() => setTab('Rankings')} className={`pb-2 font-bold ${tab === 'Rankings'? 'text-[#a8ff00] border-b-2 border-[#a8ff00]' : 'text-gray-500'}`}>🏆 Rankings</button><button onClick={() => setTab('History')} className={`pb-2 font-bold ${tab === 'History'? 'text-[#a8ff00] border-b-2 border-[#a8ff00]' : 'text-gray-500'}`}>📜 History</button></div>
+        <div className="flex justify-around border-b border-gray-800 mb-4">
+          <button onClick={() => setTab('Battle')} className={`pb-2 font-bold ${tab === 'Battle'? 'text-[#a8ff00] border-b-2 border-[#a8ff00]' : 'text-gray-500'}`}>⚔️ Battle</button>
+          <button onClick={() => setTab('Rankings')} className={`pb-2 font-bold ${tab === 'Rankings'? 'text-[#a8ff00] border-b-2 border-[#a8ff00]' : 'text-gray-500'}`}>🏆 Rankings</button>
+          <button onClick={() => setTab('Fans')} className={`pb-2 font-bold ${tab === 'Fans'? 'text-[#a8ff00] border-b-2 border-[#a8ff00]' : 'text-gray-500'}`}>👑 Top Fans</button>
+          <button onClick={() => setTab('History')} className={`pb-2 font-bold ${tab === 'History'? 'text-[#a8ff00] border-b-2 border-[#a8ff00]' : 'text-gray-500'}`}>📜 History</button>
+        </div>
 
         {tab === 'Battle' && battle[0] && battle[1] && (
           <div>
@@ -629,17 +687,27 @@ export default function CrickClash() {
             </div>
 
             <div className="flex gap-2">
-              {[battle[0], battle[1]].map(p => (
-                <div key={p.id} onClick={() => setSelectedPlayer(p)} className={`bg-[#13131a] p-4 rounded-2xl w-1/2 text-center ${voteAnim === p.id? 'vote-pop' : ''}`}>
-                  <div className="w-20 h-20 rounded-full mx-auto mb-2 bg-[#a8ff00] text-black flex items-center justify-center text-3xl font-bold">{p.name[0]}</div>
-                  <span className="px-3 py-1 rounded-full text-xs font-bold bg-gray-800">{p.role}</span>
-                  <h3 className="text-xl font-bold mt-3">{p.name}</h3>
-                  <p className="text-[#a8ff00] font-bold">{p.votes || 0} votes</p>
-                  <button onClick={(e) => {e.stopPropagation(); handleVote(p.id)}} disabled={isVoting ||!canVoteNow()} className={`w-full py-3 rounded-xl font-bold mt-2 ${!canVoteNow()? 'bg-gray-700' : 'bg-[#a8ff00] text-black'}`}>
-                    {isVoting? 'VOTING...' :!canVoteNow()? `WAIT ${Math.floor(getTimeUntilNextVote(user?.[`${category}LastVoteTime`])/1000/60/60)}h` : 'VOTE'}
-                  </button>
-                </div>
-              ))}
+              {[battle[0], battle[1]].map(p => {
+                const total = battle[0].votes + battle[1].votes;
+                const percent = total > 0? ((p.votes / total) * 100).toFixed(0) : 50;
+                return (
+                  <div key={p.id} onClick={() => setSelectedPlayer(p)} className={`bg-[#13131a] p-4 rounded-2xl w-1/2 text-center ${voteAnim === p.id? 'vote-pop' : ''}`}>
+                    <div className="w-20 h-20 rounded-full mx-auto mb-2 bg-[#a8ff00] text-black flex items-center justify-center text-3xl font-bold">{p.name[0]}</div>
+                    <span className="px-3 py-1 rounded-full text-xs font-bold bg-gray-800">{p.role}</span>
+                    <h3 className="text-xl font-bold mt-3">{p.name}</h3>
+
+                    {/* LIVE VOTE BAR */}
+                    <div className="w-full bg-gray-700 rounded-full h-2 mt-2">
+                      <div className="bg-[#a8ff00] h-2 rounded-full transition-all duration-500" style={{width: `${percent}%`}}></div>
+                    </div>
+                    <p className="text-[#a8ff00] font-bold text-sm">{p.votes || 0} votes - {percent}%</p>
+
+                    <button onClick={(e) => {e.stopPropagation(); handleVote(p.id)}} disabled={isVoting ||!canVoteNow()} className={`w-full py-3 rounded-xl font-bold mt-2 ${!canVoteNow()? 'bg-gray-700' : 'bg-[#a8ff00] text-black'}`}>
+                      {isVoting? 'VOTING...' :!canVoteNow()? `WAIT ${Math.floor(getTimeUntilNextVote(user?.[`${category}LastVoteTime`])/1000/60/60)}h` : 'VOTE'}
+                    </button>
+                  </div>
+                )
+              })}
             </div>
 
             {/* DEBATE ZONE */}
@@ -676,6 +744,28 @@ export default function CrickClash() {
           </div>
         )}
 
+        {/* NEW: TOP FANS TAB */}
+        {tab === 'Fans' && (
+          <div>
+            <h2 className="text-2xl font-bold text-[#a8ff00] mb-4 text-center">👑 Top 10 Fans - {category}</h2>
+            {topFans.length === 0? <p className="text-center text-gray-500">No votes today</p> :
+              topFans.map((fan, i) => (
+                <div key={i} className="bg-[#13131a] p-3 rounded-xl mb-3 flex items-center gap-3">
+                  <span className="text-xl font-bold text-[#a8ff00]">#{i+1}</span>
+                  <img src={fan.photo} className="w-12 h-12 rounded-full"/>
+                  <div className="flex-1">
+                    <p className="font-bold">{fan.name}</p>
+                    <p className="text-xs text-gray-400">{fan.votes} votes today</p>
+                  </div>
+                  {i === 0 && <span className="text-2xl">👑</span>}
+                  {i === 1 && <span className="text-2xl">🥈</span>}
+                  {i === 2 && <span className="text-2xl">🥉</span>}
+                </div>
+              ))
+            }
+          </div>
+        )}
+
         {/* HISTORY TAB */}
         {tab === 'History' && (
           <div className="space-y-3">
@@ -691,7 +781,7 @@ export default function CrickClash() {
           <div onClick={e => e.stopPropagation()} className="bg-gradient-to-br from-[#1e3a5f] to-[#0a0e1a] p-6 rounded-3xl w-full max-w-sm border-2 border-[#a8ff00]">
             <h2 className="text-center text-2xl font-bold mb-1">FanClash {category}</h2><p className="text-center text-gray-400 text-sm mb-4">Battle #{battleNo-1} Result</p>
             <div className="flex gap-3 items-center mb-4">{[battle[0], battle[1]].map(p => {const total = battle[0].votes + battle[1].votes; const percent = total > 0? ((p.votes / total) * 100).toFixed(0) : 50; return (<div key={p.id} className="flex-1 text-center p-3 rounded-2xl bg-[#13131a]"><div className="w-16 h-16 rounded-full mx-auto mb-2 bg-[#a8ff00] text-black flex items-center justify-center text-2xl font-bold">{p.name[0]}</div><p className="font-bold text-sm">{p.name}</p><p className="text-2xl font-bold text-[#a8ff00]">{percent}%</p></div>)})}</div>
-            <button onClick={() => alert("Take screenshot and share your friends! 📸")} className="w-full bg-gradient-to-r from-purple-600 to-pink-600 py-3 rounded-xl font-bold">📸 Screenshot</button>
+            <button onClick={() => alert("Screenshot teesi share chey! 📸")} className="w-full bg-gradient-to-r from-purple-600 to-pink-600 py-3 rounded-xl font-bold">📸 Screenshot</button>
             <button onClick={() => setShowResultCard(false)} className="w-full bg-[#23232b] py-2 rounded-xl font-bold mt-2">Close</button>
           </div>
         </div>
@@ -708,7 +798,7 @@ export default function CrickClash() {
         </div>
       )}
 
-      <footer className="text-center mt-10 pb-6 text-gray-500 text-sm border-t border-gray-800 pt-4"><p>© 2026 <span className="text-white font-bold">FanClash™</span> | A Production By <span className="text-white font-bold">ANESH</span></p></footer>
+      <footer className="text-center mt-10 pb-6 text-gray-500 text-sm border-t border-gray-800 pt-4"><p>© 2026 <span className="text-white font-bold">FanClash™</span> | By <span className="text-white font-bold">ANESH</span></p></footer>
     </div>
   );
-                                                     }
+        }
