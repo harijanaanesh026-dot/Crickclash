@@ -232,7 +232,7 @@ export default function CrickClash() {
   }
   const getBattleKey = () => battle[0] && battle[1]? `${category}-${battle[0].id}-${battle[1].id}-B${battleNo}` : null;
 
-    useEffect(() => {
+  useEffect(() => {
     const updateTimer = () => {
       const now = new Date();
       const tomorrow = new Date();
@@ -408,17 +408,29 @@ export default function CrickClash() {
   }
 
   const handleGoogleLogin = () => signInWithPopup(auth, googleProvider);
-  const handleLogout = async () => { if(window.confirm("Logout?")) { await signOut(auth); setShowProfile(false); } };
+  const handleLogout = async () => {
+    if(window.confirm("Logout?")) {
+      await signOut(auth);
+      setShowProfile(false);
+      setUser(null);
+      setVotesToday({Cricket: 0, Football: 0, Movies: 0});
+      setStreak(0);
+      setBadges([]);
+      setBattleHistory([]);
+    }
+  };
 
   useEffect(() => {
     checkAndResetDaily();
     loadWeeklyWinner();
     loadYesterdayWinners();
-    onValue(ref(db, `meta/${category}`), (snapshot) => {
+
+    const metaUnsub = onValue(ref(db, `meta/${category}`), (snapshot) => {
       const metaData = snapshot.val();
       if (metaData) { setBattleNo(metaData.battleNo || 1); setTotalVotes(metaData.totalVotes || 0); }
     });
-    onValue(ref(db, `players/${category}`), (snapshot) => {
+
+    const playersUnsub = onValue(ref(db, `players/${category}`), (snapshot) => {
       const data = snapshot.val();
       const currentPlayers = ALL_DATA[category];
       if (data) {
@@ -435,24 +447,38 @@ export default function CrickClash() {
         set(ref(db, `meta/${category}`), { lastResetDate: getToday(), totalVotes: 0, battleNo: 1 });
       }
     });
-    onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser); setLoading(false);
+
+    const authUnsub = onAuthStateChanged(auth, (currentUser) => {
+      setLoading(false);
       if(currentUser) {
-        onValue(ref(db, `users/${currentUser.uid}/${category}`), (snapshot) => {
+        setUser(currentUser);
+        const userUnsub = onValue(ref(db, `users/${currentUser.uid}/${category}`), (snapshot) => {
           const userData = snapshot.val();
           if(userData){
             setVotesToday(prev => ({...prev, [category]: userData.lastVoteDate === getToday()? userData.votesToday || 0 : 0}))
-            setStreak(userData.streak || 0); setBadges(userData.badges || []); setBattleHistory(userData.history || []);
+            setStreak(userData.streak || 0);
+            setBadges(userData.badges || []);
+            setBattleHistory(userData.history || []);
             setUser({...currentUser, lastVoteTime: userData.lastVoteTime});
           }
         });
-      } else { setVotesToday({Cricket: 0, Football: 0, Movies: 0}); setStreak(0); setBadges([]); setBattleHistory([]); setUser(null); }
+        return () => userUnsub();
+      } else {
+        setVotesToday({Cricket: 0, Football: 0, Movies: 0});
+        setStreak(0);
+        setBadges([]);
+        setBattleHistory([]);
+        setUser(null);
+      }
     });
+
+    return () => { metaUnsub(); playersUnsub(); authUnsub(); }
   }, [category, checkAndResetDaily, checkWeeklyWinner, filter, generateBattle, loadWeeklyWinner, loadYesterdayWinners]);
 
   useEffect(() => {
     if(!battle[0] ||!battle[1]) return;
     const battleKey = getBattleKey();
+    if(!battleKey) return;
     const unsubscribe = onValue(ref(db, `comments/${battleKey}`), (snap) => {
       const data = snap.val();
       setComments(data? Object.values(data).sort((a,b) => b.time - a.time) : []);
@@ -461,24 +487,64 @@ export default function CrickClash() {
   }, [battle, battleNo, category]);
 
   const CommentItem = ({comment, commentKey, depth = 0}) => {
+    const commentId = comment.key || comment.time;
     return (
       <div style={{marginLeft: depth * 16}}>
         <div className="bg-[#1A1A1A] p-3 rounded-xl mb-2">
-          <div className="flex items-center gap-2"><img src={comment.photo} className="w-8 h-8 rounded-full"/><b className="text-sm">{comment.user}</b></div>
+          <div className="flex items-center gap-2"><img src={comment.photo || '/default-avatar.png'} className="w-8 h-8 rounded-full"/><b className="text-sm">{comment.user}</b></div>
           <p className="text-sm mt-1">{comment.text}</p>
-          <div className="flex gap-3 mt-2"><button onClick={() => handleLikeComment(comment.key)} className="text-xs text-gray-400">🤍 {Object.keys(comment.likes || {}).length}</button><button onClick={() => setReplyTo(replyTo === comment.key? null : comment.key)} className="text-xs text-[#a8ff00]">Reply</button></div>
-          {replyTo === comment.key && (<div className="flex gap-2 mt-2"><input value={newReply} onChange={(e) => setNewReply(e.target.value)} placeholder="Reply..." className="flex-1 bg-[#0a0a0f] p-2 rounded-lg text-sm"/><button onClick={() => handlePostReply(comment.key)} className="bg-[#a8ff00] text-black px-3 rounded-lg text-sm">Send</button></div>)}
+          <div className="flex gap-3 mt-2"><button onClick={() => handleLikeComment(commentId)} className="text-xs text-gray-400">🤍 {Object.keys(comment.likes || {}).length}</button><button onClick={() => setReplyTo(replyTo === commentId? null : commentId)} className="text-xs text-[#a8ff00]">Reply</button></div>
+          {replyTo === commentId && (<div className="flex gap-2 mt-2"><input value={newReply} onChange={(e) => setNewReply(e.target.value)} placeholder="Reply..." className="flex-1 bg-[#0a0a0f] p-2 rounded-lg text-sm"/><button onClick={() => handlePostReply(commentId)} className="bg-[#a8ff00] text-black px-3 rounded-lg text-sm">Send</button></div>)}
         </div>
-        {comment.replies && Object.values(comment.replies).map((reply) => (<CommentItem key={reply.key} comment={reply} commentKey={reply.key} depth={depth + 1}/>))}
+        {comment.replies && Object.values(comment.replies).sort((a,b) => a.time - b.time).map((reply) => (<CommentItem key={reply.key} comment={reply} commentKey={reply.key} depth={depth + 1}/>))}
       </div>
     );
-        }
+  }
+
   if(loading) return <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center text-white">Loading...</div>;
 
   return (
     <div className="min-h-screen bg-[#0a0a0f] text-white flex-col">
       <style>{`@keyframes pop { 0%{transform:scale(1)} 50%{transform:scale(1.15)} 100%{transform:scale(1)} }.vote-pop { animation: pop 0.5s ease; }`}</style>
-      {selectedPlayer && (<div onClick={() => setSelectedPlayer(null)} className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"><div onClick={e => e.stopPropagation()} className="bg-[#13131a] p-6 rounded-2xl w-full max-w-sm"><div className="w-24 h-24 rounded-full mx-auto border-4 border-[#a8ff00] bg-[#a8ff00] text-black flex items-center justify-center text-4xl font-bold">{selectedPlayer.name[0]}</div><h2 className="text-2xl font-bold text-center mt-3">{selectedPlayer.name}</h2><p className="text-center text-[#a8ff00]">{selectedPlayer.role}</p><button onClick={() => setSelectedPlayer(null)} className="w-full bg-[#a8ff00] text-black mt-4 py-2 rounded-xl font-bold">Close</button></div></div>)}
+
+      {/* PLAYER DETAIL MODAL */}
+      {selectedPlayer && (
+        <div onClick={() => setSelectedPlayer(null)} className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+          <div onClick={e => e.stopPropagation()} className="bg-[#13131a] p-6 rounded-2xl w-full max-w-sm">
+            <div className="w-24 h-24 rounded-full mx-auto border-4 border-[#a8ff00] bg-[#a8ff00] text-black flex items-center justify-center text-4xl font-bold">{selectedPlayer.name[0]}</div>
+            <h2 className="text-2xl font-bold text-center mt-3">{selectedPlayer.name}</h2>
+            <p className="text-center text-[#a8ff00]">{selectedPlayer.role}</p>
+            <div className="mt-4 space-y-2">
+              <div className="flex justify-between"><span>Total Votes</span><span className="font-bold">{selectedPlayer.votes}</span></div>
+              <div className="flex justify-between"><span>Win Rate</span><span className="font-bold">{totalVotes > 0? ((selectedPlayer.votes/totalVotes)*100).toFixed(1) : 0}%</span></div>
+            </div>
+            <button onClick={() => setSelectedPlayer(null)} className="w-full bg-[#a8ff00] text-black mt-4 py-2 rounded-xl font-bold">Close</button>
+          </div>
+        </div>
+      )}
+
+      {/* PROFILE MODAL */}
+      {showProfile && user && (
+        <div onClick={() => setShowProfile(false)} className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+          <div onClick={e => e.stopPropagation()} className="bg-[#13131a] p-6 rounded-2xl w-full max-w-sm">
+            <img src={user.photoURL} className="w-20 h-20 rounded-full mx-auto border-4 border-[#a8ff00]"/>
+            <h2 className="text-xl font-bold text-center mt-3">{user.displayName}</h2>
+            <p className="text-center text-gray-400 text-sm">{user.email}</p>
+            <div className="mt-4 space-y-2 text-sm">
+              <div className="flex justify-between bg-[#0a0a0f] p-2 rounded-lg"><span>🔥 Current Streak</span><span className="font-bold text-[#a8ff00]">{streak} days</span></div>
+              <div className="flex justify-between bg-[#0a0a0f] p-2 rounded-lg"><span>🗳️ Votes Today</span><span className="font-bold">{votesToday[category]}/{DAILY_VOTE_LIMIT}</span></div>
+            </div>
+            <div className="mt-3">
+              <p className="text-xs text-gray-400 mb-1">Badges:</p>
+              <div className="flex flex-wrap gap-1">
+                {badges.length === 0? <p className="text-xs">No badges yet</p> : badges.map(b => <span key={b} className="text-xs bg-[#a8ff00] text-black px-2 py-1 rounded-full">{b}</span>)}
+              </div>
+            </div>
+            <button onClick={handleLogout} className="w-full bg-red-600 mt-4 py-2 rounded-xl font-bold">Logout</button>
+            <button onClick={() => setShowProfile(false)} className="w-full bg-[#23232b] py-2 rounded-xl font-bold mt-2">Close</button>
+          </div>
+        </div>
+      )}
 
       <div className="max-w-md mx-auto w-full flex-1 p-4">
         <header className="flex justify-between items-center mb-4"><div><h1 className="text-2xl font-bold">FanClash</h1><p className="text-xs text-gray-400">ANESH Innovation</p></div><div>{user? <img src={user.photoURL} onClick={() => setShowProfile(!showProfile)} className="w-10 h-10 rounded-full border-2 border-[#a8ff00] cursor-pointer" /> : <button onClick={handleGoogleLogin} className="bg-[#a8ff00] text-black px-4 py-2 rounded-full font-bold text-sm">Login</button>}</div></header>
@@ -500,18 +566,30 @@ export default function CrickClash() {
             <h2 className="text-center text-4xl font-bold mb-4">Battle <span className="text-[#a8ff00]">{battleNo}</span></h2>
             <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
               {category === 'Cricket' && ['Any', 'BATTER', 'BOWLER', 'ALL-ROUNDER', 'KEEPER', 'CAPTAIN'].map(role => (<button key={role} onClick={() => {setFilter(role); generateBattle(players, role)}} className={`px-4 py-2 rounded-full font-bold whitespace-nowrap ${filter === role? 'bg-[#a8ff00] text-black' : 'bg-[#13131a]'}`}>{role}</button>))}
-              {category === 'Football' && ['Any', 'FORWARD', 'MIDFIELDER', 'DEFENDER', 'GOALKEEPER'].map(role => (<button key={role} onClick={() => {setFilter(role); generateBattle(players, role)}} className={`px-4 py-2 rounded-full font-bold whitespace-nowrap ${filter === role? 'bg-[#a8ff00] text-black' : 'bg-[#13131a]'}`}>{role}</button>))}
-              {category === 'Movies' && ['Any', 'HERO', 'VILLAIN'].map(role => (<button key={role} onClick={() => {setFilter(role); generateBattle(players, role)}} className={`px-4 py-2 rounded-full font-bold whitespace-nowrap ${filter === role? 'bg-[#a8ff00] text-black' : 'bg-[#13131a]'}`}>{role}</button>))}
+              {category === 'Football' && ['Any', 'FORWARD', 'MIDFIELDER', 'DEFENDER', 'GOALKEEPER'].map(role => (<button key={role} onClick={() => {setFilter(role); generateBattle(players, role)}} className={`px-4 py-2 rounded-full font-bold whitespace-nowrap ${filter === role? 'bg-[#a8ff00] text-black' : 'bg-[#13131a]'}`}>{role}</            {category === 'Movies' && ['Any', 'HERO', 'VILLAIN'].map(role => (<button key={role} onClick={() => {setFilter(role); generateBattle(players, role)}} className={`px-4 py-2 rounded-full font-bold whitespace-nowrap ${filter === role? 'bg-[#a8ff00] text-black' : 'bg-[#13131a]'}`}>{role}</button>))}
             </div>
+
             <div className="flex gap-2">
-              {[battle[0], battle[1]].map(p => (<div key={p.id} onClick={() => setSelectedPlayer(p)} className={`bg-[#13131a] p-4 rounded-2xl w-1/2 text-center ${voteAnim === p.id? 'vote-pop' : ''}`}><div className="w-20 h-20 rounded-full mx-auto mb-2 bg-[#a8ff00] text-black flex items-center justify-center text-3xl font-bold">{p.name[0]}</div><span className="px-3 py-1 rounded-full text-xs font-bold bg-gray-800">{p.role}</span><h3 className="text-xl font-bold mt-3">{p.name}</h3><p className="text-[#a8ff00] font-bold">{p.votes || 0} votes</p><button onClick={(e) => {e.stopPropagation(); handleVote(p.id)}} disabled={isVoting ||!canVoteNow()} className={`w-full py-3 rounded-xl font-bold mt-2 ${!canVoteNow()? 'bg-gray-700' : 'bg-[#a8ff00] text-black'}`}>{isVoting? 'VOTING...' :!canVoteNow()? `WAIT ${Math.floor(getTimeUntilNextVote(user?.lastVoteTime)/1000/60/60)}h` : 'VOTE'}</button></div>))}
+              {[battle[0], battle[1]].map(p => (
+                <div key={p.id} onClick={() => setSelectedPlayer(p)} className={`bg-[#13131a] p-4 rounded-2xl w-1/2 text-center ${voteAnim === p.id? 'vote-pop' : ''}`}>
+                  <div className="w-20 h-20 rounded-full mx-auto mb-2 bg-[#a8ff00] text-black flex items-center justify-center text-3xl font-bold">{p.name[0]}</div>
+                  <span className="px-3 py-1 rounded-full text-xs font-bold bg-gray-800">{p.role}</span>
+                  <h3 className="text-xl font-bold mt-3">{p.name}</h3>
+                  <p className="text-[#a8ff00] font-bold">{p.votes || 0} votes</p>
+                  <button onClick={(e) => {e.stopPropagation(); handleVote(p.id)}} disabled={isVoting ||!canVoteNow()} className={`w-full py-3 rounded-xl font-bold mt-2 ${!canVoteNow()? 'bg-gray-700' : 'bg-[#a8ff00] text-black'}`}>
+                    {isVoting? 'VOTING...' :!canVoteNow()? `WAIT ${Math.floor(getTimeUntilNextVote(user?.lastVoteTime)/1000/60/60)}h` : 'VOTE'}
+                  </button>
+                </div>
+              ))}
             </div>
-                                                                                                                     <div className="bg-[#13131a] p-4 rounded-2xl mt-4">
+
+            {/* DEBATE ZONE */}
+            <div className="bg-[#13131a] p-4 rounded-2xl mt-4">
               <h3 className="font-bold mb-3">💬 Debate Zone</h3>
               <div className="flex gap-2 mb-3"><input value={newComment} onChange={e => setNewComment(e.target.value)} placeholder="Who will win?" className="w-full bg-[#0a0a0f] p-2 rounded-lg" /><button onClick={handlePostComment} className="bg-[#a8ff00] text-black px-4 rounded-lg font-bold">Post</button></div>
               <div className="space-y-3 max-h-60 overflow-y-auto">{comments.map((c) => (<CommentItem key={c.key} comment={c} commentKey={c.key} />))}</div>
             </div>
-
+                                                                                            {/* 5 BUTTONS */}
             <div className="flex gap-2 mt-4"><button onClick={handleShareResult} className="flex-1 bg-[#23232b] py-3 rounded-xl font-bold">📤 Share</button><button onClick={() => setShowResultCard(true)} className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 py-3 rounded-xl font-bold">📸 Result</button><button onClick={handleSkip} className="flex-1 bg-[#23232b] py-3 rounded-xl font-bold">⏭️ Skip</button></div>
             <div className="flex gap-2 mt-3"><button onClick={handleRefer} className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 py-3 rounded-xl font-bold">👥 Refer</button><button onClick={startTournament} className="flex-1 bg-gradient-to-r from-yellow-600 to-orange-600 py-3 rounded-xl font-bold">🏆 Tournament</button></div>
           </div>
@@ -546,7 +624,6 @@ export default function CrickClash() {
           </div>
         )}
       </div>
-
                {/* RESULT CARD MODAL */}
       {showResultCard && battle[0] && battle[1] && (
         <div onClick={() => setShowResultCard(false)} className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
@@ -573,5 +650,4 @@ export default function CrickClash() {
       <footer className="text-center mt-10 pb-6 text-gray-500 text-sm border-t border-gray-800 pt-4"><p>© 2026 <span className="text-white font-bold">FanClash™</span> | By <span className="text-white font-bold">ANESH</span></p></footer>
     </div>
   );
-}
-                                                                                                         
+                                                               }
