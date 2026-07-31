@@ -242,8 +242,6 @@ export default function CrickClash() {
   const [friendChat, setFriendChat] = useState([]);
   const [newFriendMsg, setNewFriendMsg] = useState("");
   const [showChatModal, setShowChatModal] = useState(false);
-
-  // NEW FOR USERNAME SEARCH
   const [searchUsername, setSearchUsername] = useState("");
   const [searchResult, setSearchResult] = useState(null);
 
@@ -319,7 +317,41 @@ export default function CrickClash() {
     setBattle([p1, p2]);
   }, []);
 
-  // USERNAME SEARCH
+  const handleDeleteHistory = async () => {
+    if(!user) return;
+    if(window.confirm("Are you sure you want to delete your battle history?")){
+      await remove(ref(db, `users/${user.uid}/${category}/history`));
+      await update(ref(db, `users/${user.uid}/${category}`), { badges: [] });
+      alert("History cleared ✅");
+    }
+  }
+
+  const handleVote = async (playerId) => {
+    if(!user) { alert("Login required"); await signInWithPopup(auth, googleProvider); return; }
+    if(!canVoteNow()) return alert("You can't vote now. Wait for cooldown or daily limit");
+
+    setIsVoting(true);
+    setVoteAnim(playerId);
+    const time = Date.now();
+    const player = players.find(p => p.id === playerId);
+    const newVotes = (player.votes || 0) + 1;
+
+    await update(ref(db, `players/${category}/${playerId}`), { votes: newVotes });
+    await update(ref(db, `meta/${category}`), { totalVotes: increment(1) });
+    await update(ref(db, `users/${user.uid}/${category}`), {
+      votesToday: increment(1),
+      lastVoteTime: time,
+      history: [...battleHistory, { battleNo, date: getToday(), players: [battle[0].name, battle[1].name], votedFor: player.name }]
+    });
+
+    setTimeout(() => { setIsVoting(false); setVoteAnim(null); generateBattle(players, filter); }, 500);
+  }
+
+  const handleShareResult = () => setShowResultCard(true);
+  const handleSkip = () => generateBattle(players, filter);
+  const handleRefer = () => alert("Referral coming soon");
+  const startTournament = () => setTournament({round: 1, matches: [[players[0], players[1]], [players[2], players[3]]]});
+
   const handleSearchUser = async () => {
     if(!searchUsername.trim()) return;
     const username = searchUsername.toLowerCase().trim();
@@ -419,7 +451,6 @@ export default function CrickClash() {
     setNewReply(""); setReplyTo(null);
   };
 
-  // ALL USEEFFECTS
   useEffect(() => {
     loadYesterdayWinners();
     const metaUnsub = onValue(ref(db, `meta/${category}`), (snapshot) => {
@@ -462,7 +493,7 @@ export default function CrickClash() {
       setGlobalChat(data? Object.values(data).sort((a,b) => b.time - a.time).slice(0, 100) : []);
     });
     return () => { metaUnsub(); playersUnsub(); fansUnsub(); globalChatUnsub(); }
-  }, [category, filter, generateBattle]);
+  }, [category, filter, generateBattle, loadYesterdayWinners]);
 
   useEffect(() => {
     setLoading(true);
@@ -542,11 +573,10 @@ export default function CrickClash() {
 
   if(loading) return <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center text-white">Loading...</div>;
 
-return (
+  return (
     <div className="min-h-screen bg-[#0a0a0f] text-white">
       <style>{`@keyframes pop { 0%{transform:scale(1)} 50%{transform:scale(1.15)} 100%{transform:scale(1)} }.vote-pop { animation: pop 0.5s ease; }`}</style>
 
-      {/* FRIEND CHAT MODAL */}
       {showChatModal && selectedFriend && (
         <div onClick={() => setShowChatModal(false)} className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
           <div onClick={e => e.stopPropagation()} className="bg-[#13131a] p-4 rounded-2xl w-full max-w-md h-[500px] flex-col">
@@ -577,10 +607,8 @@ return (
 
         <div className="flex justify-center gap-2 mb-4 bg-[#13131a] p-1 rounded-2xl">{Object.keys(ALL_DATA).map(cat => (<button key={cat} onClick={() => setCategory(cat)} className={`flex-1 py-2 rounded-xl font-bold text-sm ${category === cat? 'bg-[#a8ff00] text-black' : 'text-gray-400'}`}>{cat === 'Cricket' && '🏏 '}{cat === 'Football' && '⚽ '}{cat === 'Movies' && '🎬 '}{cat}</button>))}</div>
 
-        {/* YESTERDAY WINNERS CARD */}
         <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-3 rounded-2xl mb-3"><p className="text-sm font-bold text-center mb-2">👑 Yesterday's Winners</p><div className="grid grid-cols-3 gap-2">{Object.entries(yesterdayWinners).map(([cat, winner]) => (<div key={cat} className="bg-black/20 p-2 rounded-xl text-center"><p className="text-xs">{cat === 'Cricket' && '🏏'}{cat === 'Football' && '⚽'}{cat === 'Movies' && '🎬'} {cat}</p>{winner? (<><div className="w-10 h-10 rounded-full mx-auto my-1 bg-[#a8ff00] text-black flex items-center justify-center text-lg font-bold">{winner.name[0]}</div><p className="text-xs font-bold truncate">{winner.name}</p><p className="text-xs text-[#a8ff00]">{winner.votes} votes</p></>) : (<p className="text-xs text-gray-300">No data</p>)}</div>))}</div></div>
 
-        {/* STREAK CARD */}
         <div className="bg-gradient-to-r from-purple-600 to-pink-600 p-3 rounded-2xl mb-3">
           <div className="flex justify-between items-center">
             <div>
@@ -590,7 +618,6 @@ return (
           </div>
         </div>
 
-        {/* DAILY VOTES CARD */}
         <div className="bg-gradient-to-r from-orange-600 to-red-600 p-3 rounded-2xl mb-3 text-center">
           <p className="text-sm font-bold">🔥 Daily Fan Battle</p>
           <p className="text-lg font-bold">{category === 'Cricket' && 'Best Cricketer of All Time?'}{category === 'Football' && 'GOAT Football Debate'}{category === 'Movies' && 'King of Indian Cinema?'}</p>
@@ -608,7 +635,7 @@ return (
           <button onClick={() => setTab('Chat')} className={`pb-2 font-bold ${tab === 'Chat'? 'text-[#a8ff00] border-b-2 border-[#a8ff00]' : 'text-gray-500'}`}>💬 Chat</button>
         </div>
 
-        {/* BATTLE TAB - NUVVU ICHINA CODE */}
+        {/* BATTLE TAB */}
         {tab === 'Battle' && battle[0] && battle[1] && (
           <div>
             <h2 className="text-center text-4xl font-bold mb-4">Battle <span className="text-[#a8ff00]">{battleNo}</span></h2>
@@ -617,15 +644,59 @@ return (
               {category === 'Football' && ['Any', 'FORWARD', 'MIDFIELDER', 'DEFENDER', 'GOALKEEPER'].map(role => (<button key={role} onClick={() => {setFilter(role); generateBattle(players, role)}} className={`px-4 py-2 rounded-full font-bold whitespace-nowrap ${filter === role? 'bg-[#a8ff00] text-black' : 'bg-[#13131a]'}`}>{role}</button>))}
               {category === 'Movies' && ['Any', 'HERO', 'VILLAIN'].map(role => (<button key={role} onClick={() => {setFilter(role); generateBattle(players, role)}} className={`px-4 py-2 rounded-full font-bold whitespace-nowrap ${filter === role? 'bg-[#a8ff00] text-black' : 'bg-[#13131a]'}`}>{role}</button>))}
             </div>
-            {/* BATTLE CARDS + COMMENTS + BUTTONS - NUVVU ICHINA CODE AKKADA PASTE CHEY */}
+
+            <div className="flex gap-4 mb-4">
+              {[battle[0], battle[1]].map(player => (
+                <div key={player.id} className={`flex-1 bg-[#13131a] p-4 rounded-2xl text-center ${voteAnim === player.id? 'vote-pop' : ''}`}>
+                  <div className="w-20 h-20 rounded-full mx-auto mb-2 bg-[#a8ff00] text-black flex items-center justify-center text-3xl font-bold">{player.name[0]}</div>
+                  <h3 className="font-bold text-lg">{player.name}</h3>
+                  <p className="text-xs text-gray-400">{player.role}</p>
+                  <p className="text-2xl font-bold text-[#a8ff00] mt-2">{player.votes}</p>
+                  <button
+                    onClick={() => handleVote(player.id)}
+                    disabled={isVoting ||!canVoteNow()}
+                    className="w-full mt-3 bg-[#a8ff00] text-black py-2 rounded-xl font-bold disabled:bg-gray-600"
+                  >
+                    Vote
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex gap-2 mb-4">
+              <button onClick={handleShareResult} className="flex-1 bg-purple-600 py-2 rounded-xl font-bold">📸 Share Result</button>
+              <button onClick={handleSkip} className="flex-1 bg-[#23232b] py-2 rounded-xl font-bold">⏭️ Skip</button>
+            </div>
+
+            <div className="bg-[#13131a] p-4 rounded-2xl mb-4">
+              <h3 className="font-bold mb-2">💬 Comments</h3>
+              <div className="flex gap-2 mb-3">
+                <input value={newComment} onChange={e => setNewComment(e.target.value)} onKeyPress={e => e.key === 'Enter' && handlePostComment()} placeholder="Add a comment..." className="flex-1 bg-[#0a0a0f] p-2 rounded-xl text-sm"/>
+                <button onClick={handlePostComment} className="bg-[#a8ff00] text-black px-4 rounded-xl font-bold text-sm">Post</button>
+              </div>
+              <div className="space-y-2 max-h-60 overflow-y-auto">
+                {comments.map(c => <CommentItem key={c.key} comment={c} commentKey={c.key}/>)}
+              </div>
+            </div>
           </div>
         )}
 
-        {/* RANKINGS TAB - NUVVU ICHINA CODE */}
+        {/* RANKINGS TAB */}
         {tab === 'Rankings' && (
           <div>
             <h2 className="text-2xl font-bold text-[#a8ff00] mb-4 text-center">🏆 Top 10 {category} Players</h2>
-            {/* RANKING LIST - NUVVU ICHINA CODE AKKADA PASTE CHEY */}
+            {players.sort((a,b) => b.votes - a.votes).slice(0,10).map((p, i) => (
+              <div key={p.id} className="bg-[#13131a] p-3 rounded-xl mb-2 flex items-center gap-3">
+                <span className="text-xl font-bold text-[#a8ff00]">#{i+1}</span>
+                <div className="w-10 h-10 rounded-full bg-[#a8ff00] text-black flex items-center justify-center font-bold">{p.name[0]}</div>
+                <div className="flex-1">
+                  <p className="font-bold">{p.name}</p>
+                  <p className="text-xs text-gray-400">{p.role}</p>
+                </div>
+                <p className="font-bold text-[#a8ff00]">{p.votes} votes</p>
+              </div>
+            ))}
+            <button onClick={startTournament} className="w-full mt-4 bg-gradient-to-r from-purple-600 to-pink-600 py-3 rounded-xl font-bold">🏆 Start Tournament</button>
           </div>
         )}
         {/* TOP FANS TAB WITH USERNAME SEARCH + 1-TO-1 CHAT */}
@@ -646,7 +717,7 @@ return (
           </div>
         )}
 
-        {/* HISTORY TAB - NUVVU ICHINA CODE */}
+        {/* HISTORY TAB */}
         {tab === 'History' && (
           <div className="space-y-3">
             <div className="flex justify-between items-center mb-4"><h2 className="text-2xl font-bold text-[#a8ff00]">📜 Your {category} Battle History</h2>{user && battleHistory.length > 0 && <button onClick={handleDeleteHistory} className="bg-red-600 px-3 py-1 rounded-lg text-sm font-bold">🗑️ Clear</button>}</div>
@@ -654,11 +725,11 @@ return (
           </div>
         )}
 
-        {/* GLOBAL CHAT TAB - NUVVU ICHINA CODE */}
+        {/* GLOBAL CHAT TAB */}
         {tab === 'Chat' && (
           <div>
             <h2 className="text-2xl font-bold text-[#a8ff00] mb-4 text-center">💬 Global Chat</h2>
-            <div className="bg-[#13131a] p-4 rounded-2xl h-[400px] flex-col">
+            <div className="bg-[#13131a] p-4 rounded-2xl h-[400px] flex flex-col">
               <div className="flex-1 overflow-y-auto space-y-3 mb-3">
                 {globalChat.length === 0? <p className="text-center text-gray-500">Start the conversation!</p> :
                   globalChat.map((msg) => (
@@ -724,6 +795,7 @@ return (
             </div>
             <div className="mt-4 space-y-2 text-sm">
               <div className="flex justify-between bg-[#0a0a0f] p-2 rounded-lg"><span>🗳️ Votes Today</span><span className="font-bold">{user? votesToday[category] : 0}/{DAILY_VOTE_LIMIT}</span></div>
+              <div className="flex justify-between bg-[#0a0a0f] p-2 rounded-lg"><span>🏆 Total Votes</span><span className="font-bold">{totalVotes}</span></div>
             </div>
             <div className="mt-3">
               <p className="text-xs text-gray-400 mb-1">Badges:</p>
@@ -757,32 +829,6 @@ return (
           </div>
         </div>
       )}
-      {/* 1-TO-1 CHAT MODAL */}
-      {showChatModal && selectedFriend && (
-        <div onClick={() => setShowChatModal(false)} className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
-          <div onClick={e => e.stopPropagation()} className="bg-[#13131a] p-4 rounded-2xl w-full max-w-md h-[500px] flex-col flex">
-            <div className="flex items-center gap-3 mb-3 border-b border-gray-800 pb-2">
-              <img src={selectedFriend.photo} className="w-10 h-10 rounded-full"/>
-              <div><p className="font-bold">{selectedFriend.name}</p><p className="text-xs text-gray-400">@{selectedFriend.username}</p></div>
-              <button onClick={() => setShowChatModal(false)} className="ml-auto text-xl">X</button>
-            </div>
-            <div className="flex-1 overflow-y-auto space-y-2 mb-3">
-              {friendChat.map(msg => (
-                <div key={msg.time} className={`flex ${msg.from === user.uid? 'justify-end' : 'justify-start'}`}>
-                  <div className={`p-2 rounded-xl max-w-[70%] ${msg.from === user.uid? 'bg-[#a8ff00] text-black' : 'bg-[#0a0a0f]'}`}>
-                    <p className="text-sm">{msg.text}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="flex gap-2">
-              <input value={newFriendMsg} onChange={e => setNewFriendMsg(e.target.value)} onKeyPress={e => e.key === 'Enter' && handleSendFriendMsg()} placeholder="Message..." className="flex-1 bg-[#0a0a0f] p-3 rounded-xl"/>
-              <button onClick={handleSendFriendMsg} className="bg-[#a8ff00] text-black px-4 rounded-xl font-bold">Send</button>
-            </div>
-          </div>
-        </div>
-      )}
-
       <footer className="text-center mt-10 pb-6 text-gray-500 text-sm border-t border-gray-800 pt-4"><p>© 2026 <span className="text-white font-bold">FanClash™</span> | A Production By <span className="text-white font-bold">ANESH</span></p></footer>
     </div>
   );
