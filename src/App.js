@@ -713,7 +713,7 @@ export default function CrickClash() {
           <div className="flex justify-between items-center">
             <div>
               <p className="text-sm font-bold">🔥 {streak} Day Streak</p>
-              <p className="text-xs">Vote every 4 hours a day & expand your stre9!</p>
+              <p className="text-xs">Vote every 4 hours a day & expand your streak!</p>
             </div>
           </div>
         </div>
