@@ -397,7 +397,7 @@ export default function CrickClash() {
         const profile = u.profile;
         if(catData?.votesToday > 0) {
           fansList.push({
-            name: profile?.displayName || "Anonymous",
+            name: profile?.displayName || ,
             photo: profile?.photoURL || `https://ui-avatars.com/api/?name=${profile?.displayName || 'A'}`,
             votes: catData.votesToday
           })
