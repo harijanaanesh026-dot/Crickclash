@@ -215,6 +215,8 @@ export default function CrickClash() {
   const [badges, setBadges] = useState([]);
   const [battleHistory, setBattleHistory] = useState([]);
   const [showProfile, setShowProfile] = useState(false);
+  const [showEditProfile, setShowEditProfile] = useState(false); // PROFILE EDIT
+  const [editName, setEditName] = useState(""); // PROFILE EDIT
   const [voteAnim, setVoteAnim] = useState(null);
   const [timeLeft, setTimeLeft] = useState("");
   const [isVoting, setIsVoting] = useState(false);
@@ -226,8 +228,10 @@ export default function CrickClash() {
   const [showResultCard, setShowResultCard] = useState(false);
   const [tournament, setTournament] = useState(null);
   const [yesterdayWinners, setYesterdayWinners] = useState({Cricket: null, Football: null, Movies: null});
-  const [streak, setStreak] = useState(0); // STREAK ADDED
+  const [streak, setStreak] = useState(0); // STREAK
   const [topFans, setTopFans] = useState([]);
+  const [globalChat, setGlobalChat] = useState([]); // GLOBAL CHAT
+  const [newGlobalMsg, setNewGlobalMsg] = useState(""); // GLOBAL CHAT
 
   const getBattleKey = () => battle[0] && battle[1]? `${category}-${battle[0].id}-${battle[1].id}-B${battleNo}` : null;
 
