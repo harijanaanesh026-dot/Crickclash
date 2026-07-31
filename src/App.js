@@ -184,415 +184,136 @@ const MOVIES_PLAYERS = [
   { id: "Sunil", name: 'Sunil', role: 'VILLAIN', votes: 0 },
 ];
 
+
 const ALL_DATA = { Cricket: CRICKET_PLAYERS, Football: FOOTBALL_PLAYERS, Movies: MOVIES_PLAYERS };
 
-// ============= HELPERS =============
-const getToday = () => {
-  const now = new Date();
-  const ist = new Date(now.toLocaleString("en-US", {timeZone: "Asia/Kolkata"}));
-  return ist.toISOString().split('T')[0];
-};
-const getTimeUntilNextVote = (lastVoteTime) => {
-  if (!lastVoteTime) return 0;
-  const nextVoteTime = new Date(lastVoteTime).getTime() + VOTE_COOLDOWN_HOURS * 60 * 60 * 1000;
-  const diff = nextVoteTime - Date.now();
-  return diff > 0? diff : 0;
-};
+const getToday = () => { const now = new Date(); const ist = new Date(now.toLocaleString("en-US", {timeZone: "Asia/Kolkata"})); return ist.toISOString().split('T')[0]; };
+const getTimeUntilNextVote = (lastVoteTime) => { if (!lastVoteTime) return 0; const nextVoteTime = new Date(lastVoteTime).getTime() + VOTE_COOLDOWN_HOURS * 60 * 60 * 1000; const diff = nextVoteTime - Date.now(); return diff > 0? diff : 0; };
 const getChatRoomId = (uid1, uid2) => [uid1, uid2].sort().join('_');
-
 export default function CrickClash() {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [category, setCategory] = useState('Cricket');
-  const [players, setPlayers] = useState(CRICKET_PLAYERS);
-  const [battle, setBattle] = useState([null, null]);
-  const [battleNo, setBattleNo] = useState(1);
-  const [filter, setFilter] = useState('Any');
-  const [tab, setTab] = useState('Battle');
-  const [votesToday, setVotesToday] = useState({Cricket: 0, Football: 0, Movies: 0});
-  const [totalVotes, setTotalVotes] = useState(0);
-  const [topPlayer, setTopPlayer] = useState(null);
-  const [badges, setBadges] = useState([]);
-  const [battleHistory, setBattleHistory] = useState([]);
-  const [showProfile, setShowProfile] = useState(false);
-  const [showEditProfile, setShowEditProfile] = useState(false);
-  const [editName, setEditName] = useState("");
-  const [editUsername, setEditUsername] = useState("");
-  const [editBio, setEditBio] = useState("");
-  const [usernameError, setUsernameError] = useState("");
-  const [voteAnim, setVoteAnim] = useState(null);
-  const [timeLeft, setTimeLeft] = useState("");
-  const [isVoting, setIsVoting] = useState(false);
-  const [comments, setComments] = useState([]);
-  const [newComment, setNewComment] = useState("");
-  const [selectedPlayer, setSelectedPlayer] = useState(null);
-  const [replyTo, setReplyTo] = useState(null);
-  const [newReply, setNewReply] = useState("");
-  const [showResultCard, setShowResultCard] = useState(false);
-  const [tournament, setTournament] = useState(null);
-  const [yesterdayWinners, setYesterdayWinners] = useState({Cricket: null, Football: null, Movies: null});
-  const [streak, setStreak] = useState(0);
-  const [topFans, setTopFans] = useState([]);
-  const [globalChat, setGlobalChat] = useState([]);
-  const [newGlobalMsg, setNewGlobalMsg] = useState("");
-  const [followers, setFollowers] = useState([]);
-  const [following, setFollowing] = useState([]);
-  const [selectedFriend, setSelectedFriend] = useState(null);
-  const [friendChat, setFriendChat] = useState([]);
-  const [newFriendMsg, setNewFriendMsg] = useState("");
-  const [showChatModal, setShowChatModal] = useState(false);
+  const [user, setUser] = useState(null); const [loading, setLoading] = useState(true); const [category, setCategory] = useState('Cricket');
+  const [players, setPlayers] = useState(CRICKET_PLAYERS); const [battle, setBattle] = useState([null, null]); const [battleNo, setBattleNo] = useState(1);
+  const [filter, setFilter] = useState('Any'); const [tab, setTab] = useState('Battle'); const [votesToday, setVotesToday] = useState({Cricket: 0, Football: 0, Movies: 0});
+  const [totalVotes, setTotalVotes] = useState(0); const [badges, setBadges] = useState([]); const [battleHistory, setBattleHistory] = useState([]); const [showProfile, setShowProfile] = useState(false);
+  const [showEditProfile, setShowEditProfile] = useState(false); const [editName, setEditName] = useState(""); const [editUsername, setEditUsername] = useState("");
+  const [editBio, setEditBio] = useState(""); const [usernameError, setUsernameError] = useState(""); const [voteAnim, setVoteAnim] = useState(null);
+  const [timeLeft, setTimeLeft] = useState(""); const [isVoting, setIsVoting] = useState(false); const [comments, setComments] = useState([]);
+  const [newComment, setNewComment] = useState(""); const [selectedPlayer, setSelectedPlayer] = useState(null); const [replyTo, setReplyTo] = useState(null);
+  const [newReply, setNewReply] = useState(""); const [showResultCard, setShowResultCard] = useState(false); const [tournament, setTournament] = useState(null);
+  const [yesterdayWinners, setYesterdayWinners] = useState({Cricket: null, Football: null, Movies: null}); const [streak, setStreak] = useState(0);
+  const [topFans, setTopFans] = useState([]); const [globalChat, setGlobalChat] = useState([]); const [newGlobalMsg, setNewGlobalMsg] = useState("");
+  const [followers, setFollowers] = useState([]); const [following, setFollowing] = useState([]); const [selectedFriend, setSelectedFriend] = useState(null);
+  const [friendChat, setFriendChat] = useState([]); const [newFriendMsg, setNewFriendMsg] = useState(""); const [showChatModal, setShowChatModal] = useState(false);
 
-  const getBattleKey = () => battle[0] && battle[1]? `${category}-${battle[0].id}-${battle[1].id}-B${battleNo}` : null;
+  // NEW FOR INSTAGRAM FEATURES
+  const [searchUsername, setSearchUsername] = useState(""); const [searchResult, setSearchResult] = useState(null); const [chatList, setChatList] = useState([]);
+  const [showDmDrawer, setShowDmDrawer] = useState(false); const [viewFollowersList, setViewFollowersList] = useState(null); const [viewFollowingList, setViewFollowingList] = useState(null);
+  const [listUsers, setListUsers] = useState([]); const touchStartX = useRef(0); const touchEndX = useRef(0);
+    const getBattleKey = () => battle[0] && battle[1]? `${category}-${battle[0].id}-${battle[1].id}-B${battleNo}` : null;
 
-  useEffect(() => {
-    const updateTimer = () => {
-      const now = new Date();
-      const istNow = new Date(now.toLocaleString("en-US", {timeZone: "Asia/Kolkata"}));
-      const tomorrow = new Date(istNow);
-      tomorrow.setDate(istNow.getDate() + 1);
-      tomorrow.setHours(0, 0, 0, 0);
-      const diff = tomorrow - istNow;
-      const h = Math.floor(diff / 1000 / 60 / 60);
-      const m = Math.floor(diff / 1000 / 60) % 60;
-      const s = Math.floor(diff / 1000) % 60;
-      setTimeLeft(`${h}h ${m}m ${s}s`);
-    };
-    updateTimer();
-    const interval = setInterval(updateTimer, 1000);
-    return () => clearInterval(interval);
-  }, []);
+  // LEFT SWIPE
+  const handleTouchStart = (e) => { touchStartX.current = e.targetTouches[0].clientX; }
+  const handleTouchMove = (e) => { touchEndX.current = e.targetTouches[0].clientX; }
+  const handleTouchEnd = () => { if (touchStartX.current - touchEndX.current > 75) { if(user) setShowDmDrawer(true); } }
 
-  useEffect(() => {
-    const checkGlobalReset = async () => {
-      const today = getToday();
-      const snap = await get(ref(db, `meta/lastGlobalReset`));
-      if (snap.val()!== today) {
-        for(const cat of ['Cricket', 'Football', 'Movies']) {
-          const playersRef = ref(db, `players/${cat}`);
-          const pSnap = await get(playersRef);
-          const pData = pSnap.val();
-          if(pData) {
-            const sorted = Object.values(pData).sort((a,b) => b.votes - a.votes);
-            if(sorted[0]) { await set(ref(db, `yesterdayWinners/${cat}`), { name: sorted[0].name, votes: sorted[0].votes }); }
-          }
-          const resetPlayers = {};
-          ALL_DATA[cat].forEach(p => { resetPlayers[p.id] = {...p, votes: 0}; });
-          await set(ref(db, `players/${cat}`), resetPlayers);
-          await set(ref(db, `meta/${cat}`), { lastResetDate: today, totalVotes: 0, battleNo: 1 });
-        }
-        await set(ref(db, `meta/lastGlobalReset`), today);
-      }
-    };
-    checkGlobalReset();
-    const interval = setInterval(checkGlobalReset, 60 * 1000);
-    return () => clearInterval(interval);
-  }, []);
+  useEffect(() => { const updateTimer = () => { const now = new Date(); const istNow = new Date(now.toLocaleString("en-US", {timeZone: "Asia/Kolkata"})); const tomorrow = new Date(istNow); tomorrow.setDate(istNow.getDate() + 1); tomorrow.setHours(0, 0, 0, 0); const diff = tomorrow - istNow; const h = Math.floor(diff / 1000 / 60 / 60); const m = Math.floor(diff / 1000 / 60) % 60; const s = Math.floor(diff / 1000) % 60; setTimeLeft(`${h}h ${m}m ${s}s`); }; updateTimer(); const interval = setInterval(updateTimer, 1000); return () => clearInterval(interval); }, []);
+  useEffect(() => { const checkGlobalReset = async () => { const today = getToday(); const snap = await get(ref(db, `meta/lastGlobalReset`)); if (snap.val()!== today) { for(const cat of ['Cricket', 'Football', 'Movies']) { const playersRef = ref(db, `players/${cat}`); const pSnap = await get(playersRef); const pData = pSnap.val(); if(pData) { const sorted = Object.values(pData).sort((a,b) => b.votes - a.votes); if(sorted[0]) { await set(ref(db, `yesterdayWinners/${cat}`), { name: sorted[0].name, votes: sorted[0].votes }); } const resetPlayers = {}; ALL_DATA[cat].forEach(p => { resetPlayers[p.id] = {...p, votes: 0}; }); await set(ref(db, `players/${cat}`), resetPlayers); await set(ref(db, `meta/${cat}`), { lastResetDate: today, totalVotes: 0, battleNo: 1 }); } await set(ref(db, `meta/lastGlobalReset`), today); } }; checkGlobalReset(); const interval = setInterval(checkGlobalReset, 60 * 1000); return () => clearInterval(interval); }, []);
+  useEffect(() => { const unsub = onAuthStateChanged(auth, (currentUser) => { if(currentUser){ get(ref(db, `users/${currentUser.uid}`)).then(snap => { const data = snap.val(); setUser({...currentUser, profile: data?.profile || {}}); setVotesToday(data?.votesToday || {Cricket: 0, Football: 0, Movies: 0}); setBattleHistory(data?.battleHistory || []); }); } else { setUser(null); setVotesToday({Cricket: 0, Football: 0, Movies: 0}); setBattleHistory([]); } setLoading(false); }); return () => unsub(); }, []);
+  useEffect(() => { if(!user) return; const unsub1 = onValue(ref(db, `users/${user.uid}/chats`), (snap) => { const data = snap.val(); setChatList(data? Object.keys(data).map(uid => ({uid,...data[uid]})).sort((a,b) => b.lastTime - a.lastTime) : []); }); const unsub2 = onValue(ref(db, `users/${user.uid}/followers`), (snap) => { setFollowers(snap.exists()? Object.keys(snap.val()) : []); }); const unsub3 = onValue(ref(db, `users/${user.uid}/following`), (snap) => { setFollowing(snap.exists()? Object.keys(snap.val()) : []); }); return () => { unsub1(); unsub2(); unsub3(); } }, [user]);
+  useEffect(() => { const loadList = async (uid, type) => { if(!uid) return; const snap = await get(ref(db, `users/${uid}/${type}`)); if(snap.exists()){ const uids = Object.keys(snap.val()); const usersData = await Promise.all(uids.map(id => get(ref(db, `users/${id}/profile`)).then(s => ({uid: id,...s.val()})))); setListUsers(usersData); } else { setListUsers([]); } }; if(viewFollowersList) loadList(viewFollowersList, 'followers'); if(viewFollowingList) loadList(viewFollowingList, 'following'); }, [viewFollowersList, viewFollowingList]);
+  useEffect(() => { if(!battle[0] ||!battle[1]) return; const battleKey = getBattleKey(); if(!battleKey) return; const unsubscribe = onValue(ref(db, `comments/${battleKey}`), (snap) => { const data = snap.val(); setComments(data? Object.values(data).sort((a,b) => b.time - a.time) : []); }); return () => unsubscribe(); }, [battle, battleNo, category]);
+  useEffect(() => { const unsub = onValue(ref(db, `globalChat`), (snap) => { const data = snap.val(); setGlobalChat(data? Object.values(data).sort((a,b) => a.time - b.time).slice(-50) : []); }); return () => unsub(); }, []);
 
-  const canVoteNow = () => {
-    const timeLeft = getTimeUntilNextVote(user?.[`${category}LastVoteTime`]);
-    const votesUsed = votesToday[category];
-    return votesUsed < DAILY_VOTE_LIMIT && timeLeft === 0;
-  }
-
-  const loadYesterdayWinners = useCallback(async () => {
-    const winners = {};
-    for(const cat of ['Cricket', 'Football', 'Movies']) {
-      const snap = await get(ref(db, `yesterdayWinners/${cat}`));
-      winners[cat] = snap.exists()? snap.val() : null;
-    }
-    setYesterdayWinners(winners);
-  }, []);
-
-  const generateBattle = useCallback((playerList, role) => {
-    if(playerList.length < 2) return;
-    let filtered = role === 'Any'? playerList : playerList.filter(p => p.role === role);
-    if(filtered.length < 2) { setBattle([null, null]); return; }
-    let p1 = filtered[Math.floor(Math.random() * filtered.length)];
-    let p2 = filtered[Math.floor(Math.random() * filtered.length)];
-    let attempts = 0;
-    while(p1.id === p2.id && attempts < 20) { p2 = filtered[Math.floor(Math.random() * filtered.length)]; attempts++; }
-    setBattle([p1, p2]);
-  }, []);
-
-  const handleUpdateProfile = async () => {
-    if(!user ||!editName.trim()) return;
-    const username = editUsername.toLowerCase().trim();
-    if(username.length < 3) return setUsernameError("Username min 3 characters");
-    if(!/^[a-z0-9_]+$/.test(username)) return setUsernameError("Only a-z, 0-9, _ allowed");
-    const usernameSnap = await get(ref(db, `usernames/${username}`));
-    if(usernameSnap.exists() && usernameSnap.val()!== user.uid) { return setUsernameError("Username already taken"); }
-    await set(ref(db, `usernames/${username}`), user.uid);
-    await update(ref(db, `users/${user.uid}/profile`), { displayName: editName, username: username, bio: editBio, photoURL: user.photoURL, email: user.email });
-    await update(ref(db, `users/${user.uid}`), { displayName: editName, username: username, bio: editBio });
-    alert("Profile Updated ✅");
-    setShowEditProfile(false);
-    setUsernameError("");
-  }
-
-  const handleFollow = async (targetUid) => {
-    if(!user) return alert("Login required");
-    await set(ref(db, `users/${user.uid}/following/${targetUid}`), true);
-    await set(ref(db, `users/${targetUid}/followers/${user.uid}`), true);
-  }
-  const handleUnfollow = async (targetUid) => {
-    if(!user) return alert("Login required");
-    await remove(ref(db, `users/${user.uid}/following/${targetUid}`));
-    await remove(ref(db, `users/${targetUid}/followers/${user.uid}`));
-  }
-
-  const openFriendChat = (friend) => { setSelectedFriend(friend); setShowChatModal(true); }
-  const handleSendFriendMsg = async () => {
-    if(!user ||!selectedFriend ||!newFriendMsg.trim()) return;
-    const roomId = getChatRoomId(user.uid, selectedFriend.uid);
-    const time = Date.now();
-    await set(ref(db, `chats/${roomId}/${time}`), { text: newFriendMsg, from: user.uid, time: time });
-    setNewFriendMsg("");
-  };
-
-  const handlePostGlobalChat = async () => {
-    if(!user){ alert("Login required"); await signInWithPopup(auth, googleProvider); return; }
-    if(!newGlobalMsg.trim()) return;
-    const time = Date.now();
-    await set(ref(db, `globalChat/${time}`), { text: newGlobalMsg, user: user.displayName, username: user.profile?.username || "", photo: user.photoURL, time: time });
-    setNewGlobalMsg("");
-  };
-
+  const canVoteNow = () => { const timeLeft = getTimeUntilNextVote(user?.[`${category}LastVoteTime`]); const votesUsed = votesToday[category]; return votesUsed < DAILY_VOTE_LIMIT && timeLeft === 0; }
+  const loadYesterdayWinners = useCallback(async () => { const winners = {}; for(const cat of ['Cricket', 'Football', 'Movies']) { const snap = await get(ref(db, `yesterdayWinners/${cat}`)); winners[cat] = snap.exists()? snap.val() : null; } setYesterdayWinners(winners); }, []);
+  const generateBattle = useCallback((playerList, role) => { if(playerList.length < 2) return; let filtered = role === 'Any'? playerList : playerList.filter(p => p.role === role); if(filtered.length < 2) { setBattle([null, null]); return; } let p1 = filtered[Math.floor(Math.random() * filtered.length)]; let p2 = filtered[Math.floor(Math.random() * filtered.length)]; let attempts = 0; while(p1.id === p2.id && attempts < 20) { p2 = filtered[Math.floor(Math.random() * filtered.length)]; attempts++; } setBattle([p1, p2]); }, []);
+  const handleUpdateProfile = async () => { if(!user ||!editName.trim()) return; const username = editUsername.toLowerCase().trim(); if(username.length < 3) return setUsernameError("Username min 3 characters"); if(!/^[a-z0-9_]+$/.test(username)) return setUsernameError("Only a-z, 0-9, _ allowed"); const usernameSnap = await get(ref(db, `usernames/${username}`)); if(usernameSnap.exists() && usernameSnap.val()!== user.uid) { return setUsernameError("Username already taken"); } if(user.profile?.username) await remove(ref(db, `usernames/${user.profile.username}`)); await set(ref(db, `usernames/${username}`), user.uid); await update(ref(db, `users/${user.uid}/profile`), { displayName: editName, username: username, bio: editBio, photoURL: user.photoURL, email: user.email, followersCount: followers.length, followingCount: following.length }); await update(ref(db, `users/${user.uid}`), { displayName: editName, username: username, bio: editBio }); alert("Profile Updated ✅"); setShowEditProfile(false); setUsernameError(""); }
+  const handleFollow = async (targetUid) => { if(!user) return alert("Login required"); await set(ref(db, `users/${user.uid}/following/${targetUid}`), true); await set(ref(db, `users/${targetUid}/followers/${user.uid}`), true); await update(ref(db, `users/${user.uid}/profile/followingCount`), increment(1)); await update(ref(db, `users/${targetUid}/profile/followersCount`), increment(1)); }
+  const handleUnfollow = async (targetUid) => { if(!user) return alert("Login required"); await remove(ref(db, `users/${user.uid}/following/${targetUid}`)); await remove(ref(db, `users/${targetUid}/followers/${user.uid}`)); await update(ref(db, `users/${user.uid}/profile/followingCount`), increment(-1)); await update(ref(db, `users/${targetUid}/profile/followersCount`), increment(-1)); }
+  const openFriendChat = (friend) => { setSelectedFriend(friend); setShowDmDrawer(false); setShowChatModal(true); const roomId = getChatRoomId(user.uid, friend.uid); onValue(ref(db, `chats/${roomId}`), (snap) => { const data = snap.val(); setFriendChat(data? Object.values(data).sort((a,b) => a.time - b.time) : []); }); }
+  const handleSendFriendMsg = async () => { if(!user ||!selectedFriend ||!newFriendMsg.trim()) return; const roomId = getChatRoomId(user.uid, selectedFriend.uid); const time = Date.now(); await set(ref(db, `chats/${roomId}/${time}`), { text: newFriendMsg, from: user.uid, time: time }); await update(ref(db, `users/${user.uid}/chats/${selectedFriend.uid}`), { name: selectedFriend.name, username: selectedFriend.username, photo: selectedFriend.photo, lastMsg: newFriendMsg, lastTime: time }); await update(ref(db, `users/${selectedFriend.uid}/chats/${user.uid}`), { name: user.displayName, username: user.profile?.username, photo: user.photoURL, lastMsg: newFriendMsg, lastTime: time }); setNewFriendMsg(""); };
+  const handlePostGlobalChat = async () => { if(!user){ alert("Login required"); await signInWithPopup(auth, googleProvider); return; } if(!newGlobalMsg.trim()) return; const time = Date.now(); await set(ref(db, `globalChat/${time}`), { text: newGlobalMsg, user: user.displayName, username: user.profile?.username || "", photo: user.photoURL, time: time }); setNewGlobalMsg(""); };
   const handleGoogleLogin = () => signInWithPopup(auth, googleProvider);
-  const handleLogout = async () => {
-    if(window.confirm("Logout?")) {
-      await signOut(auth);
-      setShowProfile(false);
-      setUser(null);
-      setVotesToday({Cricket: 0, Football: 0, Movies: 0});
-      setBadges([]); setBattleHistory([]); setStreak(0); setFollowers([]); setFollowing([]);
-    }
-  };
-
-  // 1. PUBLIC DATA - LOGIN AVASARAM LEDU
-  useEffect(() => {
-    loadYesterdayWinners();
-    const metaUnsub = onValue(ref(db, `meta/${category}`), (snapshot) => {
-      const metaData = snapshot.val();
-      if (metaData) { setBattleNo(metaData.battleNo || 1); setTotalVotes(metaData.totalVotes || 0); }
-    });
-    const playersUnsub = onValue(ref(db, `players/${category}`), (snapshot) => {
-      const data = snapshot.val();
-      const currentPlayers = ALL_DATA[category];
-      if (data) {
-        const playersArray = currentPlayers.map(p => ({...p, votes: data[p.id]?.votes || 0 }));
-        setPlayers(playersArray);
-        generateBattle(playersArray, filter);
-        const sorted = [...playersArray].sort((a,b) => b.votes - a.votes);
-        setTopPlayer(sorted[0]);
-      } else {
-        const initialPlayers = {};
-        currentPlayers.forEach((p) => { initialPlayers[p.id] = {...p}; });
-        set(ref(db, `players/${category}`), initialPlayers);
-        set(ref(db, `meta/${category}`), { lastResetDate: getToday(), totalVotes: 0, battleNo: 1 });
-      }
-    });
-    const fansRef = ref(db, `users`);
-    const fansUnsub = onValue(fansRef, (snap) => {
-      const allUsers = snap.val() || {};
-      let fansList = [];
-      Object.keys(allUsers).forEach(uid => {
-        const u = allUsers[uid];
-        const catData = u[category];
-        const profile = u.profile;
-        if(catData?.votesToday > 0) {
-          fansList.push({ uid: uid, name: profile?.displayName || "Anonymous", username: profile?.username || "", photo: profile?.photoURL || `https://ui-avatars.com/api/?name=${profile?.displayName || 'A'}`, votes: catData.votesToday })
-        }
-      });
-      fansList.sort((a,b) => b.votes - a.votes);
-      setTopFans(fansList.slice(0,10));
-    })
-    const globalChatUnsub = onValue(ref(db, `globalChat`), (snap) => {
-      const data = snap.val();
-      setGlobalChat(data? Object.values(data).sort((a,b) => b.time - a.time).slice(0, 100) : []);
-    });
-    return () => { metaUnsub(); playersUnsub(); fansUnsub(); globalChatUnsub(); }
-  }, [category, filter, generateBattle]);
-
-  // 2. USER DATA - LOGIN AVASARAM
-  useEffect(() => {
-    setLoading(true);
-    const authUnsub = onAuthStateChanged(auth, async (currentUser) => {
-      setLoading(false);
-      if(currentUser) {
-        const today = getToday();
-        const userSnap = await get(ref(db, `users/${currentUser.uid}`));
-        const userData = userSnap.val() || {};
-        await set(ref(db, `users/${currentUser.uid}/profile`), { displayName: currentUser.displayName, photoURL: currentUser.photoURL, email: currentUser.email, username: userData.profile?.username || "", bio: userData.profile?.bio || "", lastLogin: Date.now() })
-        if(userData.lastGlobalReset!== today) {
-          await update(ref(db, `users/${currentUser.uid}`), {
-            Cricket: { votesToday: 0, lastVoteTime: 0 },
-            Football: { votesToday: 0, lastVoteTime: 0 },
-            Movies: { votesToday: 0, lastVoteTime: 0 },
-            lastGlobalReset: today
-          })
-        }
-        setUser(currentUser);
-        setEditName(userData.profile?.displayName || currentUser.displayName);
-        setEditUsername(userData.profile?.username || "");
-        setEditBio(userData.profile?.bio || "");
-        setStreak(userData.streak || 0);
-        setVotesToday({ Cricket: userData.Cricket?.votesToday || 0, Football: userData.Football?.votesToday || 0, Movies: userData.Movies?.votesToday || 0 });
-        setUser(prev => ({...prev, profile: userData.profile, CricketLastVoteTime: userData.Cricket?.lastVoteTime, FootballLastVoteTime: userData.Football?.lastVoteTime, MoviesLastVoteTime: userData.Movies?.lastVoteTime}));
-        const userUnsub = onValue(ref(db, `users/${currentUser.uid}/${category}`), (snapshot) => {
-          const catData = snapshot.val();
-          if(catData){ setBadges(catData.badges || []); setBattleHistory(catData.history || []); setUser(prev => ({...prev, [`${category}LastVoteTime`]: catData.lastVoteTime})); }
-        });
-        const followersUnsub = onValue(ref(db, `users/${currentUser.uid}/followers`), (snap) => { setFollowers(snap.val()? Object.keys(snap.val()) : []); });
-        const followingUnsub = onValue(ref(db, `users/${currentUser.uid}/following`), (snap) => { setFollowing(snap.val()? Object.keys(snap.val()) : []); });
-        return () => { userUnsub(); followersUnsub(); followingUnsub(); }
-      } else {
-        setUser(null);
-        setVotesToday({Cricket: 0, Football: 0, Movies: 0});
-        setBadges([]); setBattleHistory([]); setStreak(0); setFollowers([]); setFollowing([]);
-      }
-    });
-    return () => authUnsub();
-  }, [category]);
-
-  useEffect(() => {
-    if(!user ||!selectedFriend) return;
-    const roomId = getChatRoomId(user.uid, selectedFriend.uid);
-    const unsub = onValue(ref(db, `chats/${roomId}`), (snap) => {
-      const data = snap.val();
-      setFriendChat(data? Object.values(data).sort((a,b) => a.time - b.time) : []);
-    });
-    return () => unsub();
-  }, [user, selectedFriend]);
-
-  const handleVote = async (votedPlayerId) => {
-    if(!user){ alert("Login required to Vote"); await signInWithPopup(auth, googleProvider); return; }
-    const userLastVoteTime = user[`${category}LastVoteTime`];
-    const timeLeftMs = getTimeUntilNextVote(userLastVoteTime);
-    if(votesToday[category] >= DAILY_VOTE_LIMIT || timeLeftMs > 0 || isVoting) {
-      const mins = Math.ceil(timeLeftMs / 1000 / 60);
-      return alert(`${category} lo ${DAILY_VOTE_LIMIT} votes ayipoyayi! Next vote in ${Math.floor(mins/60)}h ${mins%60}m`);
-    }
-    setIsVoting(true); setVoteAnim(votedPlayerId); setTimeout(() => setVoteAnim(null), 500);
-    const today = getToday();
-    const votedPlayer = ALL_DATA[category].find(p => p.id === votedPlayerId);
-    const historyEntry = {battleNo, category, players: [battle[0]?.name, battle[1]?.name], votedFor: votedPlayer.name, date: today};
-    const newHistory = [historyEntry,...battleHistory].slice(0, 50);
-    const newBattleNo = battleNo + 1;
-    let newBadges = [...badges];
-    if(votesToday[category] === 0 &&!newBadges.includes(`First ${category} Vote`)) newBadges.push(`First ${category} Vote`);
-    if(!newBadges.includes(`${category} Fan`)) newBadges.push(`${category} Fan`);
-    const userSnap = await get(ref(db, `users/${user.uid}`));
-    const userData = userSnap.val() || {};
-    const lastVoteDate = userData[`${category}LastVoteDate`];
-    const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
-    const yesterdayStr = yesterday.toISOString().split('T')[0];
-    let newStreak = streak;
-    if(lastVoteDate === yesterdayStr) { newStreak = newStreak + 1; }
-    else if(lastVoteDate!== today) { newStreak = 1; }
-    await update(ref(db, `users/${user.uid}`), { streak: newStreak, [`${category}LastVoteDate`]: today });
-    setStreak(newStreak);
-    await update(ref(db, `users/${user.uid}/${category}`), { votesToday: increment(1), lastVoteDate: today, lastVoteTime: Date.now(), badges: newBadges, history: newHistory });
-    await update(ref(db, `players/${category}/${votedPlayerId}`), { votes: increment(1) });
-    await update(ref(db, `meta/${category}`), { totalVotes: increment(1), battleNo: newBattleNo });
-    setTimeout(() => { setIsVoting(false); setBattleNo(newBattleNo); generateBattle(players, filter); }, 1000);
-  };
-
-  const handleSkip = async () => {
-    if(!user){ alert("Login required to Skip"); await signInWithPopup(auth, googleProvider); return; }
-    const newBattleNo = battleNo + 1;
-    setBattleNo(newBattleNo);
-    await update(ref(db, `meta/${category}`), { battleNo: newBattleNo });
-    generateBattle(players, filter);
-  };
-
-  const handleDeleteHistory = async () => {
-    if(!user) return alert("Login required");
-    if(window.confirm("Are you sure?")){ await remove(ref(db, `users/${user.uid}/${category}/history`)); setBattleHistory([]); }
-  };
-
-  const handleShareResult = () => {
-    const text = `Who's your pick ${battle[0]?.name} vs ${battle[1]?.name} on FanClash ${category}! ⚔️`;
-    const url = window.location.href;
-    if (navigator.share) { navigator.share({title: 'FanClash', text: text, url: url}); }
-    else { navigator.clipboard.writeText(`${text} ${url}`); alert("Copied!"); }
-  };
-
-  const handleRefer = async () => {
-    if(!user){ alert("Login required to Refer"); await signInWithPopup(auth, googleProvider); return; }
-    const refLink = `${window.location.origin}?ref=${user.uid}`;
-    navigator.clipboard.writeText(`FanClash lo vote chey! ${refLink}`);
-    alert("Referral link copied!");
-  }
-
-  const startTournament = () => {
-    if(!user){ alert("Login required for Tournament"); handleGoogleLogin(); return; }
-    const shuffled = [...players].sort(() => 0.5 - Math.random()).slice(0, 8);
-    if(shuffled.length < 8) return alert("8 players ledu");
-    setTournament({ round: 1, matches: [[shuffled[0], shuffled[1]], [shuffled[2], shuffled[3]], [shuffled[4], shuffled[5]], [shuffled[6], shuffled[7]]], winner: null });
-                                      }
-
-  useEffect(() => {
-    if(!battle[0] ||!battle[1]) return;
-    const battleKey = getBattleKey();
-    if(!battleKey) return;
-    const unsubscribe = onValue(ref(db, `comments/${battleKey}`), (snap) => {
-      const data = snap.val();
-      setComments(data? Object.values(data).sort((a,b) => b.time - a.time) : []);
-    });
-    return () => unsubscribe();
-  }, [battle, battleNo, category]);
-
-  const handlePostComment = async () => {
-    if(!user){ alert("Login required"); await signInWithPopup(auth, googleProvider); return; }
-    if(!newComment.trim() ||!battle[0] ||!battle[1]) return;
-    const time = Date.now();
-    const battleKey = getBattleKey();
-    await set(ref(db, `comments/${battleKey}/${time}`), { text: newComment, user: user.displayName, username: user.profile?.username, photo: user.photoURL, time: time, key: time, likes: {}, replies: {} });
-    setNewComment("");
-  };
-
-  const handleLikeComment = async (commentKey) => {
-    if(!user) return alert("Login required");
-    const battleKey = getBattleKey();
-    const likeRef = ref(db, `comments/${battleKey}/${commentKey}/likes/${user.uid}`);
-    const snap = await get(likeRef);
-    if(snap.exists()){ await remove(likeRef); } else { await set(likeRef, true); }
-  };
-
-  const handlePostReply = async (commentKey) => {
-    if(!user){ alert("Login required"); await signInWithPopup(auth, googleProvider); return; }
-    if(!newReply.trim()) return;
-    const time = Date.now();
-    const battleKey = getBattleKey();
-    await set(ref(db, `comments/${battleKey}/${commentKey}/replies/${time}`), { text: newReply, user: user.displayName, username: user.profile?.username, photo: user.photoURL, time: time, key: time });
-    setNewReply(""); setReplyTo(null);
-  };
-
-  const CommentItem = ({comment, commentKey, depth = 0}) => {
-    const commentId = comment.key || comment.time;
-    return (
-      <div style={{marginLeft: depth * 16}}>
-        <div className="bg-[#1A1A1A] p-3 rounded-xl mb-2">
-          <div className="flex items-center gap-2"><img src={comment.photo || '/default-avatar.png'} className="w-8 h-8 rounded-full"/><b className="text-sm">{comment.user}</b> <span className="text-xs text-gray-500">@{comment.username}</span></div>
-          <p className="text-sm mt-1">{comment.text}</p>
-          <div className="flex gap-3 mt-2"><button onClick={() => handleLikeComment(commentId)} className="text-xs text-gray-400">🤍 {Object.keys(comment.likes || {}).length}</button><button onClick={() => setReplyTo(replyTo === commentId? null : commentId)} className="text-xs text-[#a8ff00]">Reply</button></div>
-          {replyTo === commentId && (<div className="flex gap-2 mt-2"><input value={newReply} onChange={(e) => setNewReply(e.target.value)} placeholder="Reply..." className="flex-1 bg-[#0a0a0f] p-2 rounded-lg text-sm"/><button onClick={() => handlePostReply(commentId)} className="bg-[#a8ff00] text-black px-3 rounded-lg text-sm">Send</button></div>)}
-        </div>
-        {comment.replies && Object.values(comment.replies).sort((a,b) => a.time - b.time).map((reply) => (<CommentItem key={reply.key} comment={reply} commentKey={reply.key} depth={depth + 1}/>))}
-      </div>
-    );
-  }
-
-  if(loading) return <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center text-white">Loading...</div>;
+  const handleLogout = async () => { if(window.confirm("Logout?")) { await signOut(auth); setShowProfile(false); setUser(null); setVotesToday({Cricket: 0, Football: 0, Movies: 0}); setBadges([]); setBattleHistory([]); setStreak(0); setFollowers([]); setFollowing([]); } };
+  const handleSearchUser = async () => { if(!searchUsername.trim()) return; const username = searchUsername.toLowerCase().trim(); const snap = await get(ref(db, `usernames/${username}`)); if(snap.exists()){ const uid = snap.val(); const userSnap = await get(ref(db, `users/${uid}/profile`)); if(userSnap.exists()){ setSearchResult({uid: uid,...userSnap.val()}); } else { alert("User not found"); } } else { alert("Username not found"); } };
+  const handlePostComment = async () => { /* NEE CODE SAME */ }
+  const handleLikeComment = async (commentKey) => { /* NEE CODE SAME */ }
+  const handlePostReply = async (commentKey) => { /* NEE CODE SAME */ }
+  const handleVote = async (playerId) => { /* NEE CODE SAME */ }
+  const handleDeleteHistory = async () => { /* NEE CODE SAME */ }
+  const handleShareResult = () => { /* NEE CODE SAME */ }
+  const handleRefer = () => { /* NEE CODE SAME */ }
+  const startTournament = () => { /* NEE CODE SAME */ }
+  const handleSkip = () => { generateBattle(players, filter); setBattleNo(battleNo + 1); }
+                     if(loading) return <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center text-white">Loading...</div>;
 
   return (
-    <div className="min-h-screen bg-[#0a0a0f] text-white">
-      <style>{`@keyframes pop { 0%{transform:scale(1)} 50%{transform:scale(1.15)} 100%{transform:scale(1)} }.vote-pop { animation: pop 0.5s ease; }`}</style>
+    <div className="min-h-screen bg-[#0a0a0f] text-white" onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
+      <style>{`@keyframes pop { 0%{transform:scale(1)} 50%{transform:scale(1.15)} 100%{transform:scale(1)} }.vote-pop { animation: pop 0.5s ease; }.dm-drawer { transition: transform 0.3s ease; }`}</style>
+
+      {/* LEFT SWIPE DM DRAWER */}
+      <div className={`fixed top-0 left-0 h-full w-[85%] max-w-sm bg-[#13131a] z-50 dm-drawer ${showDmDrawer? 'translate-x-0' : '-translate-x-full'}`}>
+        <div className="p-4 border-b border-gray-800 flex justify-between items-center"><h2 className="text-xl font-bold">Messages</h2><button onClick={() => setShowDmDrawer(false)} className="text-2xl">X</button></div>
+        <div className="p-3"><div className="flex gap-2 mb-3"><div className="relative flex-1"><span className="absolute left-3 top-3 text-gray-500">@</span><input value={searchUsername} onChange={e => setSearchUsername(e.target.value)} placeholder="Search @username" className="w-full bg-[#0a0a0f] p-2 pl-8 rounded-xl text-sm" /></div><button onClick={handleSearchUser} className="bg-[#a8ff00] text-black px-3 rounded-xl text-sm font-bold">Search</button></div>{searchResult && <div onClick={() => openFriendChat(searchResult)} className="bg-[#0a0a0f] p-2 rounded-xl mb-2 flex gap-2 cursor-pointer"><img src={searchResult.photoURL} className="w-10 h-10 rounded-full"/><div><p className="font-bold text-sm">{searchResult.displayName}</p><p className="text-xs text-gray-400">@{searchResult.username}</p></div></div>}</div>
+        <div className="flex-1 overflow-y-auto px-3 space-y-2">{chatList.map(chat => <div key={chat.uid} onClick={() => openFriendChat(chat)} className="bg-[#0a0a0f] p-3 rounded-xl flex gap-3 cursor-pointer"><img src={chat.photo} className="w-12 h-12 rounded-full"/><div className="flex-1"><p className="font-bold">{chat.name}</p><p className="text-xs text-gray-400 truncate">{chat.lastMsg}</p></div></div>)}</div>
+      </div>
+      {showDmDrawer && <div onClick={() => setShowDmDrawer(false)} className="fixed inset-0 bg-black/70 z-40"></div>}
+
+      <div className="w-full max-w-2xl mx-auto flex-1 p-3">
+        <header className="flex justify-between items-center mb-4"><div><h1 className="text-2xl font-bold">FanClash</h1><p className="text-xs text-gray-400">Swipe Left for DM</p></div><div>{user? <img src={user.photoURL} onClick={() => {setShowProfile(true); setEditName(user.displayName); setEditUsername(user.profile?.username || ""); setEditBio(user.profile?.bio || "")}} className="w-10 h-10 rounded-full border-2 border-[#a8ff00] cursor-pointer" /> : <button onClick={handleGoogleLogin} className="bg-[#a8ff00] text-black px-4 py-2 rounded-full font-bold text-sm">Login</button>}</div></header>
+
+        {/* NEE ALL STATS CARDS + CATEGORY TABS + MAIN TABS CODE IKKADA */}
+        {/* BATTLE TAB + RANKINGS TAB + FANS TAB + HISTORY TAB + GLOBAL CHAT TAB CODE IKKADA */}
+               {/* GLOBAL CHAT TAB */}
+        {tab === 'Chat' && ( <div><h2 className="text-2xl font-bold text-[#a8ff00] mb-4 text-center">💬 Global Chat</h2><div className="bg-[#13131a] p-4 rounded-2xl h-[400px] flex-col"><div className="flex-1 overflow-y-auto space-y-3 mb-3">{globalChat.length === 0? <p className="text-center text-gray-500">Start the conversation!</p> : globalChat.map((msg) => (<div key={msg.time} className="flex gap-2"><img src={msg.photo} className="w-8 h-8 rounded-full"/><div className="bg-[#0a0a0f] p-2 rounded-xl flex-1"><p className="text-xs font-bold text-[#a8ff00]">{msg.user} <span className="text-gray-500">@{msg.username}</span></p><p className="text-sm">{msg.text}</p></div></div>))}</div><div className="flex gap-2"><input value={newGlobalMsg} onChange={e => setNewGlobalMsg(e.target.value)} onKeyPress={e => e.key === 'Enter' && handlePostGlobalChat()} placeholder="Message..." className="flex-1 bg-[#0a0a0f] p-3 rounded-xl" /><button onClick={handlePostGlobalChat} className="bg-[#a8ff00] text-black px-4 rounded-xl font-bold">Send</button></div></div></div> )}
+      </div>
 
       {/* FRIEND CHAT MODAL */}
+      {showChatModal && selectedFriend && ( <div onClick={() => setShowChatModal(false)} className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"><div onClick={e => e.stopPropagation()} className="bg-[#13131a] p-4 rounded-2xl w-full max-w-md h-[500px] flex-col flex"><div className="flex items-center gap-3 mb-3 border-b border-gray-800 pb-2"><img src={selectedFriend.photo} className="w-10 h-10 rounded-full"/><div><p className="font-bold">{selectedFriend.name}</p><p className="text-xs text-gray-400">@{selectedFriend.username}</p></div><button onClick={() => setShowChatModal(false)} className="ml-auto text-xl">X</button></div><div className="flex-1 overflow-y-auto space-y-2 mb-3">{friendChat.map(msg => (<div key={msg.time} className={`flex ${msg.from === user.uid? 'justify-end' : 'justify-start'}`}><div className={`p-2 rounded-xl max-w-[70%] ${msg.from === user.uid? 'bg-[#a8ff00] text-black' : 'bg-[#0a0a0f]'}`}><p className="text-sm">{msg.text}</p></div></div>))}</div><div className="flex gap-2"><input value={newFriendMsg} onChange={e => setNewFriendMsg(e.target.value)} placeholder="Message..." className="flex-1 bg-[#0a0a0f] p-3 rounded-xl"/><button onClick={handleSendFriendMsg} className="bg-[#a8ff00] text-black px-4 rounded-xl font-bold">Send</button></div></div></div> )}
+
+      {/* PROFILE MODAL WITH BIO + FOLLOWERS */}
+      {showProfile && user && ( <div onClick={() => setShowProfile(false)} className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"><div onClick={e => e.stopPropagation()} className="bg-[#13131a] p-6 rounded-2xl w-full max-w-sm"><img src={user.photoURL} className="w-20 h-20 rounded-full mx-auto border-4 border-[#a8ff00]"/><h2 className="text-xl font-bold text-center mt-3">{user.displayName}</h2><p className="text-center text-[#a8ff00] text-sm">@{user.profile?.username || "no_username"}</p><p className="text-center text-gray-400 text-sm mt-1">{user.profile?.bio || "No bio yet"}</p><div className="flex justify-around mt-4 text-center"><div onClick={() => {setShowProfile(false); setViewFollowersList(user.uid)}} className="cursor-pointer"><p className="font-bold text-lg">{followers.length}</p><p className="text-xs text-gray-400">Followers</p></div><div onClick={() => {setShowProfile(false); setViewFollowingList(user.uid)}} className="cursor-pointer"><p className="font-bold text-lg">{following.length}</p><p className="text-xs text-gray-400">Following</p></div><div><p className="font-bold text-lg">{streak}</p><p className="text-xs text-gray-400">Streak</p></div></div><button onClick={() => {setEditName(user.displayName); setEditUsername(user.profile?.username || ""); setEditBio(user.profile?.bio || ""); setShowEditProfile(true)}} className="w-full bg-[#a8ff00] text-black py-2 rounded-xl font-bold mt-3">✏️ Edit Profile</button><button onClick={handleLogout} className="w-full bg-red-600 mt-2 py-2 rounded-xl font-bold">Logout</button></div></div> )}
+
+      {/* EDIT PROFILE MODAL */}
+      {showEditProfile && ( <div onClick={() => setShowEditProfile(false)} className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"><div onClick={e => e.stopPropagation()} className="bg-[#13131a] p-6 rounded-2xl w-full max-w-sm"><h2 className="text-xl font-bold text-center mb-4">Edit Profile</h2><img src={user.photoURL} className="w-20 h-20 rounded-full mx-auto border-4 border-[#a8ff00] mb-3"/><input value={editName} onChange={e => setEditName(e.target.value)} placeholder="Full Name" className="w-full bg-[#0a0a0f] p-3 rounded-xl mb-3 text-white"/><div className="relative mb-3"><span className="absolute left-3 top-3 text-gray-500">@</span><input value={editUsername} onChange={e => {setEditUsername(e.target.value); setUsernameError("")}} placeholder="username" className="w-full bg-[#0a0a0f] p-3 pl-8 rounded-xl text-white"/></div>{usernameError && <p className="text-red-500 text-xs mb-2">{usernameError}</p>}<textarea value={editBio} onChange={e => setEditBio(e.target.value)} placeholder="Write your bio..." maxLength={150} className="w-full bg-[#0a0a0f] p-3 rounded-xl mb-3 text-white h-20"/><button onClick={handleUpdateProfile} className="w-full bg-[#a8ff00] text-black py-2 rounded-xl font-bold">Save</button></div></div> )}
+
+      {/* FOLLOWERS/FOLLOWING LIST MODAL */}
+      {(viewFollowersList || viewFollowingList) && ( <div onClick={() => {setViewFollowersList(null); setViewFollowingList(null)}} className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"><div onClick={e => e.stopPropagation()} className="bg-[#13131a] p-4 rounded-2xl w-full max-w-sm h-[500px] flex-col flex"><h2 className="text-xl font-bold text-center mb-3">{viewFollowersList? 'Followers' : 'Following'}</h2><div className="flex-1 overflow-y-auto space-y-2">{listUsers.map(u => (<div key={u.uid} className="bg-[#0a0a0f] p-3 rounded-xl flex items-center gap-3"><img src={u.photoURL} className="w-10 h-10 rounded-full"/><div className="flex-1"><p className="font-bold">{u.displayName}</p><p className="text-xs text-gray-400">@{u.username}</p></div>{viewFollowingList? <button onClick={() => handleUnfollow(u.uid)} className="bg-[#23232b] px-3 py-1 rounded-full text-xs">Unfollow</button> : <button onClick={() => openFriendChat(u)} className="bg-blue-600 px-3 py-1 rounded-full text-xs">Message</button>}</div>))}</div></div></div> )}
+
+      {/* NEE RESULT CARD + TOURNAMENT MODAL + PLAYER MODAL CODE IKKADA */}
+      {showResultCard && battle[0] && battle[1] && ( <div onClick={() => setShowResultCard(false)} className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"><div onClick={e => e.stopPropagation()} className="bg-gradient-to-br from-[#1e3a5f] to-[#0a0e1a] p-6 rounded-3xl w-full max-w-sm border-2 border-[#a8ff00]"><h2 className="text-center text-2xl font-bold mb-1">FanClash {category}</h2><p className="text-center text-gray-400 text-sm mb-4">Battle #{battleNo-1} Result</p><div className="flex gap-3 items-center mb-4">{[battle[0], battle[1]].map(p => {const total = battle[0].votes + battle[1].votes; const percent = total > 0? ((p.votes / total) * 100).toFixed(0) : 50; return (<div key={p.id} className="flex-1 text-center p-3 rounded-2xl bg-[#13131a]"><div className="w-16 h-16 rounded-full mx-auto mb-2 bg-[#a8ff00] text-black flex items-center justify-center text-2xl font-bold">{p.name[0]}</div><p className="font-bold text-sm">{p.name}</p><p className="
+
+        {/* GLOBAL CHAT TAB */}
+        {tab === 'Chat' && (
+          <div>
+            <h2 className="text-2xl font-bold text-[#a8ff00] mb-4 text-center">💬 Global Chat</h2>
+            <div className="bg-[#13131a] p-4 rounded-2xl h-[400px] flex-col flex">
+              <div className="flex-1 overflow-y-auto space-y-3 mb-3">
+                {globalChat.length === 0? <p className="text-center text-gray-500">Start the conversation!</p> :
+                  globalChat.map((msg) => (
+                    <div key={msg.time} className="flex gap-2">
+                      <img src={msg.photo} className="w-8 h-8 rounded-full"/>
+                      <div className="bg-[#0a0a0f] p-2 rounded-xl flex-1">
+                        <p className="text-xs font-bold text-[#a8ff00]">{msg.user} <span className="text-gray-500">@{msg.username}</span></p>
+                        <p className="text-sm">{msg.text}</p>
+                      </div>
+                    </div>
+                  ))
+                }
+              </div>
+              <div className="flex gap-2">
+                <input value={newGlobalMsg} onChange={e => setNewGlobalMsg(e.target.value)} onKeyPress={e => e.key === 'Enter' && handlePostGlobalChat()} placeholder="Message..." className="flex-1 bg-[#0a0a0f] p-3 rounded-xl" />
+                <button onClick={handlePostGlobalChat} className="bg-[#a8ff00] text-black px-4 rounded-xl font-bold">Send</button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* 1-TO-1 FRIEND CHAT MODAL */}
       {showChatModal && selectedFriend && (
         <div onClick={() => setShowChatModal(false)} className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
-          <div onClick={e => e.stopPropagation()} className="bg-[#13131a] p-4 rounded-2xl w-full max-w-md h-[500px] flex-col">
+          <div onClick={e => e.stopPropagation()} className="bg-[#13131a] p-4 rounded-2xl w-full max-w-md h-[500px] flex-col flex">
             <div className="flex items-center gap-3 mb-3 border-b border-gray-800 pb-2">
               <img src={selectedFriend.photo} className="w-10 h-10 rounded-full"/>
               <div><p className="font-bold">{selectedFriend.name}</p><p className="text-xs text-gray-400">@{selectedFriend.username}</p></div>
@@ -615,21 +336,7 @@ export default function CrickClash() {
         </div>
       )}
 
-      {selectedPlayer && (
-        <div onClick={() => setSelectedPlayer(null)} className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
-          <div onClick={e => e.stopPropagation()} className="bg-[#13131a] p-6 rounded-2xl w-full max-w-sm">
-            <div className="w-24 h-24 rounded-full mx-auto border-4 border-[#a8ff00] bg-[#a8ff00] text-black flex items-center justify-center text-4xl font-bold">{selectedPlayer.name[0]}</div>
-            <h2 className="text-2xl font-bold text-center mt-3">{selectedPlayer.name}</h2>
-            <p className="text-center text-[#a8ff00]">{selectedPlayer.role}</p>
-            <div className="mt-4 space-y-2">
-              <div className="flex justify-between"><span>Total Votes</span><span className="font-bold">{selectedPlayer.votes}</span></div>
-              <div className="flex justify-between"><span>Win Rate</span><span className="font-bold">{totalVotes > 0? ((selectedPlayer.votes/totalVotes)*100).toFixed(1) : 0}%</span></div>
-            </div>
-            <button onClick={() => setSelectedPlayer(null)} className="w-full bg-[#a8ff00] text-black mt-4 py-2 rounded-xl font-bold">Close</button>
-          </div>
-        </div>
-      )}
-
+      {/* PROFILE MODAL WITH BIO + FOLLOWERS */}
       {showProfile && user && (
         <div onClick={() => setShowProfile(false)} className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
           <div onClick={e => e.stopPropagation()} className="bg-[#13131a] p-6 rounded-2xl w-full max-w-sm">
@@ -638,223 +345,72 @@ export default function CrickClash() {
             <p className="text-center text-[#a8ff00] text-sm">@{user.profile?.username || "no_username"}</p>
             <p className="text-center text-gray-400 text-sm mt-1">{user.profile?.bio || "No bio yet"}</p>
             <div className="flex justify-around mt-4 text-center">
-              <div><p className="font-bold text-lg">{followers.length}</p><p className="text-xs text-gray-400">Followers</p></div>
-              <div><p className="font-bold text-lg">{following.length}</p><p className="text-xs text-gray-400">Following</p></div>
+              <div onClick={() => {setShowProfile(false); setViewFollowersList(user.uid)}} className="cursor-pointer"><p className="font-bold text-lg">{followers.length}</p><p className="text-xs text-gray-400">Followers</p></div>
+              <div onClick={() => {setShowProfile(false); setViewFollowingList(user.uid)}} className="cursor-pointer"><p className="font-bold text-lg">{following.length}</p><p className="text-xs text-gray-400">Following</p></div>
               <div><p className="font-bold text-lg">{streak}</p><p className="text-xs text-gray-400">Streak</p></div>
-            </div>
-            <div className="mt-4 space-y-2 text-sm">
-              <div className="flex justify-between bg-[#0a0a0f] p-2 rounded-lg"><span>🗳️ Votes Today</span><span className="font-bold">{user? votesToday[category] : 0}/{DAILY_VOTE_LIMIT}</span></div>
-            </div>
-            <div className="mt-3">
-              <p className="text-xs text-gray-400 mb-1">Badges:</p>
-              <div className="flex flex-wrap gap-1">
-                {badges.length === 0? <p className="text-xs">No badges yet</p> : badges.map(b => <span key={b} className="text-xs bg-[#a8ff00] text-black px-2 py-1 rounded-full">{b}</span>)}
-              </div>
             </div>
             <button onClick={() => {setEditName(user.displayName); setEditUsername(user.profile?.username || ""); setEditBio(user.profile?.bio || ""); setShowEditProfile(true)}} className="w-full bg-[#a8ff00] text-black py-2 rounded-xl font-bold mt-3">✏️ Edit Profile</button>
             <button onClick={handleLogout} className="w-full bg-red-600 mt-2 py-2 rounded-xl font-bold">Logout</button>
-            <button onClick={() => setShowProfile(false)} className="w-full bg-[#23232b] py-2 rounded-xl font-bold mt-2">Close</button>
           </div>
         </div>
       )}
 
+      {/* EDIT PROFILE MODAL */}
       {showEditProfile && (
         <div onClick={() => setShowEditProfile(false)} className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
           <div onClick={e => e.stopPropagation()} className="bg-[#13131a] p-6 rounded-2xl w-full max-w-sm">
             <h2 className="text-xl font-bold text-center mb-4">Edit Profile</h2>
             <img src={user.photoURL} className="w-20 h-20 rounded-full mx-auto border-4 border-[#a8ff00] mb-3"/>
             <input value={editName} onChange={e => setEditName(e.target.value)} placeholder="Full Name" className="w-full bg-[#0a0a0f] p-3 rounded-xl mb-3 text-white"/>
-            <div className="relative mb-3">
-              <span className="absolute left-3 top-3 text-gray-500">@</span>
-              <input value={editUsername} onChange={e => {setEditUsername(e.target.value); setUsernameError("")}} placeholder="username" className="w-full bg-[#0a0a0f] p-3 pl-8 rounded-xl text-white"/>
-            </div>
+            <div className="relative mb-3"><span className="absolute left-3 top-3 text-gray-500">@</span><input value={editUsername} onChange={e => {setEditUsername(e.target.value); setUsernameError("")}} placeholder="username" className="w-full bg-[#0a0a0f] p-3 pl-8 rounded-xl text-white"/></div>
             {usernameError && <p className="text-red-500 text-xs mb-2">{usernameError}</p>}
             <textarea value={editBio} onChange={e => setEditBio(e.target.value)} placeholder="Write your bio..." maxLength={150} className="w-full bg-[#0a0a0f] p-3 rounded-xl mb-3 text-white h-20"/>
-            <p className="text-xs text-gray-500 text-right -mt-2 mb-2">{editBio.length}/150</p>
             <button onClick={handleUpdateProfile} className="w-full bg-[#a8ff00] text-black py-2 rounded-xl font-bold">Save</button>
-            <button onClick={() => setShowEditProfile(false)} className="w-full bg-[#23232b] py-2 rounded-xl font-bold mt-2">Cancel</button>
           </div>
         </div>
       )}
-
-      <div className="w-full max-w-2xl mx-auto flex-1 p-3">
-        <header className="flex justify-between items-center mb-4"><div><h1 className="text-2xl font-bold">FanClash</h1><p className="text-xs text-gray-400">ANESH Innovation</p></div><div>{user? <img src={user.photoURL} onClick={() => setShowProfile(!showProfile)} className="w-10 h-10 rounded-full border-2 border-[#a8ff00] cursor-pointer" /> : <button onClick={handleGoogleLogin} className="bg-[#a8ff00] text-black px-4 py-2 rounded-full font-bold text-sm">Login</button>}</div></header>
-
-        <div className="flex justify-center gap-2 mb-4 bg-[#13131a] p-1 rounded-2xl">{Object.keys(ALL_DATA).map(cat => (<button key={cat} onClick={() => setCategory(cat)} className={`flex-1 py-2 rounded-xl font-bold text-sm ${category === cat? 'bg-[#a8ff00] text-black' : 'text-gray-400'}`}>{cat === 'Cricket' && '🏏 '}{cat === 'Football' && '⚽ '}{cat === 'Movies' && '🎬 '}{cat}</button>))}</div>
-
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-3 rounded-2xl mb-3"><p className="text-sm font-bold text-center mb-2">👑 Yesterday's Winners</p><div className="grid grid-cols-3 gap-2">{Object.entries(yesterdayWinners).map(([cat, winner]) => (<div key={cat} className="bg-black/20 p-2 rounded-xl text-center"><p className="text-xs">{cat === 'Cricket' && '🏏'}{cat === 'Football' && '⚽'}{cat === 'Movies' && '🎬'} {cat}</p>{winner? (<><div className="w-10 h-10 rounded-full mx-auto my-1 bg-[#a8ff00] text-black flex items-center justify-center text-lg font-bold">{winner.name[0]}</div><p className="text-xs font-bold truncate">{winner.name}</p><p className="text-xs text-[#a8ff00]">{winner.votes} votes</p></>) : (<p className="text-xs text-gray-300">No data</p>)}</div>))}</div></div>
-
-        <div className="bg-gradient-to-r from-purple-600 to-pink-600 p-3 rounded-2xl mb-3">
-          <div className="flex justify-between items-center">
-            <div>
-              <p className="text-sm font-bold">🔥 {streak} Day Streak</p>
-              <p className="text-xs">Vote every 4 hours a day & expand your streak!</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-gradient-to-r from-orange-600 to-red-600 p-3 rounded-2xl mb-3 text-center">
-          <p className="text-sm font-bold">🔥 Daily Fan Battle</p>
-          <p className="text-lg font-bold">{category === 'Cricket' && 'Best Cricketer of All Time?'}{category === 'Football' && 'GOAT Football Debate'}{category === 'Movies' && 'King of Indian Cinema?'}</p>
-          <p className="text-xs">Votes Left: {user? DAILY_VOTE_LIMIT - votesToday[category] : DAILY_VOTE_LIMIT}/6</p>
-          {user && getTimeUntilNextVote(user?.[`${category}LastVoteTime`]) > 0 && (<p className="text-xs text-yellow-300">Next vote in: {Math.floor(getTimeUntilNextVote(user?.[`${category}LastVoteTime`])/1000/60/60)}h {Math.floor(getTimeUntilNextVote(user?.[`${category}LastVoteTime`])/1000/60%60)}m</p>)}
-        </div>
-
-        <div className="bg-[#13131a] p-4 rounded-2xl mb-4 text-center"><p className="text-gray-400 text-sm mb-2">Today's Votes Left</p><div className="grid grid-cols-3 gap-2"><div className={`bg-[#0a0a0f] p-2 rounded-xl`}><p className="text-2xl font-bold text-[#a8ff00]">{user? DAILY_VOTE_LIMIT - votesToday.Cricket : DAILY_VOTE_LIMIT}</p><p className="text-xs">🏏 Cricket</p></div><div className={`bg-[#0a0a0f] p-2 rounded-xl`}><p className="text-2xl font-bold text-[#a8ff00]">{user? DAILY_VOTE_LIMIT - votesToday.Football : DAILY_VOTE_LIMIT}</p><p className="text-xs">⚽ Football</p></div><div className={`bg-[#0a0a0f] p-2 rounded-xl`}><p className="text-2xl font-bold text-[#a8ff00]">{user? DAILY_VOTE_LIMIT - votesToday.Movies : DAILY_VOTE_LIMIT}</p><p className="text-xs">🎬 Movies</p></div></div><p className="text-xs text-gray-500 mt-2">Daily Reset in: {timeLeft}</p></div>
-
-        <div className="flex justify-around border-b border-gray-800 mb-4">
-          <button onClick={() => setTab('Battle')} className={`pb-2 font-bold ${tab === 'Battle'? 'text-[#a8ff00] border-b-2 border-[#a8ff00]' : 'text-gray-500'}`}>⚔️ Battle</button>
-          <button onClick={() => setTab('Rankings')} className={`pb-2 font-bold ${tab === 'Rankings'? 'text-[#a8ff00] border-b-2 border-[#a8ff00]' : 'text-gray-500'}`}>🏆 Rankings</button>
-          <button onClick={() => setTab('Fans')} className={`pb-2 font-bold ${tab === 'Fans'? 'text-[#a8ff00] border-b-2 border-[#a8ff00]' : 'text-gray-500'}`}>👑 Top</button>
-          <button onClick={() => setTab('History')} className={`pb-2 font-bold ${tab === 'History'? 'text-[#a8ff00] border-b-2 border-[#a8ff00]' : 'text-gray-500'}`}>📜 History</button>
-          <button onClick={() => setTab('Chat')} className={`pb-2 font-bold ${tab === 'Chat'? 'text-[#a8ff00] border-b-2 border-[#a8ff00]' : 'text-gray-500'}`}>💬 Chat</button>
-        </div>
-
-        {tab === 'Battle' && battle[0] && battle[1] && (
-          <div>
-            <h2 className="text-center text-4xl font-bold mb-4">Battle <span className="text-[#a8ff00]">{battleNo}</span></h2>
-            <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
-              {category === 'Cricket' && ['Any', 'BATTER', 'BOWLER', 'ALL-ROUNDER', 'KEEPER', 'CAPTAIN'].map(role => (<button key={role} onClick={() => {setFilter(role); generateBattle(players, role)}} className={`px-4 py-2 rounded-full font-bold whitespace-nowrap ${filter === role? 'bg-[#a8ff00] text-black' : 'bg-[#13131a]'}`}>{role}</button>))}
-              {category === 'Football' && ['Any', 'FORWARD', 'MIDFIELDER', 'DEFENDER', 'GOALKEEPER'].map(role => (<button key={role} onClick={() => {setFilter(role); generateBattle(players, role)}} className={`px-4 py-2 rounded-full font-bold whitespace-nowrap ${filter === role? 'bg-[#a8ff00] text-black' : 'bg-[#13131a]'}`}>{role}</button>))}
-              {category === 'Movies' && ['Any', 'HERO', 'VILLAIN'].map(role => (<button key={role} onClick={() => {setFilter(role); generateBattle(players, role)}} className={`px-4 py-2 rounded-full font-bold whitespace-nowrap ${filter === role? 'bg-[#a8ff00] text-black' : 'bg-[#13131a]'}`}>{role}</button>))}
-            </div>
-
-            <div className="flex gap-2">
-              {[battle[0], battle[1]].map(p => {
-                const total = battle[0].votes + battle[1].votes;
-                const percent = total > 0? ((p.votes / total) * 100).toFixed(0) : 50;
-                return (
-                  <div key={p.id} onClick={() => setSelectedPlayer(p)} className={`bg-[#13131a] p-4 rounded-2xl w-1/2 text-center ${voteAnim === p.id? 'vote-pop' : ''}`}>
-                    <div className="w-20 h-20 rounded-full mx-auto mb-2 bg-[#a8ff00] text-black flex items-center justify-center text-3xl font-bold">{p.name[0]}</div>
-                    <span className="px-3 py-1 rounded-full text-xs font-bold bg-gray-800">{p.role}</span>
-                    <h3 className="text-xl font-bold mt-3">{p.name}</h3>
-                    <div className="w-full bg-gray-700 rounded-full h-2 mt-2">
-                      <div className="bg-[#a8ff00] h-2 rounded-full transition-all duration-500" style={{width: `${percent}%`}}></div>
-                    </div>
-                    <p className="text-[#a8ff00] font-bold text-sm">{p.votes || 0} votes - {percent}%</p>
-                    <button
-                      onClick={(e) => {e.stopPropagation(); handleVote(p.id)}}
-                      disabled={isVoting || (user &&!canVoteNow())}
-                      className={`w-full py-3 rounded-xl font-bold mt-2 ${isVoting || (user &&!canVoteNow())? 'bg-gray-700' : 'bg-[#a8ff00] text-black'}`}
-                    >
-                      {isVoting? 'VOTING...' : user &&!canVoteNow()? `WAIT ${Math.floor(getTimeUntilNextVote(user?.[`${category}LastVoteTime`])/1000/60/60)}h` : 'VOTE'}
-                    </button>
-                  </div>
-                )
-              })}
-            </div>
-
-            {/* DEBATE ZONE */}
-            <div className="bg-[#13131a] p-4 rounded-2xl mt-4">
-              <h3 className="font-bold mb-3">💬 Debate Zone</h3>
-              <div className="flex gap-2 mb-3"><input value={newComment} onChange={e => setNewComment(e.target.value)} placeholder="Who will win?" className="w-full bg-[#0a0a0f] p-2 rounded-lg" /><button onClick={handlePostComment} className="bg-[#a8ff00] text-black px-4 rounded-lg font-bold">Post</button></div>
-              <div className="space-y-3 max-h-60 overflow-y-auto">{comments.map((c) => (<CommentItem key={c.key} comment={c} commentKey={c.key} />))}</div>
-            </div>
-
-            {/* 5 BUTTONS */}
-            <div className="flex gap-2 mt-4"><button onClick={handleShareResult} className="flex-1 bg-[#23232b] py-3 rounded-xl font-bold">📤 Share</button><button onClick={() => setShowResultCard(true)} className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 py-3 rounded-xl font-bold">📸 Result</button><button onClick={() => user? handleSkip() : handleGoogleLogin()} className="flex-1 bg-[#23232b] py-3 rounded-xl font-bold">⏭️ Skip</button></div>
-            <div className="flex gap-2 mt-3"><button onClick={() => user? handleRefer() : handleGoogleLogin()} className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 py-3 rounded-xl font-bold">👥 Refer</button><button onClick={() => user? startTournament() : handleGoogleLogin()} className="flex-1 bg-gradient-to-r from-yellow-600 to-orange-600 py-3 rounded-xl font-bold">🏆 Tournament</button></div>
-          </div>
-        )}
-
-        {/* RANKINGS TAB */}
-        {tab === 'Rankings' && (
-          <div>
-            <h2 className="text-2xl font-bold text-[#a8ff00] mb-4 text-center">🏆 Top 10 {category} Players</h2>
-            {players.sort((a,b) => b.votes - a.votes).slice(0,10).map((p,i) => {
-                const percentage = totalVotes > 0? ((p.votes || 0) / totalVotes * 100).toFixed(1) : 0;
-                return (
-                  <div key={p.id} onClick={() => setSelectedPlayer(p)} className="bg-[#13131a] p-3 rounded-xl mb-3 flex items-center gap-3 cursor-pointer">
-                    <span className="text-xl font-bold text-[#a8ff00]">#{i+1}</span>
-                    <div className="w-12 h-12 rounded-full bg-[#a8ff00] text-black flex items-center justify-center text-lg font-bold">{p.name[0]}</div>
-                    <div className="flex-1">
-                      <div className="flex justify-between"><span className="font-bold">{p.name}</span><span className="text-[#a8ff00] font-bold text-sm">{percentage}%</span></div>
-                      <div className="flex justify-between text-xs text-gray-400 mb-1"><span>{p.votes||0} votes</span><span>{p.role}</span></div>
-                      <div className="w-full bg-gray-700 rounded-full h-2"><div className="bg-[#a8ff00] h-2 rounded-full" style={{width: `${percentage}%`}}></div></div>
-                    </div>
-                  </div>
-                )
-              })}
-          </div>
-        )}
-
-        {/* TOP FANS TAB WITH 1-TO-1 CHAT */}
-        {tab === 'Fans' && (
-          <div>
-            <h2 className="text-2xl font-bold text-[#a8ff00] mb-4 text-center">👑 Top 10 Fans - {category}</h2>
-            {topFans.length === 0? <p className="text-center text-gray-500">No votes today</p> :
-              topFans.map((fan, i) => (
-                <div key={i} className="bg-[#13131a] p-3 rounded-xl mb-3 flex items-center gap-3">
-                  <span className="text-xl font-bold text-[#a8ff00]">#{i+1}</span>
-                  <img src={fan.photo} className="w-12 h-12 rounded-full"/>
-                  <div className="flex-1">
-                    <p className="font-bold">{fan.name}</p>
-                    <p className="text-xs text-gray-400">@{fan.username} • {fan.votes} votes today</p>
-                  </div>
-                  {user && fan.uid!== user.uid && (
-                    <div className="flex gap-2">
-                      {following.includes(fan.uid)?
-                        <button onClick={() => handleUnfollow(fan.uid)} className="bg-[#23232b] px-3 py-1 rounded-full text-xs">Following</button> :
-                        <button onClick={() => handleFollow(fan.uid)} className="bg-[#a8ff00] text-black px-3 py-1 rounded-full text-xs font-bold">Follow</button>
-                      }
-                      <button onClick={() => openFriendChat(fan)} className="bg-blue-600 px-3 py-1 rounded-full text-xs font-bold">💬</button>
-                    </div>
-                  )}
+             {/* FOLLOWERS/FOLLOWING LIST MODAL */}
+      {(viewFollowersList || viewFollowingList) && (
+        <div onClick={() => {setViewFollowersList(null); setViewFollowingList(null)}} className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+          <div onClick={e => e.stopPropagation()} className="bg-[#13131a] p-4 rounded-2xl w-full max-w-sm h-[500px] flex-col flex">
+            <h2 className="text-xl font-bold text-center mb-3">{viewFollowersList? 'Followers' : 'Following'}</h2>
+            <div className="flex-1 overflow-y-auto space-y-2">
+              {listUsers.map(u => (
+                <div key={u.uid} className="bg-[#0a0a0f] p-3 rounded-xl flex items-center gap-3">
+                  <img src={u.photoURL} className="w-10 h-10 rounded-full"/>
+                  <div className="flex-1"><p className="font-bold">{u.displayName}</p><p className="text-xs text-gray-400">@{u.username}</p></div>
+                  {viewFollowingList?
+                    <button onClick={() => handleUnfollow(u.uid)} className="bg-[#23232b] px-3 py-1 rounded-full text-xs">Unfollow</button> :
+                    <button onClick={() => openFriendChat(u)} className="bg-blue-600 px-3 py-1 rounded-full text-xs">Message</button>
+                  }
                 </div>
-              ))
-            }
-          </div>
-        )}
-
-        {/* HISTORY TAB */}
-        {tab === 'History' && (
-          <div className="space-y-3">
-            <div className="flex justify-between items-center mb-4"><h2 className="text-2xl font-bold text-[#a8ff00]">📜 Your {category} Battle History</h2>{user && battleHistory.length > 0 && <button onClick={handleDeleteHistory} className="bg-red-600 px-3 py-1 rounded-lg text-sm font-bold">🗑️ Clear</button>}</div>
-            {!user? <p className="text-gray-500 text-center">Login required to see history</p> : battleHistory.length === 0? <p className="text-gray-500 text-center">No battles yet</p> : battleHistory.map((h,i) => (<div key={i} className="bg-[#13131a] p-3 rounded-xl"><p className="text-sm text-gray-400">Battle {h.battleNo} • {h.date}</p><p className="font-bold">{h.players[0]} vs {h.players[1]}</p><p className="text-sm text-[#a8ff00]">You voted: {h.votedFor}</p></div>))}
-          </div>
-        )}
-
-        {/* GLOBAL CHAT TAB */}
-        {tab === 'Chat' && (
-          <div>
-            <h2 className="text-2xl font-bold text-[#a8ff00] mb-4 text-center">💬 Global Chat</h2>
-            <div className="bg-[#13131a] p-4 rounded-2xl h-[400px] flex-col">
-              <div className="flex-1 overflow-y-auto space-y-3 mb-3">
-                {globalChat.length === 0? <p className="text-center text-gray-500">Start the conversation!</p> :
-                  globalChat.map((msg) => (
-                    <div key={msg.time} className="flex gap-2">
-                      <img src={msg.photo} className="w-8 h-8 rounded-full"/>
-                      <div className="bg-[#0a0a0f] p-2 rounded-xl flex-1">
-                        <p className="text-xs font-bold text-[#a8ff00]">{msg.user} <span className="text-gray-500">@{msg.username}</span></p>
-                        <p className="text-sm">{msg.text}</p>
-                      </div>
-                    </div>
-                  ))
-                }
-              </div>
-              <div className="flex gap-2">
-                <input
-                  value={newGlobalMsg}
-                  onChange={e => setNewGlobalMsg(e.target.value)}
-                  onKeyPress={e => e.key === 'Enter' && handlePostGlobalChat()}
-                  placeholder="Message..."
-                  className="flex-1 bg-[#0a0a0f] p-3 rounded-xl"
-                />
-                <button onClick={handlePostGlobalChat} className="bg-[#a8ff00] text-black px-4 rounded-xl font-bold">Send</button>
-              </div>
+              ))}
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* RESULT CARD MODAL */}
       {showResultCard && battle[0] && battle[1] && (
         <div onClick={() => setShowResultCard(false)} className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
           <div onClick={e => e.stopPropagation()} className="bg-gradient-to-br from-[#1e3a5f] to-[#0a0e1a] p-6 rounded-3xl w-full max-w-sm border-2 border-[#a8ff00]">
-            <h2 className="text-center text-2xl font-bold mb-1">FanClash {category}</h2><p className="text-center text-gray-400 text-sm mb-4">Battle #{battleNo-1} Result</p>
-            <div className="flex gap-3 items-center mb-4">{[battle[0], battle[1]].map(p => {const total = battle[0].votes + battle[1].votes; const percent = total > 0? ((p.votes / total) * 100).toFixed(0) : 50; return (<div key={p.id} className="flex-1 text-center p-3 rounded-2xl bg-[#13131a]"><div className="w-16 h-16 rounded-full mx-auto mb-2 bg-[#a8ff00] text-black flex items-center justify-center text-2xl font-bold">{p.name[0]}</div><p className="font-bold text-sm">{p.name}</p><p className="text-2xl font-bold text-[#a8ff00]">{percent}%</p></div>)})}</div>
-            <button onClick={() => alert("Screenshot teesi share chey! 📸")} className="w-full bg-gradient-to-r from-purple-600 to-pink-600 py-3 rounded-xl font-bold">📸 Screenshot</button>
-            <button onClick={() => setShowResultCard(false)} className="w-full bg-[#23232b] py-2 rounded-xl font-bold mt-2">Close</button>
+            <h2 className="text-center text-2xl font-bold mb-1">FanClash {category}</h2>
+            <p className="text-center text-gray-400 text-sm mb-4">Battle #{battleNo-1} Result</p>
+            <div className="flex gap-3 items-center mb-4">
+              {[battle[0], battle[1]].map(p => {
+                const total = battle[0].votes + battle[1].votes;
+                const percent = total > 0? ((p.votes / total) * 100).toFixed(0) : 50;
+                return (
+                  <div key={p.id} className="flex-1 text-center p-3 rounded-2xl bg-[#13131a]">
+                    <div className="w-16 h-16 rounded-full mx-auto mb-2 bg-[#a8ff00] text-black flex items-center justify-center text-2xl font-bold">{p.name[0]}</div>
+                    <p className="font-bold text-sm">{p.name}</p>
+                    <p className="text-xl font-bold text-[#a8ff00]">{percent}%</p>
+                  </div>
+                )
+              })}
+            </div>
+            <button onClick={handleShareResult} className="w-full bg-[#a8ff00] text-black py-3 rounded-xl font-bold mb-2">Share Result</button>
+            <button onClick={() => setShowResultCard(false)} className="w-full bg-[#23232b] py-3 rounded-xl font-bold">Close</button>
           </div>
         </div>
       )}
@@ -863,14 +419,39 @@ export default function CrickClash() {
       {tournament && (
         <div onClick={() => setTournament(null)} className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
           <div onClick={e => e.stopPropagation()} className="bg-[#13131a] p-6 rounded-2xl w-full max-w-md">
-            <h2 className="text-2xl font-bold text-center mb-4">🏆 Round {tournament.round}</h2>
-            <div className="space-y-2">{tournament.matches.map((match, i) => (<div key={i} className="bg-[#0a0a0f] p-3 rounded-xl flex justify-between items-center"><span>{match[0].name}</span> <span className="text-[#a8ff00]">VS</span> <span>{match[1].name}</span></div>))}</div>
-            <button onClick={() => setTournament(null)} className="w-full bg-[#23232b] py-2 rounded-xl mt-3 font-bold">Close</button>
+            <h2 className="text-2xl font-bold text-center mb-4 text-[#a8ff00]">🏆 {category} Tournament</h2>
+            <div className="space-y-2 max-h-[400px] overflow-y-auto">
+              {tournament.map((round, i) => (
+                <div key={i} className="bg-[#0a0a0f] p-3 rounded-xl">
+                  <p className="font-bold text-sm text-gray-400 mb-2">Round {i+1}</p>
+                  {round.map((match, j) => (
+                    <p key={j} className="text-sm">{match[0]?.name || 'TBD'} vs {match[1]?.name || 'TBD'}</p>
+                  ))}
+                </div>
+              ))}
+            </div>
+            <button onClick={() => setTournament(null)} className="w-full bg-[#a8ff00] text-black py-3 rounded-xl font-bold mt-4">Close</button>
           </div>
         </div>
       )}
 
-      <footer className="text-center mt-10 pb-6 text-gray-500 text-sm border-t border-gray-800 pt-4"><p>© 2026 <span className="text-white font-bold">FanClash™</span> | A Production By <span className="text-white font-bold">ANESH</span></p></footer>
+      {/* SELECTED PLAYER MODAL */}
+      {selectedPlayer && (
+        <div onClick={() => setSelectedPlayer(null)} className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+          <div onClick={e => e.stopPropagation()} className="bg-[#13131a] p-6 rounded-2xl w-full max-w-sm text-center">
+            <div className="w-24 h-24 rounded-full mx-auto mb-3 bg-[#a8ff00] text-black flex items-center justify-center text-4xl font-bold">{selectedPlayer.name[0]}</div>
+            <h2 className="text-2xl font-bold">{selectedPlayer.name}</h2>
+            <p className="text-gray-400 mb-3">{selectedPlayer.role}</p>
+            <p className="text-3xl font-bold text-[#a8ff00]">{selectedPlayer.votes || 0} Votes</p>
+            <button onClick={() => setSelectedPlayer(null)} className="w-full bg-[#23232b] py-3 rounded-xl font-bold mt-4">Close</button>
+          </div>
+        </div>
+      )}
+
+      <footer className="text-center mt-10 pb-6 text-gray-500 text-sm border-t border-gray-800 pt-4">
+        <p>© 2026 <span className="text-white font-bold">FanClash™</span> | A Production By <span className="text-white font-bold">ANESH</span></p>
+      </footer>
     </div>
   );
-}
+                             }
+            
