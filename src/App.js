@@ -215,8 +215,11 @@ export default function CrickClash() {
   const [badges, setBadges] = useState([]);
   const [battleHistory, setBattleHistory] = useState([]);
   const [showProfile, setShowProfile] = useState(false);
-  const [showEditProfile, setShowEditProfile] = useState(false); // PROFILE EDIT
-  const [editName, setEditName] = useState(""); // PROFILE EDIT
+  const [showEditProfile, setShowEditProfile] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editUsername, setEditUsername] = useState("");
+  const [editBio, setEditBio] = useState("");
+  const [usernameError, setUsernameError] = useState("");
   const [voteAnim, setVoteAnim] = useState(null);
   const [timeLeft, setTimeLeft] = useState("");
   const [isVoting, setIsVoting] = useState(false);
@@ -228,10 +231,12 @@ export default function CrickClash() {
   const [showResultCard, setShowResultCard] = useState(false);
   const [tournament, setTournament] = useState(null);
   const [yesterdayWinners, setYesterdayWinners] = useState({Cricket: null, Football: null, Movies: null});
-  const [streak, setStreak] = useState(0); // STREAK
+  const [streak, setStreak] = useState(0);
   const [topFans, setTopFans] = useState([]);
-  const [globalChat, setGlobalChat] = useState([]); // GLOBAL CHAT
-  const [newGlobalMsg, setNewGlobalMsg] = useState(""); // GLOBAL CHAT
+  const [globalChat, setGlobalChat] = useState([]);
+  const [newGlobalMsg, setNewGlobalMsg] = useState("");
+  const [followers, setFollowers] = useState([]);
+  const [following, setFollowing] = useState([]);
 
   const getBattleKey = () => battle[0] && battle[1]? `${category}-${battle[0].id}-${battle[1].id}-B${battleNo}` : null;
 
@@ -254,7 +259,7 @@ export default function CrickClash() {
     return () => clearInterval(interval);
   }, []);
 
-  // GLOBAL 12AM RESET FOR 3 CATEGORIES - WITH WINNER SAVE
+  // GLOBAL 12AM RESET
   useEffect(() => {
     const checkGlobalReset = async () => {
       const today = getToday();
@@ -312,20 +317,50 @@ export default function CrickClash() {
     setBattle([p1, p2]);
   }, []);
 
-  // PROFILE EDIT FUNCTION
+  // PROFILE UPDATE
   const handleUpdateProfile = async () => {
     if(!user ||!editName.trim()) return;
+    const username = editUsername.toLowerCase().trim();
+    if(username.length < 3) return setUsernameError("Username min 3 characters");
+    if(!/^[a-z0-9_]+$/.test(username)) return setUsernameError("Only a-z, 0-9, _ allowed");
+
+    const usernameSnap = await get(ref(db, `usernames/${username}`));
+    if(usernameSnap.exists() && usernameSnap.val()!== user.uid) {
+      return setUsernameError("Username already taken");
+    }
+
+    await set(ref(db, `usernames/${username}`), user.uid);
     await update(ref(db, `users/${user.uid}/profile`), {
-      displayName: editName
+      displayName: editName,
+      username: username,
+      bio: editBio,
+      photoURL: user.photoURL,
+      email: user.email
     });
     await update(ref(db, `users/${user.uid}`), {
-      displayName: editName
+      displayName: editName,
+      username: username,
+      bio: editBio
     });
+
     alert("Profile Updated ✅");
     setShowEditProfile(false);
+    setUsernameError("");
   }
 
-  // GLOBAL CHAT FUNCTION
+  // FOLLOW FUNCTIONS
+  const handleFollow = async (targetUid) => {
+    if(!user) return alert("Login required");
+    await set(ref(db, `users/${user.uid}/following/${targetUid}`), true);
+    await set(ref(db, `users/${targetUid}/followers/${user.uid}`), true);
+  }
+  const handleUnfollow = async (targetUid) => {
+    if(!user) return alert("Login required");
+    await remove(ref(db, `users/${user.uid}/following/${targetUid}`));
+    await remove(ref(db, `users/${targetUid}/followers/${user.uid}`));
+  }
+
+  // GLOBAL CHAT
   const handlePostGlobalChat = async () => {
     if(!user){ alert("Login required"); await signInWithPopup(auth, googleProvider); return; }
     if(!newGlobalMsg.trim()) return;
@@ -333,6 +368,7 @@ export default function CrickClash() {
     await set(ref(db, `globalChat/${time}`), {
       text: newGlobalMsg,
       user: user.displayName,
+      username: user.profile?.username || "",
       photo: user.photoURL,
       time: time
     });
@@ -353,6 +389,8 @@ export default function CrickClash() {
           displayName: currentUser.displayName,
           photoURL: currentUser.photoURL,
           email: currentUser.email,
+          username: userData.profile?.username || "",
+          bio: userData.profile?.bio || "",
           lastLogin: Date.now()
         })
 
@@ -366,13 +404,16 @@ export default function CrickClash() {
         }
 
         setUser(currentUser);
-        setStreak(userData.streak || 0); // STREAK LOAD
+        setEditName(userData.profile?.displayName || currentUser.displayName);
+        setEditUsername(userData.profile?.username || "");
+        setEditBio(userData.profile?.bio || "");
+        setStreak(userData.streak || 0);
         setVotesToday({
           Cricket: userData.Cricket?.votesToday || 0,
           Football: userData.Football?.votesToday || 0,
           Movies: userData.Movies?.votesToday || 0
         });
-        setUser(prev => ({...prev, CricketLastVoteTime: userData.Cricket?.lastVoteTime, FootballLastVoteTime: userData.Football?.lastVoteTime, MoviesLastVoteTime: userData.Movies?.lastVoteTime}));
+        setUser(prev => ({...prev, profile: userData.profile, CricketLastVoteTime: userData.Cricket?.lastVoteTime, FootballLastVoteTime: userData.Football?.lastVoteTime, MoviesLastVoteTime: userData.Movies?.lastVoteTime}));
 
         const userUnsub = onValue(ref(db, `users/${currentUser.uid}/${category}`), (snapshot) => {
           const catData = snapshot.val();
@@ -382,10 +423,18 @@ export default function CrickClash() {
             setUser(prev => ({...prev, [`${category}LastVoteTime`]: catData.lastVoteTime}));
           }
         });
-        return () => userUnsub();
+
+        const followersUnsub = onValue(ref(db, `users/${currentUser.uid}/followers`), (snap) => {
+          setFollowers(snap.val()? Object.keys(snap.val()) : []);
+        });
+        const followingUnsub = onValue(ref(db, `users/${currentUser.uid}/following`), (snap) => {
+          setFollowing(snap.val()? Object.keys(snap.val()) : []);
+        });
+
+        return () => { userUnsub(); followersUnsub(); followingUnsub(); }
       } else {
         setVotesToday({Cricket: 0, Football: 0, Movies: 0});
-        setBadges([]); setBattleHistory([]); setUser(null); setStreak(0);
+        setBadges([]); setBattleHistory([]); setUser(null); setStreak(0); setFollowers([]); setFollowing([]);
       }
     });
     return () => authUnsub();
@@ -428,7 +477,9 @@ export default function CrickClash() {
         const profile = u.profile;
         if(catData?.votesToday > 0) {
           fansList.push({
+            uid: uid,
             name: profile?.displayName || "Anonymous",
+            username: profile?.username || "",
             photo: profile?.photoURL || `https://ui-avatars.com/api/?name=${profile?.displayName || 'A'}`,
             votes: catData.votesToday
           })
@@ -438,7 +489,6 @@ export default function CrickClash() {
       setTopFans(fansList.slice(0,10));
     })
 
-    // GLOBAL CHAT LISTENER
     const globalChatUnsub = onValue(ref(db, `globalChat`), (snap) => {
       const data = snap.val();
       setGlobalChat(data? Object.values(data).sort((a,b) => b.time - a.time).slice(0, 100) : []);
@@ -466,7 +516,6 @@ export default function CrickClash() {
     if(votesToday[category] === 0 &&!newBadges.includes(`First ${category} Vote`)) newBadges.push(`First ${category} Vote`);
     if(!newBadges.includes(`${category} Fan`)) newBadges.push(`${category} Fan`);
 
-    // STREAK LOGIC
     const userSnap = await get(ref(db, `users/${user.uid}`));
     const userData = userSnap.val() || {};
     const lastVoteDate = userData[`${category}LastVoteDate`];
@@ -527,7 +576,7 @@ export default function CrickClash() {
       setShowProfile(false);
       setUser(null);
       setVotesToday({Cricket: 0, Football: 0, Movies: 0});
-      setBadges([]); setBattleHistory([]); setStreak(0);
+      setBadges([]); setBattleHistory([]); setStreak(0); setFollowers([]); setFollowing([]);
     }
   };
 
@@ -547,7 +596,7 @@ export default function CrickClash() {
     if(!newComment.trim() ||!battle[0] ||!battle[1]) return;
     const time = Date.now();
     const battleKey = getBattleKey();
-    await set(ref(db, `comments/${battleKey}/${time}`), { text: newComment, user: user.displayName, photo: user.photoURL, time: time, key: time, likes: {}, replies: {} });
+    await set(ref(db, `comments/${battleKey}/${time}`), { text: newComment, user: user.displayName, username: user.profile?.username, photo: user.photoURL, time: time, key: time, likes: {}, replies: {} });
     setNewComment("");
   };
 
@@ -564,7 +613,7 @@ export default function CrickClash() {
     if(!newReply.trim()) return;
     const time = Date.now();
     const battleKey = getBattleKey();
-    await set(ref(db, `comments/${battleKey}/${commentKey}/replies/${time}`), { text: newReply, user: user.displayName, photo: user.photoURL, time: time, key: time });
+    await set(ref(db, `comments/${battleKey}/${commentKey}/replies/${time}`), { text: newReply, user: user.displayName, username: user.profile?.username, photo: user.photoURL, time: time, key: time });
     setNewReply(""); setReplyTo(null);
   };
 
@@ -573,7 +622,7 @@ export default function CrickClash() {
     return (
       <div style={{marginLeft: depth * 16}}>
         <div className="bg-[#1A1A1A] p-3 rounded-xl mb-2">
-          <div className="flex items-center gap-2"><img src={comment.photo || '/default-avatar.png'} className="w-8 h-8 rounded-full"/><b className="text-sm">{comment.user}</b></div>
+          <div className="flex items-center gap-2"><img src={comment.photo || '/default-avatar.png'} className="w-8 h-8 rounded-full"/><b className="text-sm">{comment.user}</b> <span className="text-xs text-gray-500">@{comment.username}</span></div>
           <p className="text-sm mt-1">{comment.text}</p>
           <div className="flex gap-3 mt-2"><button onClick={() => handleLikeComment(commentId)} className="text-xs text-gray-400">🤍 {Object.keys(comment.likes || {}).length}</button><button onClick={() => setReplyTo(replyTo === commentId? null : commentId)} className="text-xs text-[#a8ff00]">Reply</button></div>
           {replyTo === commentId && (<div className="flex gap-2 mt-2"><input value={newReply} onChange={(e) => setNewReply(e.target.value)} placeholder="Reply..." className="flex-1 bg-[#0a0a0f] p-2 rounded-lg text-sm"/><button onClick={() => handlePostReply(commentId)} className="bg-[#a8ff00] text-black px-3 rounded-lg text-sm">Send</button></div>)}
@@ -609,9 +658,16 @@ export default function CrickClash() {
           <div onClick={e => e.stopPropagation()} className="bg-[#13131a] p-6 rounded-2xl w-full max-w-sm">
             <img src={user.photoURL} className="w-20 h-20 rounded-full mx-auto border-4 border-[#a8ff00]"/>
             <h2 className="text-xl font-bold text-center mt-3">{user.displayName}</h2>
-            <p className="text-center text-gray-400 text-sm">{user.email}</p>
+            <p className="text-center text-[#a8ff00] text-sm">@{user.profile?.username || "no_username"}</p>
+            <p className="text-center text-gray-400 text-sm mt-1">{user.profile?.bio || "No bio yet"}</p>
+
+            <div className="flex justify-around mt-4 text-center">
+              <div><p className="font-bold text-lg">{followers.length}</p><p className="text-xs text-gray-400">Followers</p></div>
+              <div><p className="font-bold text-lg">{following.length}</p><p className="text-xs text-gray-400">Following</p></div>
+              <div><p className="font-bold text-lg">{streak}</p><p className="text-xs text-gray-400">Streak</p></div>
+            </div>
+
             <div className="mt-4 space-y-2 text-sm">
-              <div className="flex justify-between bg-[#0a0a0f] p-2 rounded-lg"><span>🔥 Current Streak</span><span className="font-bold text-[#a8ff00]">{streak} days</span></div>
               <div className="flex justify-between bg-[#0a0a0f] p-2 rounded-lg"><span>🗳️ Votes Today</span><span className="font-bold">{votesToday[category]}/{DAILY_VOTE_LIMIT}</span></div>
             </div>
             <div className="mt-3">
@@ -620,7 +676,7 @@ export default function CrickClash() {
                 {badges.length === 0? <p className="text-xs">No badges yet</p> : badges.map(b => <span key={b} className="text-xs bg-[#a8ff00] text-black px-2 py-1 rounded-full">{b}</span>)}
               </div>
             </div>
-            <button onClick={() => {setEditName(user.displayName); setShowEditProfile(true)}} className="w-full bg-[#a8ff00] text-black py-2 rounded-xl font-bold mt-2">✏️ Edit Profile</button>
+            <button onClick={() => {setEditName(user.displayName); setEditUsername(user.profile?.username || ""); setEditBio(user.profile?.bio || ""); setShowEditProfile(true)}} className="w-full bg-[#a8ff00] text-black py-2 rounded-xl font-bold mt-3">✏️ Edit Profile</button>
             <button onClick={handleLogout} className="w-full bg-red-600 mt-2 py-2 rounded-xl font-bold">Logout</button>
             <button onClick={() => setShowProfile(false)} className="w-full bg-[#23232b] py-2 rounded-xl font-bold mt-2">Close</button>
           </div>
@@ -632,12 +688,14 @@ export default function CrickClash() {
           <div onClick={e => e.stopPropagation()} className="bg-[#13131a] p-6 rounded-2xl w-full max-w-sm">
             <h2 className="text-xl font-bold text-center mb-4">Edit Profile</h2>
             <img src={user.photoURL} className="w-20 h-20 rounded-full mx-auto border-4 border-[#a8ff00] mb-3"/>
-            <input
-              value={editName}
-              onChange={e => setEditName(e.target.value)}
-              placeholder="Enter new name"
-              className="w-full bg-[#0a0a0f] p-3 rounded-xl mb-3 text-white"
-            />
+            <input value={editName} onChange={e => setEditName(e.target.value)} placeholder="Full Name" className="w-full bg-[#0a0a0f] p-3 rounded-xl mb-3 text-white"/>
+            <div className="relative mb-3">
+              <span className="absolute left-3 top-3 text-gray-500">@</span>
+              <input value={editUsername} onChange={e => {setEditUsername(e.target.value); setUsernameError("")}} placeholder="username" className="w-full bg-[#0a0a0f] p-3 pl-8 rounded-xl text-white"/>
+            </div>
+            {usernameError && <p className="text-red-500 text-xs mb-2">{usernameError}</p>}
+            <textarea value={editBio} onChange={e => setEditBio(e.target.value)} placeholder="Write your bio..." maxLength={150} className="w-full bg-[#0a0a0f] p-3 rounded-xl mb-3 text-white h-20"/>
+            <p className="text-xs text-gray-500 text-right -mt-2 mb-2">{editBio.length}/150</p>
             <button onClick={handleUpdateProfile} className="w-full bg-[#a8ff00] text-black py-2 rounded-xl font-bold">Save</button>
             <button onClick={() => setShowEditProfile(false)} className="w-full bg-[#23232b] py-2 rounded-xl font-bold mt-2">Cancel</button>
           </div>
@@ -651,7 +709,6 @@ export default function CrickClash() {
 
         <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-3 rounded-2xl mb-3"><p className="text-sm font-bold text-center mb-2">👑 Yesterday's Winners</p><div className="grid grid-cols-3 gap-2">{Object.entries(yesterdayWinners).map(([cat, winner]) => (<div key={cat} className="bg-black/20 p-2 rounded-xl text-center"><p className="text-xs">{cat === 'Cricket' && '🏏'}{cat === 'Football' && '⚽'}{cat === 'Movies' && '🎬'} {cat}</p>{winner? (<><div className="w-10 h-10 rounded-full mx-auto my-1 bg-[#a8ff00] text-black flex items-center justify-center text-lg font-bold">{winner.name[0]}</div><p className="text-xs font-bold truncate">{winner.name}</p><p className="text-xs text-[#a8ff00]">{winner.votes} votes</p></>) : (<p className="text-xs text-gray-300">No data</p>)}</div>))}</div></div>
 
-        {/* STREAK CARD */}
         <div className="bg-gradient-to-r from-purple-600 to-pink-600 p-3 rounded-2xl mb-3">
           <div className="flex justify-between items-center">
             <div>
@@ -742,7 +799,7 @@ export default function CrickClash() {
           </div>
         )}
 
-        {/* TOP FANS TAB */}
+        {/* TOP FANS TAB WITH FOLLOW */}
         {tab === 'Fans' && (
           <div>
             <h2 className="text-2xl font-bold text-[#a8ff00] mb-4 text-center">👑 Top 10 Fans - {category}</h2>
@@ -753,11 +810,13 @@ export default function CrickClash() {
                   <img src={fan.photo} className="w-12 h-12 rounded-full"/>
                   <div className="flex-1">
                     <p className="font-bold">{fan.name}</p>
-                    <p className="text-xs text-gray-400">{fan.votes} votes today</p>
+                    <p className="text-xs text-gray-400">@{fan.username} • {fan.votes} votes today</p>
                   </div>
-                  {i === 0 && <span className="text-2xl">👑</span>}
-                  {i === 1 && <span className="text-2xl">🥈</span>}
-                  {i === 2 && <span className="text-2xl">🥉</span>}
+                  {user && fan.uid!== user.uid && (
+                    following.includes(fan.uid)?
+                    <button onClick={() => handleUnfollow(fan.uid)} className="bg-[#23232b] px-3 py-1 rounded-full text-xs">Following</button> :
+                    <button onClick={() => handleFollow(fan.uid)} className="bg-[#a8ff00] text-black px-3 py-1 rounded-full text-xs font-bold">Follow</button>
+                  )}
                 </div>
               ))
             }
@@ -783,7 +842,7 @@ export default function CrickClash() {
                     <div key={msg.time} className="flex gap-2">
                       <img src={msg.photo} className="w-8 h-8 rounded-full"/>
                       <div className="bg-[#0a0a0f] p-2 rounded-xl flex-1">
-                        <p className="text-xs font-bold text-[#a8ff00]">{msg.user}</p>
+                        <p className="text-xs font-bold text-[#a8ff00]">{msg.user} <span className="text-gray-500">@{msg.username}</span></p>
                         <p className="text-sm">{msg.text}</p>
                       </div>
                     </div>
@@ -831,4 +890,4 @@ export default function CrickClash() {
       <footer className="text-center mt-10 pb-6 text-gray-500 text-sm border-t border-gray-800 pt-4"><p>© 2026 <span className="text-white font-bold">FanClash™</span> | By <span className="text-white font-bold">ANESH</span></p></footer>
     </div>
   );
-          }
+                  }
