@@ -229,8 +229,6 @@ export default function CrickClash() {
   const [showResultCard, setShowResultCard] = useState(false);
   const [tournament, setTournament] = useState(null);
   const [yesterdayWinners, setYesterdayWinners] = useState({Cricket: null, Football: null, Movies: null});
-
-  // NEW STATES
   const [dailyRewardClaimed, setDailyRewardClaimed] = useState(false);
   const [topFans, setTopFans] = useState([]);
 
@@ -255,13 +253,27 @@ export default function CrickClash() {
     return () => clearInterval(interval);
   }, []);
 
-  // GLOBAL 12AM RESET
+  // GLOBAL 12AM RESET FOR 3 CATEGORIES - WITH WINNER SAVE
   useEffect(() => {
     const checkGlobalReset = async () => {
       const today = getToday();
       const snap = await get(ref(db, `meta/lastGlobalReset`));
       if (snap.val()!== today) {
         for(const cat of ['Cricket', 'Football', 'Movies']) {
+          // 1. MUNDU WINNER SAVE CHEY
+          const playersRef = ref(db, `players/${cat}`);
+          const pSnap = await get(playersRef);
+          const pData = pSnap.val();
+          if(pData) {
+            const sorted = Object.values(pData).sort((a,b) => b.votes - a.votes);
+            if(sorted[0]) {
+              await set(ref(db, `yesterdayWinners/${cat}`), {
+                name: sorted[0].name,
+                votes: sorted[0].votes
+              });
+            }
+          }
+          // 2. TARVATHA RESET CHEY
           const resetPlayers = {};
           ALL_DATA[cat].forEach(p => { resetPlayers[p.id] = {...p, votes: 0}; });
           await set(ref(db, `players/${cat}`), resetPlayers);
@@ -281,37 +293,16 @@ export default function CrickClash() {
     return votesUsed < DAILY_VOTE_LIMIT && timeLeft === 0;
   }
 
-  // FIX: +1 BONUS VOTE
   const claimDailyReward = async () => {
     if(!user || dailyRewardClaimed) return;
     await update(ref(db, `users/${user.uid}/${category}`), {
-      votesToday: increment(1), // +1 bonus
+      votesToday: increment(1), // +1 BONUS
       [`${category}LastRewardDate`]: getToday()
     });
     setDailyRewardClaimed(true);
     setVotesToday(prev => ({...prev, [category]: prev[category] + 1}));
-    alert("🎁 +1 Bonus Vote Claimed!");
+    alert("🎁 +1 Bonus Vote Claimed! 🔥");
   }
-
-  const checkAndResetDaily = useCallback(async () => {
-    const today = getToday();
-    const metaRef = ref(db, `meta/${category}`);
-    const snap = await get(metaRef);
-    const metaData = snap.val();
-    if (!metaData || metaData.lastResetDate!== today) {
-      const playersRef = ref(db, `players/${category}`);
-      const pSnap = await get(playersRef);
-      const pData = pSnap.val();
-      if(pData) {
-        const sorted = Object.values(pData).sort((a,b) => b.votes - a.votes);
-        if(sorted[0]) await set(ref(db, `yesterdayWinners/${category}`), { name: sorted[0].name, votes: sorted[0].votes });
-      }
-      const resetPlayers = {};
-      ALL_DATA[category].forEach(p => { resetPlayers[p.id] = {...p, votes: 0}; });
-      await set(ref(db, `players/${category}`), resetPlayers);
-      await set(metaRef, { lastResetDate: today, totalVotes: 0, battleNo: 1 });
-    }
-  }, [category]);
 
   const checkWeeklyWinner = useCallback(async (playerList) => {
     const week = getWeekNumber();
@@ -349,24 +340,39 @@ export default function CrickClash() {
     setBattle([p1, p2]);
   }, []);
 
-  // AUTH + ANONYMOUS FIX
+  const updateStreak = async () => {
+    if(!user) return {newStreak: 0, newBadges: []};
+    const userRef = ref(db, `users/${user.uid}/${category}`);
+    const today = getToday();
+    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+    const snap = await get(userRef);
+    const data = snap.val() || {};
+    let newStreak = 1;
+    if(data.lastVoteDate === yesterday) newStreak = (data.streak || 0) + 1;
+    let newBadges = [...(data.badges || [])];
+    if([3,7,30].includes(newStreak) &&!newBadges.includes(`${newStreak} Day Streak`)){ newBadges.push(`${newStreak} Day Streak`); }
+    if(votesToday[category] === 0 &&!newBadges.includes(`First ${category} Vote`)) newBadges.push(`First ${category} Vote`);
+    if(!newBadges.includes(`${category} Fan`)) newBadges.push(`${category} Fan`);
+    return {newStreak, newBadges};
+  };
+
+  // AUTH + DATA LOAD
   useEffect(() => {
     setLoading(true);
     const authUnsub = onAuthStateChanged(auth, async (currentUser) => {
       setLoading(false);
       if(currentUser) {
         const today = getToday();
+        const userSnap = await get(ref(db, `users/${currentUser.uid}`));
+        const userData = userSnap.val() || {};
 
-        // FIX: SAVE USER PROFILE TO FIREBASE
+        // PROFILE SAVE - REAL NAME KOSAM
         await set(ref(db, `users/${currentUser.uid}/profile`), {
           displayName: currentUser.displayName,
           photoURL: currentUser.photoURL,
           email: currentUser.email,
           lastLogin: Date.now()
         })
-
-        const userSnap = await get(ref(db, `users/${currentUser.uid}`));
-        const userData = userSnap.val() || {};
 
         if(userData.lastGlobalReset!== today) {
           await update(ref(db, `users/${currentUser.uid}`), {
@@ -383,7 +389,7 @@ export default function CrickClash() {
           Football: userData.Football?.votesToday || 0,
           Movies: userData.Movies?.votesToday || 0
         });
-        setUser(prev => ({...currentUser, CricketLastVoteTime: userData.Cricket?.lastVoteTime, FootballLastVoteTime: userData.Football?.lastVoteTime, MoviesLastVoteTime: userData.Movies?.lastVoteTime}));
+        setUser(prev => ({...prev, CricketLastVoteTime: userData.Cricket?.lastVoteTime, FootballLastVoteTime: userData.Football?.lastVoteTime, MoviesLastVoteTime: userData.Movies?.lastVoteTime}));
         setDailyRewardClaimed(userData[`${category}LastRewardDate`] === today);
 
         const userUnsub = onValue(ref(db, `users/${currentUser.uid}/${category}`), (snapshot) => {
@@ -404,21 +410,58 @@ export default function CrickClash() {
     return () => authUnsub();
   }, [category]);
 
-  const updateStreak = async () => {
-    if(!user) return {newStreak: 0, newBadges: []};
-    const userRef = ref(db, `users/${user.uid}/${category}`);
-    const today = getToday();
-    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
-    const snap = await get(userRef);
-    const data = snap.val() || {};
-    let newStreak = 1;
-    if(data.lastVoteDate === yesterday) newStreak = (data.streak || 0) + 1;
-    let newBadges = [...(data.badges || [])];
-    if([3,7,30].includes(newStreak) &&!newBadges.includes(`${newStreak} Day Streak`)){ newBadges.push(`${newStreak} Day Streak`); }
-    if(votesToday[category] === 0 &&!newBadges.includes(`First ${category} Vote`)) newBadges.push(`First ${category} Vote`);
-    if(!newBadges.includes(`${category} Fan`)) newBadges.push(`${category} Fan`);
-    return {newStreak, newBadges};
-  };
+  useEffect(() => {
+    loadYesterdayWinners();
+    loadWeeklyWinner();
+  }, [category, loadYesterdayWinners, loadWeeklyWinner]);
+
+  useEffect(() => {
+    const metaUnsub = onValue(ref(db, `meta/${category}`), (snapshot) => {
+      const metaData = snapshot.val();
+      if (metaData) { setBattleNo(metaData.battleNo || 1); setTotalVotes(metaData.totalVotes || 0); }
+    });
+
+    const playersUnsub = onValue(ref(db, `players/${category}`), (snapshot) => {
+      const data = snapshot.val();
+      const currentPlayers = ALL_DATA[category];
+      if (data) {
+        const playersArray = currentPlayers.map(p => ({...p, votes: data[p.id]?.votes || 0 }));
+        setPlayers(playersArray);
+        generateBattle(playersArray, filter);
+        const sorted = [...playersArray].sort((a,b) => b.votes - a.votes);
+        setTopPlayer(sorted[0]);
+        checkWeeklyWinner(sorted);
+      } else {
+        const initialPlayers = {};
+        currentPlayers.forEach((p) => { initialPlayers[p.id] = {...p}; });
+        set(ref(db, `players/${category}`), initialPlayers);
+        set(ref(db, `meta/${category}`), { lastResetDate: getToday(), totalVotes: 0, battleNo: 1 });
+      }
+    });
+
+    // TOP 10 FANS LEADERBOARD - REAL NAME FIX
+    const fansRef = ref(db, `users`);
+    const fansUnsub = onValue(fansRef, (snap) => {
+      const allUsers = snap.val() || {};
+      let fansList = [];
+      Object.keys(allUsers).forEach(uid => {
+        const u = allUsers[uid];
+        const catData = u[category];
+        const profile = u.profile;
+        if(catData?.votesToday > 0) {
+          fansList.push({
+            name: profile?.displayName || "Anonymous",
+            photo: profile?.photoURL || `https://ui-avatars.com/api/?name=${profile?.displayName || 'A'}`,
+            votes: catData.votesToday
+          })
+        }
+      });
+      fansList.sort((a,b) => b.votes - a.votes);
+      setTopFans(fansList.slice(0,10));
+    })
+
+    return () => { metaUnsub(); playersUnsub(); fansUnsub(); }
+  }, [category, checkWeeklyWinner, filter, generateBattle]);
 
   const handleVote = async (votedPlayerId) => {
     if(!user){ alert("Login required"); await signInWithPopup(auth, googleProvider); return; }
@@ -426,7 +469,7 @@ export default function CrickClash() {
     const timeLeftMs = getTimeUntilNextVote(userLastVoteTime);
     if(votesToday[category] >= DAILY_VOTE_LIMIT || timeLeftMs > 0 || isVoting) {
       const mins = Math.ceil(timeLeftMs / 1000 / 60);
-      return alert(`${category} lo ${DAILY_VOTE_LIMIT} votes is over! Next vote in ${Math.floor(mins/60)}h ${mins%60}m`);
+      return alert(`${category} lo ${DAILY_VOTE_LIMIT} votes ayipoyayi! Next vote in ${Math.floor(mins/60)}h ${mins%60}m`);
     }
     setIsVoting(true); setVoteAnim(votedPlayerId); setTimeout(() => setVoteAnim(null), 500);
     const {newStreak, newBadges} = await updateStreak();
@@ -454,7 +497,7 @@ export default function CrickClash() {
   };
 
   const handleShareResult = () => {
-    const text = `Who's your favourite ${battle[0]?.name} vs ${battle[1]?.name} Vote on FanClash ${category}! ⚔️`;
+    const text = `Who's your pick ${battle[0]?.name} vs ${battle[1]?.name} on FanClash ${category}! ⚔️`;
     const url = window.location.href;
     if (navigator.share) { navigator.share({title: 'FanClash', text: text, url: url}); }
     else { navigator.clipboard.writeText(`${text} ${url}`); alert("Copied!"); }
@@ -463,9 +506,9 @@ export default function CrickClash() {
   const handleRefer = async () => {
     if(!user) return alert("Login required");
     const refLink = `${window.location.origin}?ref=${user.uid}`;
-    navigator.clipboard.writeText(`Vote now on FanClash! ${refLink}`);
-    alert("Refer your friend! you can get an extra vote");
-    await update(ref(db, `users/${user.uid}/${category}`), { votesToday: increment(-REFERRAL_BONUS_VOTE) });
+    navigator.clipboard.writeText(`FanClash lo vote chey! ${refLink}`);
+    alert("Referral link copied! Extra vote vastundi 🔥");
+    await update(ref(db, `users/${user.uid}/${category}`), { votesToday: increment(-1) });
     setVotesToday(prev => ({...prev, [category]: Math.max(0, prev[category] - 1)}));
   }
 
@@ -485,69 +528,6 @@ export default function CrickClash() {
       setStreak(0); setBadges([]); setBattleHistory([]);
     }
   };
-
-  useEffect(() => {
-    if(user) {
-      get(ref(db, `users/${user.uid}`)).then(snap => {
-        const d = snap.val() || {};
-        setVotesToday({
-          Cricket: d.Cricket?.lastVoteDate === getToday()? d.Cricket?.votesToday || 0 : 0,
-          Football: d.Football?.lastVoteDate === getToday()? d.Football?.votesToday || 0 : 0,
-          Movies: d.Movies?.lastVoteDate === getToday()? d.Movies?.votesToday || 0 : 0
-        });
-        setDailyRewardClaimed(d[`${category}LastRewardDate`] === getToday());
-      })
-    }
-    checkAndResetDaily();
-    loadWeeklyWinner();
-    loadYesterdayWinners();
-
-    const metaUnsub = onValue(ref(db, `meta/${category}`), (snapshot) => {
-      const metaData = snapshot.val();
-      if (metaData) { setBattleNo(metaData.battleNo || 1); setTotalVotes(metaData.totalVotes || 0); }
-    });
-
-    const playersUnsub = onValue(ref(db, `players/${category}`), (snapshot) => {
-      const data = snapshot.val();
-      const currentPlayers = ALL_DATA[category];
-      if (data) {
-        const playersArray = currentPlayers.map(p => ({...p, votes: data[p.id]?.votes || 0 }));
-        setPlayers(playersArray);
-        generateBattle(playersArray, filter);
-        const sorted = [...playersArray].sort((a,b) => b.votes - a.votes);
-        setTopPlayer(sorted[0]);
-        checkWeeklyWinner(sorted);
-      } else {
-        const initialPlayers = {};
-        currentPlayers.forEach((p) => { initialPlayers[p.id] = {...p}; });
-        set(ref(db, `players/${category}`), initialPlayers);
-        set(ref(db, `meta/${category}`), { lastResetDate: getToday(), totalVotes: 0, battleNo: 1 });
-      }
-    });
-
-    // FIX: TOP 10 FANS WITH REAL NAME
-    const fansRef = ref(db, `users`);
-    const fansUnsub = onValue(fansRef, (snap) => {
-      const allUsers = snap.val() || {};
-      let fansList = [];
-      Object.keys(allUsers).forEach(uid => {
-        const u = allUsers[uid];
-        const catData = u[category];
-        const profile = u.profile; // profile nunchi name teeskuntunnam
-        if(catData?.votesToday > 0) {
-          fansList.push({
-            name: profile?.displayName || "Anonymous",
-            photo: profile?.photoURL || `https://ui-avatars.com/api/?name=${profile?.displayName || 'A'}`,
-            votes: catData.votesToday
-          })
-        }
-      });
-      fansList.sort((a,b) => b.votes - a.votes);
-      setTopFans(fansList.slice(0,10));
-    })
-
-    return () => { metaUnsub(); playersUnsub(); fansUnsub(); }
-  }, [category, checkAndResetDaily, checkWeeklyWinner, filter, generateBattle, loadWeeklyWinner, loadYesterdayWinners]);
 
   useEffect(() => {
     if(!battle[0] ||!battle[1]) return;
@@ -599,14 +579,15 @@ export default function CrickClash() {
         {comment.replies && Object.values(comment.replies).sort((a,b) => a.time - b.time).map((reply) => (<CommentItem key={reply.key} comment={reply} commentKey={reply.key} depth={depth + 1}/>))}
       </div>
     );
-            }
+  }
 
-              if(loading) return <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center text-white">Loading...</div>;
+  if(loading) return <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center text-white">Loading...</div>;
 
   return (
     <div className="min-h-screen bg-[#0a0a0f] text-white flex-col">
       <style>{`@keyframes pop { 0%{transform:scale(1)} 50%{transform:scale(1.15)} 100%{transform:scale(1)} }.vote-pop { animation: pop 0.5s ease; }`}</style>
 
+      {/* PLAYER DETAIL MODAL */}
       {selectedPlayer && (
         <div onClick={() => setSelectedPlayer(null)} className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
           <div onClick={e => e.stopPropagation()} className="bg-[#13131a] p-6 rounded-2xl w-full max-w-sm">
@@ -622,6 +603,7 @@ export default function CrickClash() {
         </div>
       )}
 
+      {/* PROFILE MODAL */}
       {showProfile && user && (
         <div onClick={() => setShowProfile(false)} className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
           <div onClick={e => e.stopPropagation()} className="bg-[#13131a] p-6 rounded-2xl w-full max-w-sm">
@@ -645,13 +627,13 @@ export default function CrickClash() {
       )}
 
       <div className="max-w-md mx-auto w-full flex-1 p-4">
-        <header className="flex justify-between items-center mb-4"><div><h1 className="text-2xl font-bold">FanClash</h1><p className="text-xs text-gray-400">🏏 ⚽ 🎬</p></div><div>{user? <img src={user.photoURL} onClick={() => setShowProfile(!showProfile)} className="w-10 h-10 rounded-full border-2 border-[#a8ff00] cursor-pointer" /> : <button onClick={handleGoogleLogin} className="bg-[#a8ff00] text-black px-4 py-2 rounded-full font-bold text-sm">Login</button>}</div></header>
+        <header className="flex justify-between items-center mb-4"><div><h1 className="text-2xl font-bold">FanClash</h1><p className="text-xs text-gray-400">ANESH Innovation</p></div><div>{user? <img src={user.photoURL} onClick={() => setShowProfile(!showProfile)} className="w-10 h-10 rounded-full border-2 border-[#a8ff00] cursor-pointer" /> : <button onClick={handleGoogleLogin} className="bg-[#a8ff00] text-black px-4 py-2 rounded-full font-bold text-sm">Login</button>}</div></header>
 
         <div className="flex justify-center gap-2 mb-4 bg-[#13131a] p-1 rounded-2xl">{Object.keys(ALL_DATA).map(cat => (<button key={cat} onClick={() => setCategory(cat)} className={`flex-1 py-2 rounded-xl font-bold text-sm ${category === cat? 'bg-[#a8ff00] text-black' : 'text-gray-400'}`}>{cat === 'Cricket' && '🏏 '}{cat === 'Football' && '⚽ '}{cat === 'Movies' && '🎬 '}{cat}</button>))}</div>
 
         <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-3 rounded-2xl mb-3"><p className="text-sm font-bold text-center mb-2">👑 Yesterday's Winners</p><div className="grid grid-cols-3 gap-2">{Object.entries(yesterdayWinners).map(([cat, winner]) => (<div key={cat} className="bg-black/20 p-2 rounded-xl text-center"><p className="text-xs">{cat === 'Cricket' && '🏏'}{cat === 'Football' && '⚽'}{cat === 'Movies' && '🎬'} {cat}</p>{winner? (<><div className="w-10 h-10 rounded-full mx-auto my-1 bg-[#a8ff00] text-black flex items-center justify-center text-lg font-bold">{winner.name[0]}</div><p className="text-xs font-bold truncate">{winner.name}</p><p className="text-xs text-[#a8ff00]">{winner.votes} votes</p></>) : (<p className="text-xs text-gray-300">No data</p>)}</div>))}</div></div>
 
-        {/* DAILY REWARD + STREAK */}
+        {/* DAILY STREAK + REWARD CARD */}
         <div className="bg-gradient-to-r from-purple-600 to-pink-600 p-3 rounded-2xl mb-3">
           <div className="flex justify-between items-center">
             <div>
@@ -675,7 +657,7 @@ export default function CrickClash() {
           {getTimeUntilNextVote(user?.[`${category}LastVoteTime`]) > 0 && (<p className="text-xs text-yellow-300">Next vote in: {Math.floor(getTimeUntilNextVote(user?.[`${category}LastVoteTime`])/1000/60/60)}h {Math.floor(getTimeUntilNextVote(user?.[`${category}LastVoteTime`])/1000/60%60)}m</p>)}
         </div>
 
-        {weeklyWinner && (<div className="bg-gradient-to-r from-yellow-500 to-orange-500 p-3 rounded-2xl mb-3 text-center"><p className="text-sm font-bold text-black">👑 {category} WEEKLY CHAMPION</p><p className="text-lg font-bold text-black">{weeklyWinner.name} - {weeklyWinner.votes} Vote{weeklyWinner.votes > 1? 's' : ''}</p></div>)}
+        {weeklyWinner && (<div className="bg-gradient-to-r from-yellow-500 to-orange-500 p-3 rounded-2xl mb-3 text-center"><p className="text-sm font-bold text-black">👑 {category} WEEKLY CHAMPION</p><p className="text-lg font-bold text-black">{weeklyWinner.name} - {weeklyWinner.votes} Votes</p></div>)}
 
         <div className="bg-[#13131a] p-4 rounded-2xl mb-4 text-center"><p className="text-gray-400 text-sm mb-2">Today's Votes Left</p><div className="grid grid-cols-3 gap-2"><div className={`bg-[#0a0a0f] p-2 rounded-xl ${votesToday.Cricket >= DAILY_VOTE_LIMIT? 'opacity-50' : ''}`}><p className="text-2xl font-bold text-[#a8ff00]">{DAILY_VOTE_LIMIT - votesToday.Cricket}</p><p className="text-xs">🏏 Cricket</p></div><div className={`bg-[#0a0a0f] p-2 rounded-xl ${votesToday.Football >= DAILY_VOTE_LIMIT? 'opacity-50' : ''}`}><p className="text-2xl font-bold text-[#a8ff00]">{DAILY_VOTE_LIMIT - votesToday.Football}</p><p className="text-xs">⚽ Football</p></div><div className={`bg-[#0a0a0f] p-2 rounded-xl ${votesToday.Movies >= DAILY_VOTE_LIMIT? 'opacity-50' : ''}`}><p className="text-2xl font-bold text-[#a8ff00]">{DAILY_VOTE_LIMIT - votesToday.Movies}</p><p className="text-xs">🎬 Movies</p></div></div><p className="text-xs text-gray-500 mt-2">Daily Reset in: {timeLeft}</p></div>
 
@@ -732,7 +714,7 @@ export default function CrickClash() {
           </div>
         )}
 
-        {/* RANKINGS TAB */}
+                      {/* RANKINGS TAB */}
         {tab === 'Rankings' && (
           <div>
             <h2 className="text-2xl font-bold text-[#a8ff00] mb-4 text-center">🏆 Top 10 {category} Players</h2>
@@ -753,10 +735,10 @@ export default function CrickClash() {
           </div>
         )}
 
-        {/* TOP FANS TAB - REAL NAMES */}
+        {/* TOP FANS TAB */}
         {tab === 'Fans' && (
           <div>
-            <h2 className="text-2xl font-bold text-[#a8ff00] mb-4 text-center">👑 Top Fans - {category}</h2>
+            <h2 className="text-2xl font-bold text-[#a8ff00] mb-4 text-center">👑 Top 10 Fans - {category}</h2>
             {topFans.length === 0? <p className="text-center text-gray-500">No votes today</p> :
               topFans.map((fan, i) => (
                 <div key={i} className="bg-[#13131a] p-3 rounded-xl mb-3 flex items-center gap-3">
@@ -790,7 +772,7 @@ export default function CrickClash() {
           <div onClick={e => e.stopPropagation()} className="bg-gradient-to-br from-[#1e3a5f] to-[#0a0e1a] p-6 rounded-3xl w-full max-w-sm border-2 border-[#a8ff00]">
             <h2 className="text-center text-2xl font-bold mb-1">FanClash {category}</h2><p className="text-center text-gray-400 text-sm mb-4">Battle #{battleNo-1} Result</p>
             <div className="flex gap-3 items-center mb-4">{[battle[0], battle[1]].map(p => {const total = battle[0].votes + battle[1].votes; const percent = total > 0? ((p.votes / total) * 100).toFixed(0) : 50; return (<div key={p.id} className="flex-1 text-center p-3 rounded-2xl bg-[#13131a]"><div className="w-16 h-16 rounded-full mx-auto mb-2 bg-[#a8ff00] text-black flex items-center justify-center text-2xl font-bold">{p.name[0]}</div><p className="font-bold text-sm">{p.name}</p><p className="text-2xl font-bold text-[#a8ff00]">{percent}%</p></div>)})}</div>
-            <button onClick={() => alert("Take screenshot and share it! 📸")} className="w-full bg-gradient-to-r from-purple-600 to-pink-600 py-3 rounded-xl font-bold">📸 Screenshot</button>
+            <button onClick={() => alert("Screenshot teesi share chey! 📸")} className="w-full bg-gradient-to-r from-purple-600 to-pink-600 py-3 rounded-xl font-bold">📸 Screenshot</button>
             <button onClick={() => setShowResultCard(false)} className="w-full bg-[#23232b] py-2 rounded-xl font-bold mt-2">Close</button>
           </div>
         </div>
@@ -807,7 +789,7 @@ export default function CrickClash() {
         </div>
       )}
 
-      <footer className="text-center mt-10 pb-6 text-gray-500 text-sm border-t border-gray-800 pt-4"><p>© 2026 <span className="text-white font-bold">FanClash™</span> | A Production By <span className="text-white font-bold">ANESH</span></p></footer>
+      <footer className="text-center mt-10 pb-6 text-gray-500 text-sm border-t border-gray-800 pt-4"><p>© 2026 <span className="text-white font-bold">FanClash™</span> | By <span className="text-white font-bold">ANESH</span></p></footer>
     </div>
   );
-}
+              }
