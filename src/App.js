@@ -184,7 +184,6 @@ const MOVIES_PLAYERS = [
   { id: "Sunil", name: 'Sunil', role: 'VILLAIN', votes: 0 },
 ];
 
-
 const ALL_DATA = { Cricket: CRICKET_PLAYERS, Football: FOOTBALL_PLAYERS, Movies: MOVIES_PLAYERS };
 
 // ============= HELPERS =============
@@ -199,6 +198,7 @@ const getTimeUntilNextVote = (lastVoteTime) => {
   const diff = nextVoteTime - Date.now();
   return diff > 0? diff : 0;
 };
+const getChatRoomId = (uid1, uid2) => [uid1, uid2].sort().join('_'); // FRIEND CHAT ID
 
 export default function CrickClash() {
   const [user, setUser] = useState(null);
@@ -237,6 +237,12 @@ export default function CrickClash() {
   const [newGlobalMsg, setNewGlobalMsg] = useState("");
   const [followers, setFollowers] = useState([]);
   const [following, setFollowing] = useState([]);
+
+  // FRIEND CHAT STATES
+  const [selectedFriend, setSelectedFriend] = useState(null);
+  const [friendChat, setFriendChat] = useState([]);
+  const [newFriendMsg, setNewFriendMsg] = useState("");
+  const [showChatModal, setShowChatModal] = useState(false);
 
   const getBattleKey = () => battle[0] && battle[1]? `${category}-${battle[0].id}-${battle[1].id}-B${battleNo}` : null;
 
@@ -360,6 +366,25 @@ export default function CrickClash() {
     await remove(ref(db, `users/${targetUid}/followers/${user.uid}`));
   }
 
+  // FRIEND CHAT OPEN
+  const openFriendChat = (friend) => {
+    setSelectedFriend(friend);
+    setShowChatModal(true);
+  }
+
+  // FRIEND CHAT SEND
+  const handleSendFriendMsg = async () => {
+    if(!user ||!selectedFriend ||!newFriendMsg.trim()) return;
+    const roomId = getChatRoomId(user.uid, selectedFriend.uid);
+    const time = Date.now();
+    await set(ref(db, `chats/${roomId}/${time}`), {
+      text: newFriendMsg,
+      from: user.uid,
+      time: time
+    });
+    setNewFriendMsg("");
+  };
+
   // GLOBAL CHAT
   const handlePostGlobalChat = async () => {
     if(!user){ alert("Login required"); await signInWithPopup(auth, googleProvider); return; }
@@ -375,7 +400,63 @@ export default function CrickClash() {
     setNewGlobalMsg("");
   };
 
-  // AUTH + DATA LOAD
+  // 1. PUBLIC DATA LOAD - LOGIN AVASARAM LEDU
+  useEffect(() => {
+    loadYesterdayWinners();
+
+    const metaUnsub = onValue(ref(db, `meta/${category}`), (snapshot) => {
+      const metaData = snapshot.val();
+      if (metaData) { setBattleNo(metaData.battleNo || 1); setTotalVotes(metaData.totalVotes || 0); }
+    });
+
+    const playersUnsub = onValue(ref(db, `players/${category}`), (snapshot) => {
+      const data = snapshot.val();
+      const currentPlayers = ALL_DATA[category];
+      if (data) {
+        const playersArray = currentPlayers.map(p => ({...p, votes: data[p.id]?.votes || 0 }));
+        setPlayers(playersArray);
+        generateBattle(playersArray, filter);
+        const sorted = [...playersArray].sort((a,b) => b.votes - a.votes);
+        setTopPlayer(sorted[0]);
+      } else {
+        const initialPlayers = {};
+        currentPlayers.forEach((p) => { initialPlayers[p.id] = {...p}; });
+        set(ref(db, `players/${category}`), initialPlayers);
+        set(ref(db, `meta/${category}`), { lastResetDate: getToday(), totalVotes: 0, battleNo: 1 });
+      }
+    });
+
+    const fansRef = ref(db, `users`);
+    const fansUnsub = onValue(fansRef, (snap) => {
+      const allUsers = snap.val() || {};
+      let fansList = [];
+      Object.keys(allUsers).forEach(uid => {
+        const u = allUsers[uid];
+        const catData = u[category];
+        const profile = u.profile;
+        if(catData?.votesToday > 0) {
+          fansList.push({
+            uid: uid,
+            name: profile?.displayName || "Anonymous",
+            username: profile?.username || "",
+            photo: profile?.photoURL || `https://ui-avatars.com/api/?name=${profile?.displayName || 'A'}`,
+            votes: catData.votesToday
+          })
+        }
+      });
+      fansList.sort((a,b) => b.votes - a.votes);
+      setTopFans(fansList.slice(0,10));
+    })
+
+    const globalChatUnsub = onValue(ref(db, `globalChat`), (snap) => {
+      const data = snap.val();
+      setGlobalChat(data? Object.values(data).sort((a,b) => b.time - a.time).slice(0, 100) : []);
+    });
+
+    return () => { metaUnsub(); playersUnsub(); fansUnsub(); globalChatUnsub(); }
+  }, [category, filter, generateBattle]);
+
+  // 2. USER SPECIFIC DATA LOAD - LOGIN AVASARAM
   useEffect(() => {
     setLoading(true);
     const authUnsub = onAuthStateChanged(auth, async (currentUser) => {
@@ -433,69 +514,24 @@ export default function CrickClash() {
 
         return () => { userUnsub(); followersUnsub(); followingUnsub(); }
       } else {
+        setUser(null);
         setVotesToday({Cricket: 0, Football: 0, Movies: 0});
-        setBadges([]); setBattleHistory([]); setUser(null); setStreak(0); setFollowers([]); setFollowing([]);
+        setBadges([]); setBattleHistory([]); setStreak(0); setFollowers([]); setFollowing([]);
       }
     });
     return () => authUnsub();
   }, [category]);
 
+  // FRIEND CHAT LISTENER
   useEffect(() => {
-    loadYesterdayWinners();
-  }, [category, loadYesterdayWinners]);
-
-  useEffect(() => {
-    const metaUnsub = onValue(ref(db, `meta/${category}`), (snapshot) => {
-      const metaData = snapshot.val();
-      if (metaData) { setBattleNo(metaData.battleNo || 1); setTotalVotes(metaData.totalVotes || 0); }
-    });
-
-    const playersUnsub = onValue(ref(db, `players/${category}`), (snapshot) => {
-      const data = snapshot.val();
-      const currentPlayers = ALL_DATA[category];
-      if (data) {
-        const playersArray = currentPlayers.map(p => ({...p, votes: data[p.id]?.votes || 0 }));
-        setPlayers(playersArray);
-        generateBattle(playersArray, filter);
-        const sorted = [...playersArray].sort((a,b) => b.votes - a.votes);
-        setTopPlayer(sorted[0]);
-      } else {
-        const initialPlayers = {};
-        currentPlayers.forEach((p) => { initialPlayers[p.id] = {...p}; });
-        set(ref(db, `players/${category}`), initialPlayers);
-        set(ref(db, `meta/${category}`), { lastResetDate: getToday(), totalVotes: 0, battleNo: 1 });
-      }
-    });
-
-    const fansRef = ref(db, `users`);
-    const fansUnsub = onValue(fansRef, (snap) => {
-      const allUsers = snap.val() || {};
-      let fansList = [];
-      Object.keys(allUsers).forEach(uid => {
-        const u = allUsers[uid];
-        const catData = u[category];
-        const profile = u.profile;
-        if(catData?.votesToday > 0) {
-          fansList.push({
-            uid: uid,
-            name: profile?.displayName || "Anonymous",
-            username: profile?.username || "",
-            photo: profile?.photoURL || `https://ui-avatars.com/api/?name=${profile?.displayName || 'A'}`,
-            votes: catData.votesToday
-          })
-        }
-      });
-      fansList.sort((a,b) => b.votes - a.votes);
-      setTopFans(fansList.slice(0,10));
-    })
-
-    const globalChatUnsub = onValue(ref(db, `globalChat`), (snap) => {
+    if(!user ||!selectedFriend) return;
+    const roomId = getChatRoomId(user.uid, selectedFriend.uid);
+    const unsub = onValue(ref(db, `chats/${roomId}`), (snap) => {
       const data = snap.val();
-      setGlobalChat(data? Object.values(data).sort((a,b) => b.time - a.time).slice(0, 100) : []);
+      setFriendChat(data? Object.values(data).sort((a,b) => a.time - b.time) : []);
     });
-
-    return () => { metaUnsub(); playersUnsub(); fansUnsub(); globalChatUnsub(); }
-  }, [category, filter, generateBattle]);
+    return () => unsub();
+  }, [user, selectedFriend]);
 
   const handleVote = async (votedPlayerId) => {
     if(!user){ alert("Login required"); await signInWithPopup(auth, googleProvider); return; }
@@ -503,7 +539,7 @@ export default function CrickClash() {
     const timeLeftMs = getTimeUntilNextVote(userLastVoteTime);
     if(votesToday[category] >= DAILY_VOTE_LIMIT || timeLeftMs > 0 || isVoting) {
       const mins = Math.ceil(timeLeftMs / 1000 / 60);
-      return alert(`${category} lo ${DAILY_VOTE_LIMIT} votes over! Next vote in ${Math.floor(mins/60)}h ${mins%60}m`);
+      return alert(`${category} lo ${DAILY_VOTE_LIMIT} votes ayipoyayi! Next vote in ${Math.floor(mins/60)}h ${mins%60}m`);
     }
     setIsVoting(true); setVoteAnim(votedPlayerId); setTimeout(() => setVoteAnim(null), 500);
     const today = getToday();
@@ -550,7 +586,7 @@ export default function CrickClash() {
   };
 
   const handleShareResult = () => {
-    const text = `Who's your favourite ${battle[0]?.name} vs ${battle[1]?.name} Vote on FanClash ${category}! ⚔️`;
+    const text = `Who's your pick ${battle[0]?.name} vs ${battle[1]?.name} on FanClash ${category}! ⚔️`;
     const url = window.location.href;
     if (navigator.share) { navigator.share({title: 'FanClash', text: text, url: url}); }
     else { navigator.clipboard.writeText(`${text} ${url}`); alert("Copied!"); }
@@ -559,8 +595,8 @@ export default function CrickClash() {
   const handleRefer = async () => {
     if(!user) return alert("Login required");
     const refLink = `${window.location.origin}?ref=${user.uid}`;
-    navigator.clipboard.writeText(`Votr now on FanClash! ${refLink}`);
-    alert("Refer your friend you can get an extra vote!");
+    navigator.clipboard.writeText(`FanClash lo vote chey! ${refLink}`);
+    alert("Referral link copied!");
   }
 
   const startTournament = () => {
@@ -638,6 +674,32 @@ export default function CrickClash() {
     <div className="min-h-screen bg-[#0a0a0f] text-white flex-col">
       <style>{`@keyframes pop { 0%{transform:scale(1)} 50%{transform:scale(1.15)} 100%{transform:scale(1)} }.vote-pop { animation: pop 0.5s ease; }`}</style>
 
+      {/* FRIEND CHAT MODAL */}
+      {showChatModal && selectedFriend && (
+        <div onClick={() => setShowChatModal(false)} className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
+          <div onClick={e => e.stopPropagation()} className="bg-[#13131a] p-4 rounded-2xl w-full max-w-md h-[500px] flex-col">
+            <div className="flex items-center gap-3 mb-3 border-b border-gray-800 pb-2">
+              <img src={selectedFriend.photo} className="w-10 h-10 rounded-full"/>
+              <div><p className="font-bold">{selectedFriend.name}</p><p className="text-xs text-gray-400">@{selectedFriend.username}</p></div>
+              <button onClick={() => setShowChatModal(false)} className="ml-auto text-xl">X</button>
+            </div>
+            <div className="flex-1 overflow-y-auto space-y-2 mb-3">
+              {friendChat.map(msg => (
+                <div key={msg.time} className={`flex ${msg.from === user.uid? 'justify-end' : 'justify-start'}`}>
+                  <div className={`p-2 rounded-xl max-w-[70%] ${msg.from === user.uid? 'bg-[#a8ff00] text-black' : 'bg-[#0a0a0f]'}`}>
+                    <p className="text-sm">{msg.text}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <input value={newFriendMsg} onChange={e => setNewFriendMsg(e.target.value)} placeholder="Message..." className="flex-1 bg-[#0a0a0f] p-3 rounded-xl"/>
+              <button onClick={handleSendFriendMsg} className="bg-[#a8ff00] text-black px-4 rounded-xl font-bold">Send</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {selectedPlayer && (
         <div onClick={() => setSelectedPlayer(null)} className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
           <div onClick={e => e.stopPropagation()} className="bg-[#13131a] p-6 rounded-2xl w-full max-w-sm">
@@ -703,7 +765,7 @@ export default function CrickClash() {
       )}
 
       <div className="max-w-md mx-auto w-full flex-1 p-4">
-        <header className="flex justify-between items-center mb-4"><div><h1 className="text-2xl font-bold">FanClash</h1><p className="text-xs text-gray-400"> 🏏 ⚽ 🎬 </p></div><div>{user? <img src={user.photoURL} onClick={() => setShowProfile(!showProfile)} className="w-10 h-10 rounded-full border-2 border-[#a8ff00] cursor-pointer" /> : <button onClick={handleGoogleLogin} className="bg-[#a8ff00] text-black px-4 py-2 rounded-full font-bold text-sm">Login</button>}</div></header>
+        <header className="flex justify-between items-center mb-4"><div><h1 className="text-2xl font-bold">FanClash</h1><p className="text-xs text-gray-400">ANESH Innovation</p></div><div>{user? <img src={user.photoURL} onClick={() => setShowProfile(!showProfile)} className="w-10 h-10 rounded-full border-2 border-[#a8ff00] cursor-pointer" /> : <button onClick={handleGoogleLogin} className="bg-[#a8ff00] text-black px-4 py-2 rounded-full font-bold text-sm">Login</button>}</div></header>
 
         <div className="flex justify-center gap-2 mb-4 bg-[#13131a] p-1 rounded-2xl">{Object.keys(ALL_DATA).map(cat => (<button key={cat} onClick={() => setCategory(cat)} className={`flex-1 py-2 rounded-xl font-bold text-sm ${category === cat? 'bg-[#a8ff00] text-black' : 'text-gray-400'}`}>{cat === 'Cricket' && '🏏 '}{cat === 'Football' && '⚽ '}{cat === 'Movies' && '🎬 '}{cat}</button>))}</div>
 
@@ -730,7 +792,7 @@ export default function CrickClash() {
         <div className="flex justify-around border-b border-gray-800 mb-4">
           <button onClick={() => setTab('Battle')} className={`pb-2 font-bold ${tab === 'Battle'? 'text-[#a8ff00] border-b-2 border-[#a8ff00]' : 'text-gray-500'}`}>⚔️ Battle</button>
           <button onClick={() => setTab('Rankings')} className={`pb-2 font-bold ${tab === 'Rankings'? 'text-[#a8ff00] border-b-2 border-[#a8ff00]' : 'text-gray-500'}`}>🏆 Rankings</button>
-          <button onClick={() => setTab('Fans')} className={`pb-2 font-bold ${tab === 'Fans'? 'text-[#a8ff00] border-b-2 border-[#a8ff00]' : 'text-gray-500'}`}>👑 Top Fans</button>
+          <button onClick={() => setTab('Fans')} className={`pb-2 font-bold ${tab === 'Fans'? 'text-[#a8ff00] border-b-2 border-[#a8ff00]' : 'text-gray-500'}`}>👑 Top</button>
           <button onClick={() => setTab('History')} className={`pb-2 font-bold ${tab === 'History'? 'text-[#a8ff00] border-b-2 border-[#a8ff00]' : 'text-gray-500'}`}>📜 History</button>
           <button onClick={() => setTab('Chat')} className={`pb-2 font-bold ${tab === 'Chat'? 'text-[#a8ff00] border-b-2 border-[#a8ff00]' : 'text-gray-500'}`}>💬 Chat</button>
         </div>
@@ -778,7 +840,7 @@ export default function CrickClash() {
           </div>
         )}
 
-        {/* RANKINGS TAB */}
+                      {/* RANKINGS TAB */}
         {tab === 'Rankings' && (
           <div>
             <h2 className="text-2xl font-bold text-[#a8ff00] mb-4 text-center">🏆 Top 10 {category} Players</h2>
@@ -799,10 +861,10 @@ export default function CrickClash() {
           </div>
         )}
 
-        {/* TOP FANS TAB WITH FOLLOW */}
+        {/* TOP FANS TAB WITH 1-TO-1 CHAT */}
         {tab === 'Fans' && (
           <div>
-            <h2 className="text-2xl font-bold text-[#a8ff00] mb-4 text-center">👑 Top Fans - {category}</h2>
+            <h2 className="text-2xl font-bold text-[#a8ff00] mb-4 text-center">👑 Top 10 Fans - {category}</h2>
             {topFans.length === 0? <p className="text-center text-gray-500">No votes today</p> :
               topFans.map((fan, i) => (
                 <div key={i} className="bg-[#13131a] p-3 rounded-xl mb-3 flex items-center gap-3">
@@ -813,9 +875,13 @@ export default function CrickClash() {
                     <p className="text-xs text-gray-400">@{fan.username} • {fan.votes} votes today</p>
                   </div>
                   {user && fan.uid!== user.uid && (
-                    following.includes(fan.uid)?
-                    <button onClick={() => handleUnfollow(fan.uid)} className="bg-[#23232b] px-3 py-1 rounded-full text-xs">Following</button> :
-                    <button onClick={() => handleFollow(fan.uid)} className="bg-[#a8ff00] text-black px-3 py-1 rounded-full text-xs font-bold">Follow</button>
+                    <div className="flex gap-2">
+                      {following.includes(fan.uid)?
+                        <button onClick={() => handleUnfollow(fan.uid)} className="bg-[#23232b] px-3 py-1 rounded-full text-xs">Following</button> :
+                        <button onClick={() => handleFollow(fan.uid)} className="bg-[#a8ff00] text-black px-3 py-1 rounded-full text-xs font-bold">Follow</button>
+                      }
+                      <button onClick={() => openFriendChat(fan)} className="bg-blue-600 px-3 py-1 rounded-full text-xs font-bold">💬</button>
+                    </div>
                   )}
                 </div>
               ))
@@ -870,7 +936,7 @@ export default function CrickClash() {
           <div onClick={e => e.stopPropagation()} className="bg-gradient-to-br from-[#1e3a5f] to-[#0a0e1a] p-6 rounded-3xl w-full max-w-sm border-2 border-[#a8ff00]">
             <h2 className="text-center text-2xl font-bold mb-1">FanClash {category}</h2><p className="text-center text-gray-400 text-sm mb-4">Battle #{battleNo-1} Result</p>
             <div className="flex gap-3 items-center mb-4">{[battle[0], battle[1]].map(p => {const total = battle[0].votes + battle[1].votes; const percent = total > 0? ((p.votes / total) * 100).toFixed(0) : 50; return (<div key={p.id} className="flex-1 text-center p-3 rounded-2xl bg-[#13131a]"><div className="w-16 h-16 rounded-full mx-auto mb-2 bg-[#a8ff00] text-black flex items-center justify-center text-2xl font-bold">{p.name[0]}</div><p className="font-bold text-sm">{p.name}</p><p className="text-2xl font-bold text-[#a8ff00]">{percent}%</p></div>)})}</div>
-            <button onClick={() => alert("Take screenshot and share it! 📸")} className="w-full bg-gradient-to-r from-purple-600 to-pink-600 py-3 rounded-xl font-bold">📸 Screenshot</button>
+            <button onClick={() => alert("Screenshot teesi share chey! 📸")} className="w-full bg-gradient-to-r from-purple-600 to-pink-600 py-3 rounded-xl font-bold">📸 Screenshot</button>
             <button onClick={() => setShowResultCard(false)} className="w-full bg-[#23232b] py-2 rounded-xl font-bold mt-2">Close</button>
           </div>
         </div>
@@ -890,4 +956,4 @@ export default function CrickClash() {
       <footer className="text-center mt-10 pb-6 text-gray-500 text-sm border-t border-gray-800 pt-4"><p>© 2026 <span className="text-white font-bold">FanClash™</span> | A Production By <span className="text-white font-bold">ANESH</span></p></footer>
     </div>
   );
-                  }
+            }
