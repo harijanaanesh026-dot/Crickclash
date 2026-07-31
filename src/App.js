@@ -308,6 +308,33 @@ export default function CrickClash() {
     setBattle([p1, p2]);
   }, []);
 
+  // PROFILE EDIT FUNCTION
+  const handleUpdateProfile = async () => {
+    if(!user ||!editName.trim()) return;
+    await update(ref(db, `users/${user.uid}/profile`), {
+      displayName: editName
+    });
+    await update(ref(db, `users/${user.uid}`), {
+      displayName: editName
+    });
+    alert("Profile Updated ✅");
+    setShowEditProfile(false);
+  }
+
+  // GLOBAL CHAT FUNCTION
+  const handlePostGlobalChat = async () => {
+    if(!user){ alert("Login required"); await signInWithPopup(auth, googleProvider); return; }
+    if(!newGlobalMsg.trim()) return;
+    const time = Date.now();
+    await set(ref(db, `globalChat/${time}`), {
+      text: newGlobalMsg,
+      user: user.displayName,
+      photo: user.photoURL,
+      time: time
+    });
+    setNewGlobalMsg("");
+  };
+
   // AUTH + DATA LOAD
   useEffect(() => {
     setLoading(true);
@@ -397,7 +424,7 @@ export default function CrickClash() {
         const profile = u.profile;
         if(catData?.votesToday > 0) {
           fansList.push({
-            name: profile?.displayName || "Unknown",
+            name: profile?.displayName || "Anonymous",
             photo: profile?.photoURL || `https://ui-avatars.com/api/?name=${profile?.displayName || 'A'}`,
             votes: catData.votesToday
           })
@@ -407,7 +434,13 @@ export default function CrickClash() {
       setTopFans(fansList.slice(0,10));
     })
 
-    return () => { metaUnsub(); playersUnsub(); fansUnsub(); }
+    // GLOBAL CHAT LISTENER
+    const globalChatUnsub = onValue(ref(db, `globalChat`), (snap) => {
+      const data = snap.val();
+      setGlobalChat(data? Object.values(data).sort((a,b) => b.time - a.time).slice(0, 100) : []);
+    });
+
+    return () => { metaUnsub(); playersUnsub(); fansUnsub(); globalChatUnsub(); }
   }, [category, filter, generateBattle]);
 
   const handleVote = async (votedPlayerId) => {
@@ -430,7 +463,9 @@ export default function CrickClash() {
     if(!newBadges.includes(`${category} Fan`)) newBadges.push(`${category} Fan`);
 
     // STREAK LOGIC
-    const lastVoteDate = user?.[`${category}LastVoteDate`];
+    const userSnap = await get(ref(db, `users/${user.uid}`));
+    const userData = userSnap.val() || {};
+    const lastVoteDate = userData[`${category}LastVoteDate`];
     const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
     const yesterdayStr = yesterday.toISOString().split('T')[0];
     let newStreak = streak;
@@ -471,8 +506,8 @@ export default function CrickClash() {
   const handleRefer = async () => {
     if(!user) return alert("Login required");
     const refLink = `${window.location.origin}?ref=${user.uid}`;
-    navigator.clipboard.writeText(`Vote now on FanClash! ${refLink}`);
-    alert("Refer your friend you can get an extra vote!");
+    navigator.clipboard.writeText(`FanClash lo vote chey! ${refLink}`);
+    alert("Referral link copied!");
   }
 
   const startTournament = () => {
@@ -581,14 +616,32 @@ export default function CrickClash() {
                 {badges.length === 0? <p className="text-xs">No badges yet</p> : badges.map(b => <span key={b} className="text-xs bg-[#a8ff00] text-black px-2 py-1 rounded-full">{b}</span>)}
               </div>
             </div>
-            <button onClick={handleLogout} className="w-full bg-red-600 mt-4 py-2 rounded-xl font-bold">Logout</button>
+            <button onClick={() => {setEditName(user.displayName); setShowEditProfile(true)}} className="w-full bg-[#a8ff00] text-black py-2 rounded-xl font-bold mt-2">✏️ Edit Profile</button>
+            <button onClick={handleLogout} className="w-full bg-red-600 mt-2 py-2 rounded-xl font-bold">Logout</button>
             <button onClick={() => setShowProfile(false)} className="w-full bg-[#23232b] py-2 rounded-xl font-bold mt-2">Close</button>
           </div>
         </div>
       )}
 
+      {showEditProfile && (
+        <div onClick={() => setShowEditProfile(false)} className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+          <div onClick={e => e.stopPropagation()} className="bg-[#13131a] p-6 rounded-2xl w-full max-w-sm">
+            <h2 className="text-xl font-bold text-center mb-4">Edit Profile</h2>
+            <img src={user.photoURL} className="w-20 h-20 rounded-full mx-auto border-4 border-[#a8ff00] mb-3"/>
+            <input
+              value={editName}
+              onChange={e => setEditName(e.target.value)}
+              placeholder="Enter new name"
+              className="w-full bg-[#0a0a0f] p-3 rounded-xl mb-3 text-white"
+            />
+            <button onClick={handleUpdateProfile} className="w-full bg-[#a8ff00] text-black py-2 rounded-xl font-bold">Save</button>
+            <button onClick={() => setShowEditProfile(false)} className="w-full bg-[#23232b] py-2 rounded-xl font-bold mt-2">Cancel</button>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-md mx-auto w-full flex-1 p-4">
-        <header className="flex justify-between items-center mb-4"><div><h1 className="text-2xl font-bold">FanClash</h1><p className="text-xs text-gray-400"> 🏏 ⚽ 🎬 </p></div><div>{user? <img src={user.photoURL} onClick={() => setShowProfile(!showProfile)} className="w-10 h-10 rounded-full border-2 border-[#a8ff00] cursor-pointer" /> : <button onClick={handleGoogleLogin} className="bg-[#a8ff00] text-black px-4 py-2 rounded-full font-bold text-sm">Login</button>}</div></header>
+        <header className="flex justify-between items-center mb-4"><div><h1 className="text-2xl font-bold">FanClash</h1><p className="text-xs text-gray-400">ANESH Innovation</p></div><div>{user? <img src={user.photoURL} onClick={() => setShowProfile(!showProfile)} className="w-10 h-10 rounded-full border-2 border-[#a8ff00] cursor-pointer" /> : <button onClick={handleGoogleLogin} className="bg-[#a8ff00] text-black px-4 py-2 rounded-full font-bold text-sm">Login</button>}</div></header>
 
         <div className="flex justify-center gap-2 mb-4 bg-[#13131a] p-1 rounded-2xl">{Object.keys(ALL_DATA).map(cat => (<button key={cat} onClick={() => setCategory(cat)} className={`flex-1 py-2 rounded-xl font-bold text-sm ${category === cat? 'bg-[#a8ff00] text-black' : 'text-gray-400'}`}>{cat === 'Cricket' && '🏏 '}{cat === 'Football' && '⚽ '}{cat === 'Movies' && '🎬 '}{cat}</button>))}</div>
 
@@ -599,7 +652,7 @@ export default function CrickClash() {
           <div className="flex justify-between items-center">
             <div>
               <p className="text-sm font-bold">🔥 {streak} Day Streak</p>
-              <p className="text-xs">Vote every 4 hours a day & Expand your streak!</p>
+              <p className="text-xs">Daily login cheste perugutundi</p>
             </div>
           </div>
         </div>
@@ -618,6 +671,7 @@ export default function CrickClash() {
           <button onClick={() => setTab('Rankings')} className={`pb-2 font-bold ${tab === 'Rankings'? 'text-[#a8ff00] border-b-2 border-[#a8ff00]' : 'text-gray-500'}`}>🏆 Rankings</button>
           <button onClick={() => setTab('Fans')} className={`pb-2 font-bold ${tab === 'Fans'? 'text-[#a8ff00] border-b-2 border-[#a8ff00]' : 'text-gray-500'}`}>👑 Top Fans</button>
           <button onClick={() => setTab('History')} className={`pb-2 font-bold ${tab === 'History'? 'text-[#a8ff00] border-b-2 border-[#a8ff00]' : 'text-gray-500'}`}>📜 History</button>
+          <button onClick={() => setTab('Chat')} className={`pb-2 font-bold ${tab === 'Chat'? 'text-[#a8ff00] border-b-2 border-[#a8ff00]' : 'text-gray-500'}`}>💬 Chat</button>
         </div>
 
         {tab === 'Battle' && battle[0] && battle[1] && (
@@ -687,7 +741,7 @@ export default function CrickClash() {
         {/* TOP FANS TAB */}
         {tab === 'Fans' && (
           <div>
-            <h2 className="text-2xl font-bold text-[#a8ff00] mb-4 text-center">👑 Top Fans - {category}</h2>
+            <h2 className="text-2xl font-bold text-[#a8ff00] mb-4 text-center">👑 Top 10 Fans - {category}</h2>
             {topFans.length === 0? <p className="text-center text-gray-500">No votes today</p> :
               topFans.map((fan, i) => (
                 <div key={i} className="bg-[#13131a] p-3 rounded-xl mb-3 flex items-center gap-3">
@@ -713,6 +767,38 @@ export default function CrickClash() {
             {!user? <p className="text-gray-500 text-center">Login required</p> : battleHistory.length === 0? <p className="text-gray-500 text-center">No battles yet</p> : battleHistory.map((h,i) => (<div key={i} className="bg-[#13131a] p-3 rounded-xl"><p className="text-sm text-gray-400">Battle {h.battleNo} • {h.date}</p><p className="font-bold">{h.players[0]} vs {h.players[1]}</p><p className="text-sm text-[#a8ff00]">You voted: {h.votedFor}</p></div>))}
           </div>
         )}
+
+        {/* GLOBAL CHAT TAB */}
+        {tab === 'Chat' && (
+          <div>
+            <h2 className="text-2xl font-bold text-[#a8ff00] mb-4 text-center">💬 Global Chat</h2>
+            <div className="bg-[#13131a] p-4 rounded-2xl h-[400px] flex-col">
+              <div className="flex-1 overflow-y-auto space-y-3 mb-3">
+                {globalChat.length === 0? <p className="text-center text-gray-500">Start the conversation!</p> :
+                  globalChat.map((msg) => (
+                    <div key={msg.time} className="flex gap-2">
+                      <img src={msg.photo} className="w-8 h-8 rounded-full"/>
+                      <div className="bg-[#0a0a0f] p-2 rounded-xl flex-1">
+                        <p className="text-xs font-bold text-[#a8ff00]">{msg.user}</p>
+                        <p className="text-sm">{msg.text}</p>
+                      </div>
+                    </div>
+                  ))
+                }
+              </div>
+              <div className="flex gap-2">
+                <input
+                  value={newGlobalMsg}
+                  onChange={e => setNewGlobalMsg(e.target.value)}
+                  onKeyPress={e => e.key === 'Enter' && handlePostGlobalChat()}
+                  placeholder="Message..."
+                  className="flex-1 bg-[#0a0a0f] p-3 rounded-xl"
+                />
+                <button onClick={handlePostGlobalChat} className="bg-[#a8ff00] text-black px-4 rounded-xl font-bold">Send</button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* RESULT CARD MODAL */}
@@ -721,7 +807,7 @@ export default function CrickClash() {
           <div onClick={e => e.stopPropagation()} className="bg-gradient-to-br from-[#1e3a5f] to-[#0a0e1a] p-6 rounded-3xl w-full max-w-sm border-2 border-[#a8ff00]">
             <h2 className="text-center text-2xl font-bold mb-1">FanClash {category}</h2><p className="text-center text-gray-400 text-sm mb-4">Battle #{battleNo-1} Result</p>
             <div className="flex gap-3 items-center mb-4">{[battle[0], battle[1]].map(p => {const total = battle[0].votes + battle[1].votes; const percent = total > 0? ((p.votes / total) * 100).toFixed(0) : 50; return (<div key={p.id} className="flex-1 text-center p-3 rounded-2xl bg-[#13131a]"><div className="w-16 h-16 rounded-full mx-auto mb-2 bg-[#a8ff00] text-black flex items-center justify-center text-2xl font-bold">{p.name[0]}</div><p className="font-bold text-sm">{p.name}</p><p className="text-2xl font-bold text-[#a8ff00]">{percent}%</p></div>)})}</div>
-            <button onClick={() => alert("Take screenshot and share it! 📸")} className="w-full bg-gradient-to-r from-purple-600 to-pink-600 py-3 rounded-xl font-bold">📸 Screenshot</button>
+            <button onClick={() => alert("Screenshot teesi share chey! 📸")} className="w-full bg-gradient-to-r from-purple-600 to-pink-600 py-3 rounded-xl font-bold">📸 Screenshot</button>
             <button onClick={() => setShowResultCard(false)} className="w-full bg-[#23232b] py-2 rounded-xl font-bold mt-2">Close</button>
           </div>
         </div>
@@ -738,7 +824,7 @@ export default function CrickClash() {
         </div>
       )}
 
-      <footer className="text-center mt-10 pb-6 text-gray-500 text-sm border-t border-gray-800 pt-4"><p>© 2026 <span className="text-white font-bold">FanClash™</span> | A Production By <span className="text-white font-bold">ANESH</span></p></footer>
+      <footer className="text-center mt-10 pb-6 text-gray-500 text-sm border-t border-gray-800 pt-4"><p>© 2026 <span className="text-white font-bold">FanClash™</span> | By <span className="text-white font-bold">ANESH</span></p></footer>
     </div>
   );
-              }
+          }
