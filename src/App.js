@@ -243,15 +243,14 @@ export default function CrickClash() {
   const [friendChat, setFriendChat] = useState([]);
   const [newFriendMsg, setNewFriendMsg] = useState("");
   const [showChatModal, setShowChatModal] = useState(false);
-
-  // INSTAGRAM FEATURES
   const [showFriendsChatList, setShowFriendsChatList] = useState(false);
   const [footerTab, setFooterTab] = useState('Home');
   const [searchUsername, setSearchUsername] = useState("");
   const [searchResult, setSearchResult] = useState(null);
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
-    const getBattleKey = () => battle[0] && battle[1]? `${category}-${battle[0].id}-${battle[1].id}-B${battleNo}` : null;
+
+  const getBattleKey = () => battle[0] && battle[1]? `${category}-${battle[0].id}-${battle[1].id}-B${battleNo}` : null;
   const canVoteNow = () => {
     const timeLeft = getTimeUntilNextVote(user?.[`${category}LastVoteTime`]);
     const votesUsed = votesToday[category];
@@ -357,6 +356,7 @@ export default function CrickClash() {
     }
   };
 
+  // FIX: AUTO SKIP REMOVE CHESAM
   const handleVote = async (votedPlayerId) => {
     if(!user){ alert("Login required to Vote"); await signInWithPopup(auth, googleProvider); return; }
     const userLastVoteTime = user[`${category}LastVoteTime`];
@@ -387,7 +387,7 @@ export default function CrickClash() {
     await update(ref(db, `users/${user.uid}/${category}`), { votesToday: increment(1), lastVoteDate: today, lastVoteTime: Date.now(), badges: newBadges, history: newHistory });
     await update(ref(db, `players/${category}/${votedPlayerId}`), { votes: increment(1) });
     await update(ref(db, `meta/${category}`), { totalVotes: increment(1), battleNo: newBattleNo });
-    setTimeout(() => { setIsVoting(false); setBattleNo(newBattleNo); generateBattle(players, filter); }, 1000);
+    setTimeout(() => { setIsVoting(false); }, 500); // IKKADA AUTO SKIP TESISESAM
   };
 
   const handleSkip = async () => {
@@ -395,7 +395,7 @@ export default function CrickClash() {
     const newBattleNo = battleNo + 1;
     setBattleNo(newBattleNo);
     await update(ref(db, `meta/${category}`), { battleNo: newBattleNo });
-    generateBattle(players, filter);
+    generateBattle(players, filter); // IKKADA MANUAL SKIP
   };
 
   const handleDeleteHistory = async () => {
@@ -463,7 +463,7 @@ export default function CrickClash() {
         {comment.replies && Object.values(comment.replies).sort((a,b) => a.time - b.time).map((reply) => (<CommentItem key={reply.key} comment={reply} commentKey={reply.key} depth={depth + 1}/>))}
       </div>
     );
-  }
+                                                                         }
 
   useEffect(() => {
     const updateTimer = () => {
@@ -626,7 +626,7 @@ export default function CrickClash() {
     <div className="min-h-screen bg-[#0a0a0f] text-white pb-20">
       <style>{`@keyframes pop { 0%{transform:scale(1)} 50%{transform:scale(1.15)} 100%{transform:scale(1)} }.vote-pop { animation: pop 0.5s ease; }`}</style>
 
-      {/* FRIENDS CHAT LIST MODAL */}
+      {/* FRIENDS CHAT LIST */}
       {showFriendsChatList && (
         <div onClick={() => setShowFriendsChatList(false)} className="fixed inset-0 bg-black/90 z-50 flex">
           <div onClick={e => e.stopPropagation()} className="bg-[#13131a] w-[80%] h-full p-4 overflow-y-auto">
@@ -829,6 +829,7 @@ export default function CrickClash() {
             <div className="flex gap-2 mt-3"><button onClick={() => user? handleRefer() : handleGoogleLogin()} className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 py-3 rounded-xl font-bold">👥 Refer</button><button onClick={() => user? startTournament() : handleGoogleLogin()} className="flex-1 bg-gradient-to-r from-yellow-600 to-orange-600 py-3 rounded-xl font-bold">🏆 Tournament</button></div>
           </div>
         )}
+
         {/* RANKINGS TAB */}
         {tab === 'Rankings' && (
           <div>
@@ -900,7 +901,7 @@ export default function CrickClash() {
         {tab === 'Chat' && (
           <div>
             <h2 className="text-2xl font-bold text-[#a8ff00] mb-4 text-center">💬 Global Chat</h2>
-            <div className="bg-[#13131a] p-4 rounded-2xl h-[400px] flex flex-col">
+            <div className="bg-[#13131a] p-4 rounded-2xl h-[400px] flex-col">
               <div className="flex-1 overflow-y-auto space-y-3 mb-3">
                 {globalChat.length === 0? <p className="text-center text-gray-500">Start the conversation!</p> :
                   globalChat.map((msg) => (
@@ -961,4 +962,4 @@ export default function CrickClash() {
       <footer className="text-center mt-10 pb-24 text-gray-500 text-sm border-t border-gray-800 pt-4"><p>© 2026 <span className="text-white font-bold">FanClash™</span> | A Production By <span className="text-white font-bold">ANESH</span></p></footer>
     </div>
   );
-                                                                                }
+          }
