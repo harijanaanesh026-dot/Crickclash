@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInWithPopup, signOut, onAuthStateChanged, GoogleAuthProvider } from 'firebase/auth';
-import { getDatabase, ref, set, update, onValue, get, remove, increment, } from 'firebase/database';
+import { getDatabase, ref, set, update, onValue, get, remove, increment } from 'firebase/database';
+import { Search, MessageCircle, Home, Trophy, User } from 'lucide-react';
 
 // ============= FIREBASE CONFIG =============
 const firebaseConfig = {
