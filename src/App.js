@@ -462,9 +462,9 @@ export default function CrickClash() {
         {comment.replies && Object.values(comment.replies).sort((a,b) => a.time - b.time).map((reply) => (<CommentItem key={reply.key} comment={reply} commentKey={reply.key} depth={depth + 1}/>))}
       </div>
     );
-    }
+  }
 
-              useEffect(() => {
+  useEffect(() => {
     const updateTimer = () => {
       const now = new Date();
       const istNow = new Date(now.toLocaleString("en-US", {timeZone: "Asia/Kolkata"}));
@@ -514,14 +514,19 @@ export default function CrickClash() {
       const metaData = snapshot.val();
       if (metaData) { setTotalVotes(metaData.totalVotes || 0); }
     });
+
+    // FIRST TIME MATRAM BATTLE SET CHEY
+    if(!battle[0] ||!battle[1]) {
+        generateBattle(players, filter);
+    }
+
     const playersUnsub = onValue(ref(db, `players/${category}`), (snapshot) => {
       const data = snapshot.val();
       const currentPlayers = ALL_DATA[category];
       if (data) {
-        const playersArray = currentPlayers.map(p => ({...p, votes: data[p.id]?.votes || 0 }));
-        setPlayers(playersArray);
-        // generateBattle ni ikkada nunchi teyesa - FIX
-        const sorted = [...playersArray].sort((a,b) => b.votes - a.votes);
+        // Votes matrame update chey, battle maaradu
+        setPlayers(prev => currentPlayers.map(p => ({...p, votes: data[p.id]?.votes || prev.find(x => x.id === p.id)?.votes || 0 })));
+        const sorted = [...currentPlayers].sort((a,b) => (data[b.id]?.votes || 0) - (data[a.id]?.votes || 0));
         setTopPlayer(sorted[0]);
       } else {
         const initialPlayers = {};
@@ -556,12 +561,12 @@ export default function CrickClash() {
       })
     }
     return () => { metaUnsub(); playersUnsub(); fansUnsub(); globalChatUnsub(); userChatsUnsub(); }
-  }, [category, user]);
+  }, [category, user]); // players ni dependency nunchi teesesa
 
-  // NEW: Filter or Category change ayyaka matrame battle generate chey
+  // Filter or Category change ayyaka matrame battle generate chey
   useEffect(() => {
     generateBattle(players, filter);
-  }, [filter, category, players, generateBattle]);
+  }, [filter, category, generateBattle]);
 
   useEffect(() => {
     setLoading(true);
@@ -833,6 +838,7 @@ export default function CrickClash() {
             <div className="flex gap-2 mt-3"><button onClick={() => user? handleRefer() : handleGoogleLogin()} className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 py-3 rounded-xl font-bold">👥 Refer</button><button onClick={() => user? startTournament() : handleGoogleLogin()} className="flex-1 bg-gradient-to-r from-yellow-600 to-orange-600 py-3 rounded-xl font-bold">🏆 Tournament</button></div>
           </div>
         )}
+
         {/* RANKINGS TAB */}
         {tab === 'Rankings' && (
           <div>
@@ -965,4 +971,4 @@ export default function CrickClash() {
       <footer className="text-center mt-10 pb-24 text-gray-500 text-sm border-t border-gray-800 pt-4"><p>© 2026 <span className="text-white font-bold">FanClash™</span> | A Production By <span className="text-white font-bold">ANESH</span></p></footer>
     </div>
   );
-        }
+                }
