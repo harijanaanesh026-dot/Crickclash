@@ -185,7 +185,6 @@ const MOVIES_PLAYERS = [
   { id: "Sunil", name: 'Sunil', role: 'VILLAIN', votes: 0 },
 ];
 
-
 const ALL_DATA = { Cricket: CRICKET_PLAYERS, Football: FOOTBALL_PLAYERS, Movies: MOVIES_PLAYERS };
 
 // ============= HELPERS =============
@@ -208,7 +207,7 @@ export default function CrickClash() {
   const [category, setCategory] = useState('Cricket');
   const [players, setPlayers] = useState(CRICKET_PLAYERS);
   const [battle, setBattle] = useState([null, null]);
-  const [battleNo, setBattleNo] = useState(1);
+  const [battleNo, setBattleNo] = useState(1); // Local ga matrame
   const [filter, setFilter] = useState('Any');
   const [tab, setTab] = useState('Battle');
   const [votesToday, setVotesToday] = useState({Cricket: 0, Football: 0, Movies: 0});
@@ -356,7 +355,6 @@ export default function CrickClash() {
     }
   };
 
-  // FIX: AUTO SKIP REMOVE CHESAM
   const handleVote = async (votedPlayerId) => {
     if(!user){ alert("Login required to Vote"); await signInWithPopup(auth, googleProvider); return; }
     const userLastVoteTime = user[`${category}LastVoteTime`];
@@ -386,16 +384,17 @@ export default function CrickClash() {
     setStreak(newStreak);
     await update(ref(db, `users/${user.uid}/${category}`), { votesToday: increment(1), lastVoteDate: today, lastVoteTime: Date.now(), badges: newBadges, history: newHistory });
     await update(ref(db, `players/${category}/${votedPlayerId}`), { votes: increment(1) });
-    await update(ref(db, `meta/${category}`), { totalVotes: increment(1), battleNo: newBattleNo });
-    setTimeout(() => { setIsVoting(false); }, 500); // IKKADA AUTO SKIP TESISESAM
+    await update(ref(db, `meta/${category}`), { totalVotes: increment(1) }); // battleNo teyesa
+
+    setBattleNo(newBattleNo); // Local ga matrame
+    setTimeout(() => { setIsVoting(false); }, 500); // Auto skip ledu
   };
 
   const handleSkip = async () => {
     if(!user){ alert("Login required to Skip"); await signInWithPopup(auth, googleProvider); return; }
     const newBattleNo = battleNo + 1;
-    setBattleNo(newBattleNo);
-    await update(ref(db, `meta/${category}`), { battleNo: newBattleNo });
-    generateBattle(players, filter); // IKKADA MANUAL SKIP
+    setBattleNo(newBattleNo); // Local ga matrame
+    generateBattle(players, filter); // Manual skip
   };
 
   const handleDeleteHistory = async () => {
@@ -463,7 +462,7 @@ export default function CrickClash() {
         {comment.replies && Object.values(comment.replies).sort((a,b) => a.time - b.time).map((reply) => (<CommentItem key={reply.key} comment={reply} commentKey={reply.key} depth={depth + 1}/>))}
       </div>
     );
-                                                                         }
+  }
 
   useEffect(() => {
     const updateTimer = () => {
@@ -499,7 +498,7 @@ export default function CrickClash() {
           const resetPlayers = {};
           ALL_DATA[cat].forEach(p => { resetPlayers[p.id] = {...p, votes: 0}; });
           await set(ref(db, `players/${cat}`), resetPlayers);
-          await set(ref(db, `meta/${cat}`), { lastResetDate: today, totalVotes: 0, battleNo: 1 });
+          await set(ref(db, `meta/${cat}`), { lastResetDate: today, totalVotes: 0 }); // battleNo teyesa
         }
         await set(ref(db, `meta/lastGlobalReset`), today);
       }
@@ -513,7 +512,7 @@ export default function CrickClash() {
     loadYesterdayWinners();
     const metaUnsub = onValue(ref(db, `meta/${category}`), (snapshot) => {
       const metaData = snapshot.val();
-      if (metaData) { setBattleNo(metaData.battleNo || 1); setTotalVotes(metaData.totalVotes || 0); }
+      if (metaData) { setTotalVotes(metaData.totalVotes || 0); } // battleNo remove
     });
     const playersUnsub = onValue(ref(db, `players/${category}`), (snapshot) => {
       const data = snapshot.val();
@@ -521,14 +520,14 @@ export default function CrickClash() {
       if (data) {
         const playersArray = currentPlayers.map(p => ({...p, votes: data[p.id]?.votes || 0 }));
         setPlayers(playersArray);
-        generateBattle(playersArray, filter);
+        generateBattle(playersArray, filter); // first time matrame
         const sorted = [...playersArray].sort((a,b) => b.votes - a.votes);
         setTopPlayer(sorted[0]);
       } else {
         const initialPlayers = {};
         currentPlayers.forEach((p) => { initialPlayers[p.id] = {...p}; });
         set(ref(db, `players/${category}`), initialPlayers);
-        set(ref(db, `meta/${category}`), { lastResetDate: getToday(), totalVotes: 0, battleNo: 1 });
+        set(ref(db, `meta/${category}`), { lastResetDate: getToday(), totalVotes: 0 }); // battleNo teyesa
       }
     });
     const fansUnsub = onValue(ref(db, `users`), (snap) => {
@@ -626,7 +625,7 @@ export default function CrickClash() {
     <div className="min-h-screen bg-[#0a0a0f] text-white pb-20">
       <style>{`@keyframes pop { 0%{transform:scale(1)} 50%{transform:scale(1.15)} 100%{transform:scale(1)} }.vote-pop { animation: pop 0.5s ease; }`}</style>
 
-      {/* FRIENDS CHAT LIST */}
+      {/* FRIENDS CHAT LIST SWIPE */}
       {showFriendsChatList && (
         <div onClick={() => setShowFriendsChatList(false)} className="fixed inset-0 bg-black/90 z-50 flex">
           <div onClick={e => e.stopPropagation()} className="bg-[#13131a] w-[80%] h-full p-4 overflow-y-auto">
@@ -651,7 +650,7 @@ export default function CrickClash() {
       {/* 1TO1 CHAT MODAL */}
       {showChatModal && selectedFriend && (
         <div onClick={() => setShowChatModal(false)} className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
-          <div onClick={e => e.stopPropagation()} className="bg-[#13131a] p-4 rounded-2xl w-full max-w-md h-[500px] flex-col">
+          <div onClick={e => e.stopPropagation()} className="bg-[#13131a] p-4 rounded-2xl w-full max-w-md h-[500px] flex-col flex">
             <div className="flex items-center gap-3 mb-3 border-b border-gray-800 pb-2">
               <img src={selectedFriend.photo} className="w-10 h-10 rounded-full"/>
               <div><p className="font-bold">{selectedFriend.name}</p><p className="text-xs text-gray-400">@{selectedFriend.username}</p></div>
@@ -901,7 +900,7 @@ export default function CrickClash() {
         {tab === 'Chat' && (
           <div>
             <h2 className="text-2xl font-bold text-[#a8ff00] mb-4 text-center">💬 Global Chat</h2>
-            <div className="bg-[#13131a] p-4 rounded-2xl h-[400px] flex-col">
+            <div className="bg-[#13131a] p-4 rounded-2xl h-[400px] flex-col flex">
               <div className="flex-1 overflow-y-auto space-y-3 mb-3">
                 {globalChat.length === 0? <p className="text-center text-gray-500">Start the conversation!</p> :
                   globalChat.map((msg) => (
@@ -962,4 +961,4 @@ export default function CrickClash() {
       <footer className="text-center mt-10 pb-24 text-gray-500 text-sm border-t border-gray-800 pt-4"><p>© 2026 <span className="text-white font-bold">FanClash™</span> | A Production By <span className="text-white font-bold">ANESH</span></p></footer>
     </div>
   );
-          }
+                          }
