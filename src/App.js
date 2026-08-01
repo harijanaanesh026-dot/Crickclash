@@ -207,7 +207,7 @@ export default function CrickClash() {
   const [category, setCategory] = useState('Cricket');
   const [players, setPlayers] = useState(CRICKET_PLAYERS);
   const [battle, setBattle] = useState([null, null]);
-  const [battleNo, setBattleNo] = useState(1); // Local ga matrame
+  const [battleNo, setBattleNo] = useState(1);
   const [filter, setFilter] = useState('Any');
   const [tab, setTab] = useState('Battle');
   const [votesToday, setVotesToday] = useState({Cricket: 0, Football: 0, Movies: 0});
@@ -384,17 +384,17 @@ export default function CrickClash() {
     setStreak(newStreak);
     await update(ref(db, `users/${user.uid}/${category}`), { votesToday: increment(1), lastVoteDate: today, lastVoteTime: Date.now(), badges: newBadges, history: newHistory });
     await update(ref(db, `players/${category}/${votedPlayerId}`), { votes: increment(1) });
-    await update(ref(db, `meta/${category}`), { totalVotes: increment(1) }); // battleNo teyesa
+    await update(ref(db, `meta/${category}`), { totalVotes: increment(1) });
 
-    setBattleNo(newBattleNo); // Local ga matrame
-    setTimeout(() => { setIsVoting(false); }, 500); // Auto skip ledu
+    setBattleNo(newBattleNo);
+    setTimeout(() => { setIsVoting(false); }, 500);
   };
 
   const handleSkip = async () => {
     if(!user){ alert("Login required to Skip"); await signInWithPopup(auth, googleProvider); return; }
     const newBattleNo = battleNo + 1;
-    setBattleNo(newBattleNo); // Local ga matrame
-    generateBattle(players, filter); // Manual skip
+    setBattleNo(newBattleNo);
+    generateBattle(players, filter);
   };
 
   const handleDeleteHistory = async () => {
@@ -462,9 +462,9 @@ export default function CrickClash() {
         {comment.replies && Object.values(comment.replies).sort((a,b) => a.time - b.time).map((reply) => (<CommentItem key={reply.key} comment={reply} commentKey={reply.key} depth={depth + 1}/>))}
       </div>
     );
-  }
+    }
 
-  useEffect(() => {
+              useEffect(() => {
     const updateTimer = () => {
       const now = new Date();
       const istNow = new Date(now.toLocaleString("en-US", {timeZone: "Asia/Kolkata"}));
@@ -498,7 +498,7 @@ export default function CrickClash() {
           const resetPlayers = {};
           ALL_DATA[cat].forEach(p => { resetPlayers[p.id] = {...p, votes: 0}; });
           await set(ref(db, `players/${cat}`), resetPlayers);
-          await set(ref(db, `meta/${cat}`), { lastResetDate: today, totalVotes: 0 }); // battleNo teyesa
+          await set(ref(db, `meta/${cat}`), { lastResetDate: today, totalVotes: 0 });
         }
         await set(ref(db, `meta/lastGlobalReset`), today);
       }
@@ -512,7 +512,7 @@ export default function CrickClash() {
     loadYesterdayWinners();
     const metaUnsub = onValue(ref(db, `meta/${category}`), (snapshot) => {
       const metaData = snapshot.val();
-      if (metaData) { setTotalVotes(metaData.totalVotes || 0); } // battleNo remove
+      if (metaData) { setTotalVotes(metaData.totalVotes || 0); }
     });
     const playersUnsub = onValue(ref(db, `players/${category}`), (snapshot) => {
       const data = snapshot.val();
@@ -520,14 +520,14 @@ export default function CrickClash() {
       if (data) {
         const playersArray = currentPlayers.map(p => ({...p, votes: data[p.id]?.votes || 0 }));
         setPlayers(playersArray);
-        generateBattle(playersArray, filter); // first time matrame
+        // generateBattle ni ikkada nunchi teyesa - FIX
         const sorted = [...playersArray].sort((a,b) => b.votes - a.votes);
         setTopPlayer(sorted[0]);
       } else {
         const initialPlayers = {};
         currentPlayers.forEach((p) => { initialPlayers[p.id] = {...p}; });
         set(ref(db, `players/${category}`), initialPlayers);
-        set(ref(db, `meta/${category}`), { lastResetDate: getToday(), totalVotes: 0 }); // battleNo teyesa
+        set(ref(db, `meta/${category}`), { lastResetDate: getToday(), totalVotes: 0 });
       }
     });
     const fansUnsub = onValue(ref(db, `users`), (snap) => {
@@ -556,7 +556,12 @@ export default function CrickClash() {
       })
     }
     return () => { metaUnsub(); playersUnsub(); fansUnsub(); globalChatUnsub(); userChatsUnsub(); }
-  }, [category, filter, generateBattle, user]);
+  }, [category, user]);
+
+  // NEW: Filter or Category change ayyaka matrame battle generate chey
+  useEffect(() => {
+    generateBattle(players, filter);
+  }, [filter, category, players, generateBattle]);
 
   useEffect(() => {
     setLoading(true);
@@ -828,7 +833,6 @@ export default function CrickClash() {
             <div className="flex gap-2 mt-3"><button onClick={() => user? handleRefer() : handleGoogleLogin()} className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 py-3 rounded-xl font-bold">👥 Refer</button><button onClick={() => user? startTournament() : handleGoogleLogin()} className="flex-1 bg-gradient-to-r from-yellow-600 to-orange-600 py-3 rounded-xl font-bold">🏆 Tournament</button></div>
           </div>
         )}
-
         {/* RANKINGS TAB */}
         {tab === 'Rankings' && (
           <div>
@@ -961,4 +965,4 @@ export default function CrickClash() {
       <footer className="text-center mt-10 pb-24 text-gray-500 text-sm border-t border-gray-800 pt-4"><p>© 2026 <span className="text-white font-bold">FanClash™</span> | A Production By <span className="text-white font-bold">ANESH</span></p></footer>
     </div>
   );
-                          }
+        }
