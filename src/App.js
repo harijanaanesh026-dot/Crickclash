@@ -1,975 +1,117 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { initializeApp } from 'firebase/app';
-import { getAuth, signInWithPopup, signOut, onAuthStateChanged, GoogleAuthProvider } from 'firebase/auth';
-import { getDatabase, ref, set, update, onValue, get, remove, increment } from 'firebase/database';
-import { Search, MessageCircle, Home, Trophy, User } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
-// ============= FIREBASE CONFIG =============
-const firebaseConfig = {
-  apiKey: "AIzaSyD9BfrAh8djKof1Bu6FLG0Fz7X10NCdm6g",
-  authDomain: "crickclash-d30fe.firebaseapp.com",
-  databaseURL: "https://crickclash-d30fe-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "crickclash-d30fe",
-  storageBucket: "crickclash-d30fe.firebasestorage.app",
-  messagingSenderId: "595133866613",
-  appId: "1:595133866613:web:dda3f0509462310cb74e3c"
-};
+export default function NextdoorIndia() {
+  const [city, setCity] = useState('Tirupati');
+  const [showCityModal, setShowCityModal] = useState(false);
+  const [tab, setTab] = useState('home');
+  const [feedFilter, setFeedFilter] = useState('All');
+  const [search, setSearch] = useState('');
+  const [showPostModal, setShowPostModal] = useState(false);
+  const [showItemModal, setShowItemModal] = useState(false);
+  const [showEventModal, setShowEventModal] = useState(false);
+  const [postType, setPostType] = useState('Local update');
+  const [postText, setPostText] = useState('');
+  const [blocked, setBlocked] = useState([]);
+  const [reported, setReported] = useState([]);
+  const [notifications, setNotifications] = useState([
+    {id:1, text:'Rahul replied to "Bike mechanic?"', time:'2m ago', read:false, type:'reply'},
+    {id:2, text:'Anjali marked your post Useful', time:'15m ago', read:false, type:'like'},
+    {id:3, text:'New alert within 1km: Road closed', time:'1h ago', read:false, type:'nearby'},
+    {id:4, text:'Students group: New event tomorrow', time:'3h ago', read:true, type:'group'},
+  ]);
+  const [showNotif, setShowNotif] = useState(false);
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getDatabase(app);
-const googleProvider = new GoogleAuthProvider();
-const DAILY_VOTE_LIMIT = 6; // rojuki 6 votes 
-const VOTE_COOLDOWN_HOURS = 4; // 4 hours ki 1 vote
-const REFERRAL_BONUS_VOTE = 1; // NEW
-// ============= CRICKET PLAYERS - 70 =============
-// ============= CRICKET PLAYERS - 70 =============
-const CRICKET_PLAYERS = [
-  { id: "virat-kohli-bat", name: 'Virat Kohli', role: 'BATTER', votes: 0 },
-  { id: "sachin-tendulkar", name: 'Sachin Tendulkar', role: 'BATTER', votes: 0 },
-  { id: "rohit-sharma-bat", name: 'Rohit Sharma', role: 'BATTER', votes: 0 },
-  { id: "vaibhav-sooryavanshi", name: 'Vaibhav Sooryavanshi', role: 'BATTER', votes: 0 },
-  { id: "rajat-patidar-bat", name: 'Rajat Patidar', role: 'BATTER', votes: 0 },
-  { id: "abhishek-sharma", name: 'Abhishek Sharma', role: 'BATTER', votes: 0 },
-  { id: "shreyas-iyer", name: 'Shreyas Iyer', role: 'BATTER', votes: 0 },
-  { id: "kl-rahul-bat", name: 'KL Rahul', role: 'BATTER', votes: 0 },
-  { id: "shubman-gill-bat", name: 'Shubman Gill', role: 'BATTER', votes: 0 },
-  { id: "sai-sudarshan", name: 'Sai Sudarshan', role: 'BATTER', votes: 0 },
-  { id: "rahul-dravid-bat", name: 'Rahul Dravid', role: 'BATTER', votes: 0 },
-  { id: "virendra-sehwag", name: 'Virendra Sehwag', role: 'BATTER', votes: 0 },
-  { id: "shikhar-dhawan", name: 'Shikhar Dhawan', role: 'BATTER', votes: 0 },
-  { id: "suresh-raina", name: 'Suresh Raina', role: 'BATTER', votes: 0 },
-  { id: "yashasvi-jaiswal", name: 'Yashasvi Jaiswal', role: 'BATTER', votes: 0 },
-  { id: "ms-dhoni-bat", name: 'MS Dhoni', role: 'BATTER', votes: 0 },
-  { id: "dinesh-karthik-bat", name: 'Dinesh Karthik', role: 'BATTER', votes: 0 },
-  { id: "priyansh-arya", name: 'Priyansh Arya', role: 'BATTER', votes: 0 },
-  { id: "tilak-varma", name: 'Tilak Varma', role: 'BATTER', votes: 0 },
-  { id: "ishan-kishan-bat", name: 'Ishan Kishan', role: 'BATTER', votes: 0 },
-  { id: "yuvraj-singh-bat", name: 'Yuvraj Singh', role: 'BATTER', votes: 0 },
-  { id: "sanju-samson-bat", name: 'Sanju Samson', role: 'BATTER', votes: 0 },
-  { id: "ruturaj-gaikwad-bat", name: 'Ruturaj Gaikwad', role: 'BATTER', votes: 0 },
-  { id: "rishabh-pant-bat", name: 'Rishabh Pant', role: 'BATTER', votes: 0 },
-  { id: "dhruv-jurel-bat", name: 'Dhruv Jurel', role: 'BATTER', votes: 0 },
-  { id: "jitesh-sharma-bat", name: 'Jitesh Sharma', role: 'BATTER', votes: 0 },
-  { id: "washington-sundar-bat", name: 'Washington Sundar', role: 'BATTER', votes: 0 },
-  { id: "shivam-dube-bat", name: 'Shivam Dube', role: 'BATTER', votes: 0 },
-  { id: "nitish-kumar-reddy-bat", name: 'Nitish Kumar Reddy', role: 'BATTER', votes: 0 },
-  { id: "krunal-pandya-bat", name: 'Krunal Pandya', role: 'BATTER', votes: 0 },
-  { id: "jasprit-bumrah", name: 'Jasprit Bumrah', role: 'BOWLER', votes: 0 },
-  { id: "bhuvaneswar-kumar", name: 'Bhuvaneswar Kumar', role: 'BOWLER', votes: 0 },
-  { id: "mohammed-shami", name: 'Mohammed Shami', role: 'BOWLER', votes: 0 },
-  { id: "mohammed-siraj", name: 'Mohammed Siraj', role: 'BOWLER', votes: 0 },
-  { id: "prasidh-krishna", name: 'Prasidh Krishna', role: 'BOWLER', votes: 0 },
-  { id: "harshit-rana", name: 'Harshit Rana', role: 'BOWLER', votes: 0 },
-  { id: "ishant-sharma", name: 'Ishant Sharma', role: 'BOWLER', votes: 0 },
-  { id: "umesh-yadav", name: 'Umesh Yadav', role: 'BOWLER', votes: 0 },
-  { id: "axar-patel-bowl", name: 'Axar Patel', role: 'BOWLER', votes: 0 },
-  { id: "yuzvendra-chahal", name: 'Yuzvendra Chahal', role: 'BOWLER', votes: 0 },
-  { id: "deepak-chahar", name: 'Deepak Chahar', role: 'BOWLER', votes: 0 },
-  { id: "arshdeep-singh", name: 'Arshdeep Singh', role: 'BOWLER', votes: 0 },
-  { id: "ravindra-jadeja-bowl", name: 'Ravindra Jadeja', role: 'BOWLER', votes: 0 },
-  { id: "anil-kumble", name: 'Anil Kumble', role: 'BOWLER', votes: 0 },
-  { id: "kapil-dev-bowl", name: 'Kapil Dev', role: 'BOWLER', votes: 0 },
-  { id: "harbhajan-singh", name: 'Harbhajan Singh', role: 'BOWLER', votes: 0 },
-  { id: "ravichandran-ashwin-bowl", name: 'Ravichandran Ashwin', role: 'BOWLER', votes: 0 },
-  { id: "kuldeep-yadav", name: 'Kuldeep Yadav', role: 'BOWLER', votes: 0 },
-  { id: "kapil-dev-ar", name: 'Kapil Dev', role: 'ALL-ROUNDER', votes: 0 },
-  { id: "ravindra-jadeja-ar", name: 'Ravindra Jadeja', role: 'ALL-ROUNDER', votes: 0 },
-  { id: "yuvraj-singh-ar", name: 'Yuvraj Singh', role: 'ALL-ROUNDER', votes: 0 },
-  { id: "ravichandran-ashwin-ar", name: 'Ravichandran Ashwin', role: 'ALL-ROUNDER', votes: 0 },
-  { id: "hardik-pandya-ar", name: 'Hardik Pandya', role: 'ALL-ROUNDER', votes: 0 },
-  { id: "krunal-pandya-ar", name: 'Krunal Pandya', role: 'ALL-ROUNDER', votes: 0 },
-  { id: "axar-patel-ar", name: 'Axar Patel', role: 'ALL-ROUNDER', votes: 0 },
-  { id: "washington-sundar-ar", name: 'Washington Sundar', role: 'ALL-ROUNDER', votes: 0 },
-  { id: "shivam-dube-ar", name: 'Shivam Dube', role: 'ALL-ROUNDER', votes: 0 },
-  { id: "nitish-kumar-reddy-ar", name: 'Nitish Kumar Reddy', role: 'ALL-ROUNDER', votes: 0 },
-  { id: "shardul-thakur", name: 'Shardul Thakur', role: 'ALL-ROUNDER', votes: 0 },
-  { id: "ms-dhoni-kp", name: 'MS Dhoni', role: 'KEEPER', votes: 0 },
-  { id: "jitesh-sharma-kp", name: 'Jitesh Sharma', role: 'KEEPER', votes: 0 },
-  { id: "dhruv-jurel-kp", name: 'Dhruv Jurel', role: 'KEEPER', votes: 0 },
-  { id: "sanju-samson-kp", name: 'Sanju Samson', role: 'KEEPER', votes: 0 },
-  { id: "kl-rahul-kp", name: 'KL Rahul', role: 'KEEPER', votes: 0 },
-  { id: "ishan-kishan-kp", name: 'Ishan Kishan', role: 'KEEPER', votes: 0 },
-  { id: "rishabh-pant-kp", name: 'Rishabh Pant', role: 'KEEPER', votes: 0 },
-  { id: "dinesh-karthik-kp", name: 'Dinesh Karthik', role: 'KEEPER', votes: 0 },
-  { id: "virat-kohli-cap", name: 'Virat Kohli', role: 'CAPTAIN', votes: 0 },
-  { id: "ms-dhoni-cap", name: 'MS Dhoni', role: 'CAPTAIN', votes: 0 },
-  { id: "rohit-sharma-cap", name: 'Rohit Sharma', role: 'CAPTAIN', votes: 0 },
-  { id: "rajat-patidar-cap", name: 'Rajat Patidar', role: 'CAPTAIN', votes: 0 },
-  { id: "hardik-pandya-cap", name: 'Hardik Pandya', role: 'CAPTAIN', votes: 0 },
-  { id: "shubman-gill-cap", name: 'Shubman Gill', role: 'CAPTAIN', votes: 0 },
-  { id: "ruturaj-gaikwad-cap", name: 'Ruturaj Gaikwad', role: 'CAPTAIN', votes: 0 },
-  { id: "kapil-dev-cap", name: 'Kapil Dev', role: 'CAPTAIN', votes: 0 },
-];
+  const [posts, setPosts] = useState([
+    {id:1, city:'Tirupati', type:'Question', icon:'❓', color:'bg-orange-100 text-orange-700', author:'Suresh K', area:'Tiruchanoor', distance:0.4, text:'నా bike start అవ్వడం లేదు. Nearby mechanic ఎవరికైనా తెలుసా?', likes:3, useful:8, comments:[{id:1, author:'Ravi Mechanic', text:'Nenu 0.5km lo unna, call chey', replies:[{author:'Suresh', text:'Thanks anna'}]}], time:'10m ago'},
+    {id:2, city:'Tirupati', type:'Local update', icon:'📰', color:'bg-blue-100 text-blue-700', author:'Lakshmi', area:'Renigunta Road', distance:0.8, text:'Tomorrow water supply 2hrs late due to repair.', likes:12, useful:21, comments:[], time:'45m ago'},
+    {id:3, city:'Tirupati', type:'Recommendation', icon:'💡', color:'bg-green-100 text-green-700', author:'Arjun', area:'K.T Road', distance:1.2, text:'Best dosa near station - Lakshmi Tiffin center!', likes:9, useful:15, comments:[], time:'2h ago'},
+    {id:4, city:'Tirupati', type:'Alert', icon:'🚨', color:'bg-red-100 text-red-700', author:'Municipal', area:'Central', distance:0.3, text:'Heavy rain alert today evening.', likes:5, useful:32, comments:[], time:'3h ago'},
+    {id:5, city:'Renigunta', type:'Announcement', icon:'📢', color:'bg-purple-100 text-purple-700', author:'College Admin', area:'Renigunta', distance:0.6, text:'College fest Dec 5th - All invited!', likes:20, useful:10, comments:[], time:'5h ago'},
+  ]);
 
-// ============= FOOTBALL =============
-const FOOTBALL_PLAYERS = [
-  // ===== FORWARDS - 12 =====
-  { id: "ronaldo", name: 'Cristiano Ronaldo', role: 'FORWARD', votes: 0 },
-  { id: "messi", name: 'Lionel Messi', role: 'FORWARD', votes: 0 },
-  { id: "mbappe", name: 'Kylian Mbappe', role: 'FORWARD', votes: 0 },
-  { id: "neymar", name: 'Neymar Jr', role: 'FORWARD', votes: 0 },
-  { id: "haaland", name: 'Erling Haaland', role: 'FORWARD', votes: 0 },
-  { id: "vinicius", name: 'Vinicius Jr', role: 'FORWARD', votes: 0 },
-  { id: "salah", name: 'Mohamed Salah', role: 'FORWARD', votes: 0 },
-  { id: "lewandowski", name: 'Robert Lewandowski', role: 'FORWARD', votes: 0 },
-  { id: "kane", name: 'Harry Kane', role: 'FORWARD', votes: 0 },
-  { id: "benzema", name: 'Karim Benzema', role: 'FORWARD', votes: 0 },
-  { id: "mane", name: 'Sadio Mane', role: 'FORWARD', votes: 0 },
-  { id: "rashford", name: 'Marcus Rashford', role: 'FORWARD', votes: 0 },
+  const groups = [
+    {id:1, name:'Students', icon:'🎓', members:342, desc:'College doubts, notes'},
+    {id:2, name:'Jobs', icon:'💼', members:189, desc:'Local jobs'},
+    {id:3, name:'Sports', icon:'⚽', members:124, desc:'Cricket matches'},
+    {id:4, name:'Apartments', icon:'🏠', members:98, desc:'Rooms for rent'},
+    {id:5, name:'Buy/Sell', icon:'🛒', members:210, desc:'Books, bikes'},
+    {id:6, name:'Events', icon:'📅', members:76, desc:'Festivals'},
+    {id:7, name:'Help', icon:'🆘', members:156, desc:'Ask help nearby'},
+  ];
+  const [joinedGroups, setJoinedGroups] = useState([1,5]);
 
-  // ===== MIDFIELDERS - 14 =====
-  { id: "de-bruyne", name: 'Kevin De Bruyne', role: 'MIDFIELDER', votes: 0 },
-  { id: "modric", name: 'Luka Modric', role: 'MIDFIELDER', votes: 0 },
-  { id: "bellingham", name: 'Jude Bellingham', role: 'MIDFIELDER', votes: 0 },
-  { id: "pedri", name: 'Pedri', role: 'MIDFIELDER', votes: 0 },
-  { id: "kroos", name: 'Toni Kroos', role: 'MIDFIELDER', votes: 0 },
-  { id: "rodri", name: 'Rodri', role: 'MIDFIELDER', votes: 0 },
-  { id: "valverde", name: 'Federico Valverde', role: 'MIDFIELDER', votes: 0 },
-  { id: "fernandez", name: 'Bruno Fernandes', role: 'MIDFIELDER', votes: 0 },
-  { id: "griezmann", name: 'Antoine Griezmann', role: 'MIDFIELDER', votes: 0 },
-  { id: "casemiro", name: 'Casemiro', role: 'MIDFIELDER', votes: 0 },
-  { id: "kamavinga", name: 'Eduardo Camavinga', role: 'MIDFIELDER', votes: 0 },
-  { id: "musiala", name: 'Jamal Musiala', role: 'MIDFIELDER', votes: 0 },
-  { id: "foden", name: 'Phil Foden', role: 'MIDFIELDER', votes: 0 },
-  { id: "palmer", name: 'Cole Palmer', role: 'MIDFIELDER', votes: 0 },
+  const [market, setMarket] = useState([
+    {id:1, title:'DBMS Textbook', price:250, cat:'Books', area:'Tirupati', distance:0.5, seller:'Kiran', condition:'Good'},
+    {id:2, title:'Hero Bicycle', price:4500, cat:'Bikes', area:'Renigunta', distance:1.1, seller:'Sai', condition:'Like New'},
+    {id:3, title:'Study Table', price:1200, cat:'Furniture', area:'Tiruchanoor', distance:0.9, seller:'Priya', condition:'Good'},
+    {id:4, title:'Redmi Note 12', price:8000, cat:'Electronics', area:'Tirupati', distance:0.4, seller:'Arjun', condition:'Good'},
+  ]);
 
-  // ===== DEFENDERS - 10 =====
-  { id: "ramos", name: 'Sergio Ramos', role: 'DEFENDER', votes: 0 },
-  { id: "vvd", name: 'Virgil van Dijk', role: 'DEFENDER', votes: 0 },
-  { id: "dias", name: 'Ruben Dias', role: 'DEFENDER', votes: 0 },
-  { id: "hakimi", name: 'Achraf Hakimi', role: 'DEFENDER', votes: 0 },
-  { id: "trent", name: 'Trent Alexander-Arnold', role: 'DEFENDER', votes: 0 },
-  { id: "robertson", name: 'Andrew Robertson', role: 'DEFENDER', votes: 0 },
-  { id: "alaba", name: 'David Alaba', role: 'DEFENDER', votes: 0 },
-  { id: "rudiger", name: 'Antonio Rudiger', role: 'DEFENDER', votes: 0 },
-  { id: "marquinhos", name: 'Marquinhos', role: 'DEFENDER', votes: 0 },
-  { id: "araujo", name: 'Ronald Araujo', role: 'DEFENDER', votes: 0 },
+  const [events, setEvents] = useState([
+    {id:1, title:'Cricket Tournament', date:'Nov 30', time:'9 AM', area:'College Ground', cat:'Sports', desc:'Inter-branch cricket', going:24},
+    {id:2, title:'Book Festival', date:'Dec 2', time:'10 AM', area:'Town Hall', cat:'Festivals', desc:'Local authors sale', going:45},
+    {id:3, title:'Cleaning Drive', date:'Dec 3', time:'7 AM', area:'Central', cat:'Community meetings', desc:'Clean our area', going:18},
+  ]);
 
-  // ===== GOALKEEPERS - 4 =====
-  { id: "courtois", name: 'Thibaut Courtois', role: 'GOALKEEPER', votes: 0 },
-  { id: "ter-stegen", name: 'Marc-Andre ter Stegen', role: 'GOALKEEPER', votes: 0 },
-  { id: "alisson", name: 'Alisson Becker', role: 'GOALKEEPER', votes: 0 },
-  { id: "ederson", name: 'Ederson', role: 'GOALKEEPER', votes: 0 },
-];
+  const filteredPosts = posts.filter(p => !blocked.includes(p.author) && p.city === city && (feedFilter==='All'||p.type===feedFilter) && (search===''|| p.text.toLowerCase().includes(search.toLowerCase()))).sort((a,b)=> tab==='nearby'?a.distance-b.distance:0);
 
-// ============= MOVIES =============
-const MOVIES_PLAYERS = [
-  { id: "jr ntr", name: 'Jr NTR', role: 'HERO', votes: 0 },
-  { id: "prabhas", name: 'Prabhas', role: 'HERO', votes: 0 },
-  { id: "allu-arjun", name: 'Allu Arjun', role: 'HERO', votes: 0 },
-  { id: "ram-charan", name: 'Ram Charan', role: 'HERO', votes: 0 },
-  { id: "pawan-kalyan", name: 'Pawan Kalyan', role: 'HERO', votes: 0 },
-  { id: "mahesh-babu", name: 'Mahesh Babu', role: 'HERO', votes: 0 },
-  { id: "nani", name: 'Nani', role: 'HERO', votes: 0 },
-  { id: "ravi-teja", name: 'Ravi Teja', role: 'HERO', votes: 0 },
-  { id: "ram", name: 'Ram', role: 'HERO', votes: 0 },
-  { id: "chiranjeevi", name: 'Chiranjeevi', role: 'HERO', votes: 0 },
-  { id: "nagarjuna", name: 'Nagarjuna', role: 'HERO', votes: 0 },
-  { id: "balakrishna", name: 'Balakrishna', role: 'HERO', votes: 0 },
-  { id: "venkatesh", name: 'Venkatesh', role: 'HERO', votes: 0 },
-  { id: "vijay-devarakonda", name: 'Vijay Devarakonda', role: 'HERO', votes: 0 },
-  { id: "sai-dharam-tej", name: 'Sai Dharam Tej', role: 'HERO', votes: 0 },
-  { id: "siddu", name: 'Siddu', role: 'HERO', votes: 0 },
-  { id: "naga-chaitanya", name: 'Naga Chaitanya', role: 'HERO', votes: 0 },
-  { id: "akhil", name: 'Akhil', role: 'HERO', votes: 0 },
-  { id: "prakash-raj", name: 'Prakash Raj', role: 'VILLAIN', votes: 0 },
-  { id: "sonu-sood", name: 'Sonu Sood', role: 'VILLAIN', votes: 0 },
-  { id: "rana", name: 'Rana Daggubati', role: 'VILLAIN', votes: 0 },
-  { id: "Gopichand", name: 'Gopichand', role: 'VILLAIN', votes: 0 },
-  { id: "sudeep", name: 'Sudeep', role: 'VILLAIN', votes: 0 },
-  { id: "vijay-sethupathi", name: 'Vijay Sethupathi', role: 'VILLAIN', votes: 0 },
-  { id: "fahadh-faasl", name: 'Fahadh Faasil', role: 'VILLAIN', votes: 0 },
-  { id: "jagapathi-babu", name: 'Jagapathi Babu', role: 'VILLAIN', votes: 0 },
-  { id: "srikanth", name: 'SriKanth', role: 'VILLAIN', votes: 0 },
-  { id: "Sunil", name: 'Sunil', role: 'VILLAIN', votes: 0 },
-];
-
-const ALL_DATA = { Cricket: CRICKET_PLAYERS, Football: FOOTBALL_PLAYERS, Movies: MOVIES_PLAYERS };
-
-// ============= HELPERS =============
-const getToday = () => {
-  const now = new Date();
-  const ist = new Date(now.toLocaleString("en-US", {timeZone: "Asia/Kolkata"}));
-  return ist.toISOString().split('T')[0];
-};
-const getTimeUntilNextVote = (lastVoteTime) => {
-  if (!lastVoteTime) return 0;
-  const nextVoteTime = new Date(lastVoteTime).getTime() + VOTE_COOLDOWN_HOURS * 60 * 60 * 1000;
-  const diff = nextVoteTime - Date.now();
-  return diff > 0? diff : 0;
-};
-const getChatRoomId = (uid1, uid2) => [uid1, uid2].sort().join('_');
-
-export default function CrickClash() {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [category, setCategory] = useState('Cricket');
-  const [players, setPlayers] = useState(CRICKET_PLAYERS);
-  const [battle, setBattle] = useState([null, null]);
-  const [battleNo, setBattleNo] = useState(1);
-  const [filter, setFilter] = useState('Any');
-  const [tab, setTab] = useState('Battle');
-  const [votesToday, setVotesToday] = useState({Cricket: 0, Football: 0, Movies: 0});
-  const [totalVotes, setTotalVotes] = useState(0);
-  const [topPlayer, setTopPlayer] = useState(null);
-  const [badges, setBadges] = useState([]);
-  const [battleHistory, setBattleHistory] = useState([]);
-  const [showProfile, setShowProfile] = useState(false);
-  const [showEditProfile, setShowEditProfile] = useState(false);
-  const [editName, setEditName] = useState("");
-  const [editUsername, setEditUsername] = useState("");
-  const [editBio, setEditBio] = useState("");
-  const [usernameError, setUsernameError] = useState("");
-  const [voteAnim, setVoteAnim] = useState(null);
-  const [timeLeft, setTimeLeft] = useState("");
-  const [isVoting, setIsVoting] = useState(false);
-  const [comments, setComments] = useState([]);
-  const [newComment, setNewComment] = useState("");
-  const [selectedPlayer, setSelectedPlayer] = useState(null);
-  const [replyTo, setReplyTo] = useState(null);
-  const [newReply, setNewReply] = useState("");
-  const [showResultCard, setShowResultCard] = useState(false);
-  const [tournament, setTournament] = useState(null);
-  const [yesterdayWinners, setYesterdayWinners] = useState({Cricket: null, Football: null, Movies: null});
-  const [streak, setStreak] = useState(0);
-  const [topFans, setTopFans] = useState([]);
-  const [globalChat, setGlobalChat] = useState([]);
-  const [newGlobalMsg, setNewGlobalMsg] = useState("");
-  const [followers, setFollowers] = useState([]);
-  const [following, setFollowing] = useState([]);
-  const [selectedFriend, setSelectedFriend] = useState(null);
-  const [friendChat, setFriendChat] = useState([]);
-  const [newFriendMsg, setNewFriendMsg] = useState("");
-  const [showChatModal, setShowChatModal] = useState(false);
-  const [showFriendsChatList, setShowFriendsChatList] = useState(false);
-  const [footerTab, setFooterTab] = useState('Home');
-  const [searchUsername, setSearchUsername] = useState("");
-  const [searchResult, setSearchResult] = useState(null);
-  const touchStartX = useRef(0);
-  const touchEndX = useRef(0);
-
-  const getBattleKey = () => battle[0] && battle[1]? `${category}-${battle[0].id}-${battle[1].id}-B${battleNo}` : null;
-  const canVoteNow = () => {
-    const timeLeft = getTimeUntilNextVote(user?.[`${category}LastVoteTime`]);
-    const votesUsed = votesToday[category];
-    return votesUsed < DAILY_VOTE_LIMIT && timeLeft === 0;
-  }
-
-  const handleTouchStart = (e) => { touchStartX.current = e.targetTouches[0].clientX; };
-  const handleTouchEnd = (e) => {
-    touchEndX.current = e.changedTouches[0].clientX;
-    if (touchEndX.current - touchStartX.current > 100) { setShowFriendsChatList(true); }
-  };
-  const handleFooterSearch = () => { setFooterTab('Search'); setTab('Fans'); }
-  const handleSearchUser = async () => {
-    if(!searchUsername.trim()) return;
-    const username = searchUsername.toLowerCase().trim();
-    const snap = await get(ref(db, `usernames/${username}`));
-    if(snap.exists()){
-      const uid = snap.val();
-      const userSnap = await get(ref(db, `users/${uid}/profile`));
-      if(userSnap.exists()){ setSearchResult({uid: uid,...userSnap.val()}); }
-      else { alert("User not found"); setSearchResult(null); }
-    } else { alert("Username not found"); setSearchResult(null); }
+  const addPost = () => {
+    if(!postText.trim()) return;
+    const icons = {'Local update':'📰','Question':'❓','Recommendation':'💡','Alert':'🚨','Announcement':'📢'};
+    const colors = {'Local update':'bg-blue-100 text-blue-700','Question':'bg-orange-100 text-orange-700','Recommendation':'bg-green-100 text-green-700','Alert':'bg-red-100 text-red-700','Announcement':'bg-purple-100 text-purple-700'};
+    setPosts([{id:Date.now(), city, type:postType, icon:icons[postType], color:colors[postType], author:'You', area:city+' Local', distance:0.2, text:postText, likes:0, useful:0, comments:[], time:'Just now'}, ...posts]);
+    setPostText(''); setShowPostModal(false);
   };
 
-  const loadYesterdayWinners = useCallback(async () => {
-    const winners = {};
-    for(const cat of ['Cricket', 'Football', 'Movies']) {
-      const snap = await get(ref(db, `yesterdayWinners/${cat}`));
-      winners[cat] = snap.exists()? snap.val() : null;
-    }
-    setYesterdayWinners(winners);
-  }, []);
-
-  const generateBattle = useCallback((playerList, role) => {
-    if(playerList.length < 2) return;
-    let filtered = role === 'Any'? playerList : playerList.filter(p => p.role === role);
-    if(filtered.length < 2) { setBattle([null, null]); return; }
-    let p1 = filtered[Math.floor(Math.random() * filtered.length)];
-    let p2 = filtered[Math.floor(Math.random() * filtered.length)];
-    let attempts = 0;
-    while(p1.id === p2.id && attempts < 20) { p2 = filtered[Math.floor(Math.random() * filtered.length)]; attempts++; }
-    setBattle([p1, p2]);
-  }, []);
-
-  const handleUpdateProfile = async () => {
-    if(!user ||!editName.trim()) return;
-    const username = editUsername.toLowerCase().trim();
-    if(username.length < 3) return setUsernameError("Username min 3 characters");
-    if(!/^[a-z0-9_]+$/.test(username)) return setUsernameError("Only a-z, 0-9, _ allowed");
-    const usernameSnap = await get(ref(db, `usernames/${username}`));
-    if(usernameSnap.exists() && usernameSnap.val()!== user.uid) { return setUsernameError("Username already taken"); }
-    if(user.profile?.username) await remove(ref(db, `usernames/${user.profile.username}`));
-    await set(ref(db, `usernames/${username}`), user.uid);
-    await update(ref(db, `users/${user.uid}/profile`), { displayName: editName, username: username, bio: editBio, photoURL: user.photoURL, email: user.email, followersCount: followers.length, followingCount: following.length });
-    await update(ref(db, `users/${user.uid}`), { displayName: editName, username: username, bio: editBio });
-    alert("Profile Updated ✅");
-    setShowEditProfile(false);
-    setUsernameError("");
-  }
-
-  const handleFollow = async (targetUid) => {
-    if(!user) return alert("Login required");
-    await set(ref(db, `users/${user.uid}/following/${targetUid}`), true);
-    await set(ref(db, `users/${targetUid}/followers/${user.uid}`), true);
-    await update(ref(db, `users/${user.uid}/profile/followingCount`), increment(1));
-    await update(ref(db, `users/${targetUid}/profile/followersCount`), increment(1));
-  }
-  const handleUnfollow = async (targetUid) => {
-    if(!user) return alert("Login required");
-    await remove(ref(db, `users/${user.uid}/following/${targetUid}`));
-    await remove(ref(db, `users/${targetUid}/followers/${user.uid}`));
-    await update(ref(db, `users/${user.uid}/profile/followingCount`), increment(-1));
-    await update(ref(db, `users/${targetUid}/profile/followersCount`), increment(-1));
-  }
-
-  const openFriendChat = (friend) => { setSelectedFriend(friend); setShowChatModal(true); }
-  const handleSendFriendMsg = async () => {
-    if(!user ||!selectedFriend ||!newFriendMsg.trim()) return;
-    const roomId = getChatRoomId(user.uid, selectedFriend.uid);
-    const time = Date.now();
-    await set(ref(db, `chats/${roomId}/${time}`), { text: newFriendMsg, from: user.uid, time: time });
-    await update(ref(db, `users/${user.uid}/chats/${selectedFriend.uid}`), { name: selectedFriend.name, username: selectedFriend.username, photo: selectedFriend.photo, lastMsg: newFriendMsg, lastTime: time });
-    await update(ref(db, `users/${selectedFriend.uid}/chats/${user.uid}`), { name: user.displayName, username: user.profile?.username, photo: user.photoURL, lastMsg: newFriendMsg, lastTime: time });
-    setNewFriendMsg("");
-  };
-
-  const handlePostGlobalChat = async () => {
-
-    if(!user){ alert("Login required"); await signInWithPopup(auth, googleProvider); return; }
-    if(!newGlobalMsg.trim()) return;
-    const time = Date.now();
-    await set(ref(db, `globalChat/${time}`), { text: newGlobalMsg, user: user.displayName, username: user.profile?.username || "", photo: user.photoURL, time: time });
-    setNewGlobalMsg("");
-  };
-
-  const handleGoogleLogin = () => signInWithPopup(auth, googleProvider);
-  const handleLogout = async () => {
-    if(window.confirm("Logout?")) {
-      await signOut(auth);
-      setShowProfile(false);
-      setUser(null);
-      setVotesToday({Cricket: 0, Football: 0, Movies: 0});
-      setBadges([]); setBattleHistory([]); setStreak(0); setFollowers([]); setFollowing([]);
-    }
-  };
-
-  const handleVote = async (votedPlayerId) => {
-    if(!user){ alert("Login required to Vote"); await signInWithPopup(auth, googleProvider); return; }
-    const userLastVoteTime = user[`${category}LastVoteTime`];
-    const timeLeftMs = getTimeUntilNextVote(userLastVoteTime);
-    if(votesToday[category] >= DAILY_VOTE_LIMIT || timeLeftMs > 0 || isVoting) {
-      const mins = Math.ceil(timeLeftMs / 1000 / 60);
-      return alert(`${category} lo ${DAILY_VOTE_LIMIT} votes over! Next vote in ${Math.floor(mins/60)}h ${mins%60}m`);
-    }
-    setIsVoting(true); setVoteAnim(votedPlayerId); setTimeout(() => setVoteAnim(null), 500);
-    const today = getToday();
-    const votedPlayer = ALL_DATA[category].find(p => p.id === votedPlayerId);
-    const historyEntry = {battleNo, category, players: [battle[0]?.name, battle[1]?.name], votedFor: votedPlayer.name, date: today};
-    const newHistory = [historyEntry,...battleHistory].slice(0, 50);
-    const newBattleNo = battleNo + 1;
-    let newBadges = [...badges];
-    if(votesToday[category] === 0 &&!newBadges.includes(`First ${category} Vote`)) newBadges.push(`First ${category} Vote`);
-    if(!newBadges.includes(`${category} Fan`)) newBadges.push(`${category} Fan`);
-    const userSnap = await get(ref(db, `users/${user.uid}`));
-    const userData = userSnap.val() || {};
-    const lastVoteDate = userData[`${category}LastVoteDate`];
-    const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
-    const yesterdayStr = yesterday.toISOString().split('T')[0];
-    let newStreak = streak;
-    if(lastVoteDate === yesterdayStr) { newStreak = newStreak + 1; }
-    else if(lastVoteDate!== today) { newStreak = 1; }
-    await update(ref(db, `users/${user.uid}`), { streak: newStreak, [`${category}LastVoteDate`]: today });
-    setStreak(newStreak);
-    await update(ref(db, `users/${user.uid}/${category}`), { votesToday: increment(1), lastVoteDate: today, lastVoteTime: Date.now(), badges: newBadges, history: newHistory });
-    await update(ref(db, `players/${category}/${votedPlayerId}`), { votes: increment(1) });
-    await update(ref(db, `meta/${category}`), { totalVotes: increment(1) });
-
-    setBattleNo(newBattleNo);
-    setTimeout(() => { setIsVoting(false); }, 500);
-  };
-
-  const handleSkip = async () => {
-    if(!user){ alert("Login required to Skip"); await signInWithPopup(auth, googleProvider); return; }
-    const newBattleNo = battleNo + 1;
-    setBattleNo(newBattleNo);
-    generateBattle(players, filter);
-  };
-
-  const handleDeleteHistory = async () => {
-    if(!user) return alert("Login required");
-    if(window.confirm("Are you sure?")){ await remove(ref(db, `users/${user.uid}/${category}/history`)); setBattleHistory([]); }
-  };
-
-  const handleShareResult = () => {
-    const text = `Who's your favourite ${battle[0]?.name} vs ${battle[1]?.name} Vote on FanClash ${category}! ⚔️`;
-    const url = window.location.href;
-    if (navigator.share) { navigator.share({title: 'FanClash', text: text, url: url}); }
-    else { navigator.clipboard.writeText(`${text} ${url}`); alert("Copied!"); }
-  };
-
-  const handleRefer = async () => {
-    if(!user){ alert("Login required to Refer"); await signInWithPopup(auth, googleProvider); return; }
-    const refLink = `${window.location.origin}?ref=${user.uid}`;
-    navigator.clipboard.writeText(`Vote now on FanClash! ${refLink}`);
-    alert("Refer your friend you can get an extra vote!");
-  }
-
-  const startTournament = () => {
-    if(!user){ alert("Login required for Tournament"); handleGoogleLogin(); return; }
-    const shuffled = [...players].sort(() => 0.5 - Math.random()).slice(0, 8);
-    if(shuffled.length < 8) return alert("8 players ledu");
-    setTournament({ round: 1, matches: [[shuffled[0], shuffled[1]], [shuffled[2], shuffled[3]], [shuffled[4], shuffled[5]], [shuffled[6], shuffled[7]]], winner: null });
-  }
-
-  const handlePostComment = async () => {
-    if(!user){ alert("Login required"); await signInWithPopup(auth, googleProvider); return; }
-    if(!newComment.trim() ||!battle[0] ||!battle[1]) return;
-    const time = Date.now();
-    const battleKey = getBattleKey();
-    await set(ref(db, `comments/${battleKey}/${time}`), { text: newComment, user: user.displayName, username: user.profile?.username, photo: user.photoURL, time: time, key: time, likes: {}, replies: {} });
-    setNewComment("");
-  };
-
-  const handleLikeComment = async (commentKey) => {
-    if(!user) return alert("Login required");
-    const battleKey = getBattleKey();
-    const likeRef = ref(db, `comments/${battleKey}/${commentKey}/likes/${user.uid}`);
-    const snap = await get(likeRef);
-    if(snap.exists()){ await remove(likeRef); } else { await set(likeRef, true); }
-  };
-
-  const handlePostReply = async (commentKey) => {
-    if(!user){ alert("Login required"); await signInWithPopup(auth, googleProvider); return; }
-    if(!newReply.trim()) return;
-    const time = Date.now();
-    const battleKey = getBattleKey();
-    await set(ref(db, `comments/${battleKey}/${commentKey}/replies/${time}`), { text: newReply, user: user.displayName, username: user.profile?.username, photo: user.photoURL, time: time, key: time });
-    setNewReply(""); setReplyTo(null);
-  };
-
-  const CommentItem = ({comment, commentKey, depth = 0}) => {
-    const commentId = comment.key || comment.time;
-    return (
-      <div style={{marginLeft: depth * 16}}>
-        <div className="bg-[#1A1A1A] p-3 rounded-xl mb-2">
-          <div className="flex items-center gap-2"><img src={comment.photo || '/default-avatar.png'} className="w-8 h-8 rounded-full"/><b className="text-sm">{comment.user}</b> <span className="text-xs text-gray-500">@{comment.username}</span></div>
-          <p className="text-sm mt-1">{comment.text}</p>
-          <div className="flex gap-3 mt-2"><button onClick={() => handleLikeComment(commentId)} className="text-xs text-gray-400">🤍 {Object.keys(comment.likes || {}).length}</button><button onClick={() => setReplyTo(replyTo === commentId? null : commentId)} className="text-xs text-[#a8ff00]">Reply</button></div>
-          {replyTo === commentId && (<div className="flex gap-2 mt-2"><input value={newReply} onChange={(e) => setNewReply(e.target.value)} placeholder="Reply..." className="flex-1 bg-[#0a0a0f] p-2 rounded-lg text-sm"/><button onClick={() => handlePostReply(commentId)} className="bg-[#a8ff00] text-black px-3 rounded-lg text-sm">Send</button></div>)}
-        </div>
-        {comment.replies && Object.values(comment.replies).sort((a,b) => a.time - b.time).map((reply) => (<CommentItem key={reply.key} comment={reply} commentKey={reply.key} depth={depth + 1}/>))}
-      </div>
-    );
-  }
-
-  useEffect(() => {
-    const updateTimer = () => {
-      const now = new Date();
-      const istNow = new Date(now.toLocaleString("en-US", {timeZone: "Asia/Kolkata"}));
-      const tomorrow = new Date(istNow);
-      tomorrow.setDate(istNow.getDate() + 1);
-      tomorrow.setHours(0, 0, 0, 0);
-      const diff = tomorrow - istNow;
-      const h = Math.floor(diff / 1000 / 60 / 60);
-      const m = Math.floor(diff / 1000 / 60) % 60;
-      const s = Math.floor(diff / 1000) % 60;
-      setTimeLeft(`${h}h ${m}m ${s}s`);
-    };
-    updateTimer();
-    const interval = setInterval(updateTimer, 1000);
-    return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
-    const checkGlobalReset = async () => {
-      const today = getToday();
-      const snap = await get(ref(db, `meta/lastGlobalReset`));
-      if (snap.val()!== today) {
-        for(const cat of ['Cricket', 'Football', 'Movies']) {
-          const playersRef = ref(db, `players/${cat}`);
-          const pSnap = await get(playersRef);
-          const pData = pSnap.val();
-          if(pData) {
-            const sorted = Object.values(pData).sort((a,b) => b.votes - a.votes);
-            if(sorted[0]) { await set(ref(db, `yesterdayWinners/${cat}`), { name: sorted[0].name, votes: sorted[0].votes }); }
-          }
-          const resetPlayers = {};
-          ALL_DATA[cat].forEach(p => { resetPlayers[p.id] = {...p, votes: 0}; });
-          await set(ref(db, `players/${cat}`), resetPlayers);
-          await set(ref(db, `meta/${cat}`), { lastResetDate: today, totalVotes: 0 });
-        }
-        await set(ref(db, `meta/lastGlobalReset`), today);
-      }
-    };
-    checkGlobalReset();
-    const interval = setInterval(checkGlobalReset, 60 * 1000);
-    return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
-    loadYesterdayWinners();
-    const metaUnsub = onValue(ref(db, `meta/${category}`), (snapshot) => {
-      const metaData = snapshot.val();
-      if (metaData) { setTotalVotes(metaData.totalVotes || 0); }
-    });
-
-    // FIRST TIME MATRAM BATTLE SET CHEY
-    if(!battle[0] ||!battle[1]) {
-        generateBattle(players, filter);
-    }
-
-    const playersUnsub = onValue(ref(db, `players/${category}`), (snapshot) => {
-      const data = snapshot.val();
-      const currentPlayers = ALL_DATA[category];
-      if (data) {
-        // Votes matrame update chey, battle maaradu
-        setPlayers(prev => currentPlayers.map(p => ({...p, votes: data[p.id]?.votes || prev.find(x => x.id === p.id)?.votes || 0 })));
-        const sorted = [...currentPlayers].sort((a,b) => (data[b.id]?.votes || 0) - (data[a.id]?.votes || 0));
-        setTopPlayer(sorted[0]);
-      } else {
-        const initialPlayers = {};
-        currentPlayers.forEach((p) => { initialPlayers[p.id] = {...p}; });
-        set(ref(db, `players/${category}`), initialPlayers);
-        set(ref(db, `meta/${category}`), { lastResetDate: getToday(), totalVotes: 0 });
-      }
-    });
-    const fansUnsub = onValue(ref(db, `users`), (snap) => {
-      const allUsers = snap.val() || {};
-      let fansList = [];
-      Object.keys(allUsers).forEach(uid => {
-        const u = allUsers[uid];
-        const catData = u[category];
-        const profile = u.profile;
-        if(catData?.votesToday > 0) {
-          fansList.push({ uid: uid, name: profile?.displayName || "Anonymous", username: profile?.username || "", photo: profile?.photoURL || `https://ui-avatars.com/api/?name=${profile?.displayName || 'A'}`, votes: catData.votesToday })
-        }
-      });
-      fansList.sort((a,b) => b.votes - a.votes);
-      setTopFans(fansList.slice(0,10));
-    })
-    const globalChatUnsub = onValue(ref(db, `globalChat`), (snap) => {
-      const data = snap.val();
-      setGlobalChat(data? Object.values(data).sort((a,b) => b.time - a.time).slice(0, 100) : []);
-    });
-    let userChatsUnsub = () => {};
-    if(user){
-      userChatsUnsub = onValue(ref(db, `users/${user.uid}/chats`), (snap) => {
-        const chats = snap.val() || {};
-        setUser(prev => ({...prev, chats: chats}));
-      })
-    }
-    return () => { metaUnsub(); playersUnsub(); fansUnsub(); globalChatUnsub(); userChatsUnsub(); }
-  }, [category, user]); // players ni dependency nunchi teesesa
-
-// Filter or Category change ayyaka matrame battle generate chey
-  useEffect(() => {
-    generateBattle(players, filter);
-  }, [filter, category, generateBattle]);
-
-  useEffect(() => {
-    setLoading(true);
-    const authUnsub = onAuthStateChanged(auth, async (currentUser) => {
-      setLoading(false);
-      if(currentUser) {
-        const today = getToday();
-        const userSnap = await get(ref(db, `users/${currentUser.uid}`));
-        const userData = userSnap.val() || {};
-        await set(ref(db, `users/${currentUser.uid}/profile`), { displayName: currentUser.displayName, photoURL: currentUser.photoURL, email: currentUser.email, username: userData.profile?.username || "", bio: userData.profile?.bio || "", lastLogin: Date.now() })
-        if(userData.lastGlobalReset!== today) {
-          await update(ref(db, `users/${currentUser.uid}`), {
-            Cricket: { votesToday: 0, lastVoteTime: 0 },
-            Football: { votesToday: 0, lastVoteTime: 0 },
-            Movies: { votesToday: 0, lastVoteTime: 0 },
-            lastGlobalReset: today
-          })
-        }
-        setUser(currentUser);
-        setEditName(userData.profile?.displayName || currentUser.displayName);
-        setEditUsername(userData.profile?.username || "");
-        setEditBio(userData.profile?.bio || "");
-        setStreak(userData.streak || 0);
-        setVotesToday({ Cricket: userData.Cricket?.votesToday || 0, Football: userData.Football?.votesToday || 0, Movies: userData.Movies?.votesToday || 0 });
-        setUser(prev => ({...prev, profile: userData.profile, chats: userData.chats || {}, CricketLastVoteTime: userData.Cricket?.lastVoteTime, FootballLastVoteTime: userData.Football?.lastVoteTime, MoviesLastVoteTime: userData.Movies?.lastVoteTime}));
-        const userUnsub = onValue(ref(db, `users/${currentUser.uid}/${category}`), (snapshot) => {
-          const catData = snapshot.val();
-          if(catData){ setBadges(catData.badges || []); setBattleHistory(catData.history || []); setUser(prev => ({...prev, [`${category}LastVoteTime`]: catData.lastVoteTime})); }
-        });
-        const followersUnsub = onValue(ref(db, `users/${currentUser.uid}/followers`), (snap) => { setFollowers(snap.val()? Object.keys(snap.val()) : []); });
-        const followingUnsub = onValue(ref(db, `users/${currentUser.uid}/following`), (snap) => { setFollowing(snap.val()? Object.keys(snap.val()) : []); });
-        return () => { userUnsub(); followersUnsub(); followingUnsub(); }
-      } else {
-        setUser(null);
-        setVotesToday({Cricket: 0, Football: 0, Movies: 0});
-        setBadges([]); setBattleHistory([]); setStreak(0); setFollowers([]); setFollowing([]);
-      }
-    });
-    return () => authUnsub();
-  }, [category]);
-
-  useEffect(() => {
-    if(!user ||!selectedFriend) return;
-    const roomId = getChatRoomId(user.uid, selectedFriend.uid);
-    const unsub = onValue(ref(db, `chats/${roomId}`), (snap) => {
-      const data = snap.val();
-      setFriendChat(data? Object.values(data).sort((a,b) => a.time - b.time) : []);
-    });
-    return () => unsub();
-  }, [user, selectedFriend]);
-
-  useEffect(() => {
-    if(!battle[0] ||!battle[1]) return;
-    const battleKey = getBattleKey();
-    if(!battleKey) return;
-    const unsubscribe = onValue(ref(db, `comments/${battleKey}`), (snap) => {
-      const data = snap.val();
-      setComments(data? Object.values(data).sort((a,b) => b.time - a.time) : []);
-    });
-    return () => unsubscribe();
-  }, [battle, battleNo, category]);
-
-  if(loading) return <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center text-white">Loading...</div>;
+  const toggleLike = (id, type) => setPosts(posts.map(p=> p.id===id?{...p, [type]:p[type]+1}:p));
 
   return (
-    <div className="min-h-screen bg-[#0a0a0f] text-white pb-20">
-      <style>{`@keyframes pop { 0%{transform:scale(1)} 50%{transform:scale(1.15)} 100%{transform:scale(1)} }.vote-pop { animation: pop 0.5s ease; }`}</style>
-
-      {/* FRIENDS CHAT LIST SWIPE */}
-      {showFriendsChatList && (
-        <div onClick={() => setShowFriendsChatList(false)} className="fixed inset-0 bg-black/90 z-50 flex">
-          <div onClick={e => e.stopPropagation()} className="bg-[#13131a] w-[80%] h-full p-4 overflow-y-auto">
-            <h2 className="text-xl font-bold mb-4 text-[#a8ff00]">💬 Messages</h2>
-            {Object.keys(user?.chats || {}).length === 0?
-              <p className="text-gray-500">No chats yet. Search user to chat</p> :
-              Object.entries(user.chats).sort((a,b) => b[1].lastTime - a[1].lastTime).map(([uid, chat]) => (
-                <div key={uid} onClick={() => {openFriendChat(chat); setShowFriendsChatList(false)}}
-                     className="flex gap-3 p-3 bg-[#0a0a0f] rounded-xl mb-2 cursor-pointer">
-                  <img src={chat.photo} className="w-12 h-12 rounded-full"/>
-                  <div className="flex-1">
-                    <p className="font-bold">{chat.name}</p>
-                    <p className="text-xs text-gray-400 truncate">@{chat.username}: {chat.lastMsg}</p>
-                  </div>
-                </div>
-              ))
-            }
-          </div>
+    <div className="min-h-screen bg-[#F6F8F6] text-[#1A1A1A]">
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap'); *{font-family:Inter}`}</style>
+      <div className="sticky top-0 z-30 bg-white border-b">
+        <div className="max-w-[1200px] mx-auto px-4 h-14 flex justify-between items-center">
+          <div className="flex items-center gap-3"><div className="w-8 h-8 bg-[#00CC99] rounded-full flex items-center justify-center font-bold text-white">n</div><div><p className="font-bold">ManaArea</p><p className="text-[11px] text-black/50">{city} → Local Communities <button onClick={()=>setShowCityModal(true)} className="text-[#00A87D] font-semibold">Change</button></p></div></div>
+          <div className="flex items-center gap-3"><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search people, posts, groups" className="hidden md:block w-[300px] h-9 bg-[#F0F2F0] rounded-full px-4 text-[13px] outline-none"/><button onClick={()=>setShowNotif(!showNotif)} className="relative w-9 h-9 bg-[#F0F2F0] rounded-full">🔔{notifications.filter(n=>!n.read).length>0 && <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center">{notifications.filter(n=>!n.read).length}</span>}</button></div>
         </div>
-      )}
-
-      {/* 1TO1 CHAT MODAL */}
-      {showChatModal && selectedFriend && (
-        <div onClick={() => setShowChatModal(false)} className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
-          <div onClick={e => e.stopPropagation()} className="bg-[#13131a] p-4 rounded-2xl w-full max-w-md h-[500px] flex-col flex">
-            <div className="flex items-center gap-3 mb-3 border-b border-gray-800 pb-2">
-              <img src={selectedFriend.photo} className="w-10 h-10 rounded-full"/>
-              <div><p className="font-bold">{selectedFriend.name}</p><p className="text-xs text-gray-400">@{selectedFriend.username}</p></div>
-              <button onClick={() => setShowChatModal(false)} className="ml-auto text-xl">X</button>
-            </div>
-            <div className="flex-1 overflow-y-auto space-y-2 mb-3">
-              {friendChat.map(msg => (
-                <div key={msg.time} className={`flex ${msg.from === user.uid? 'justify-end' : 'justify-start'}`}>
-                  <div className={`p-2 rounded-xl max-w-[70%] ${msg.from === user.uid? 'bg-[#a8ff00] text-black' : 'bg-[#0a0a0f]'}`}>
-                    <p className="text-sm">{msg.text}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="flex gap-2">
-              <input value={newFriendMsg} onChange={e => setNewFriendMsg(e.target.value)} placeholder="Message..." className="flex-1 bg-[#0a0a0f] p-3 rounded-xl"/>
-              <button onClick={handleSendFriendMsg} className="bg-[#a8ff00] text-black px-4 rounded-xl font-bold">Send</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* PLAYER MODAL */}
-      {selectedPlayer && (
-        <div onClick={() => setSelectedPlayer(null)} className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
-          <div onClick={e => e.stopPropagation()} className="bg-[#13131a] p-6 rounded-2xl w-full max-w-sm">
-            <div className="w-24 h-24 rounded-full mx-auto border-4 border-[#a8ff00] bg-[#a8ff00] text-black flex items-center justify-center text-4xl font-bold">{selectedPlayer.name[0]}</div>
-            <h2 className="text-2xl font-bold text-center mt-3">{selectedPlayer.name}</h2>
-            <p className="text-center text-[#a8ff00]">{selectedPlayer.role}</p>
-            <div className="mt-4 space-y-2">
-              <div className="flex justify-between"><span>Total Votes</span><span className="font-bold">{selectedPlayer.votes}</span></div>
-              <div className="flex justify-between"><span>Win Rate</span><span className="font-bold">{totalVotes > 0? ((selectedPlayer.votes/totalVotes)*100).toFixed(1) : 0}%</span></div>
-            </div>
-            <button onClick={() => setSelectedPlayer(null)} className="w-full bg-[#a8ff00] text-black mt-4 py-2 rounded-xl font-bold">Close</button>
-          </div>
-        </div>
-      )}
-
-{/* PROFILE MODAL */}
-      {showProfile && user && (
-        <div onClick={() => setShowProfile(false)} className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
-          <div onClick={e => e.stopPropagation()} className="bg-[#13131a] p-6 rounded-2xl w-full max-w-sm">
-            <img src={user.photoURL} className="w-20 h-20 rounded-full mx-auto border-4 border-[#a8ff00]"/>
-            <h2 className="text-xl font-bold text-center mt-3">{user.displayName}</h2>
-            <p className="text-center text-[#a8ff00] text-sm">@{user.profile?.username || "no_username"}</p>
-            <p className="text-center text-gray-400 text-sm mt-1">{user.profile?.bio || "No bio yet"}</p>
-            <div className="flex justify-around mt-4 text-center">
-              <div><p className="font-bold text-lg">{followers.length}</p><p className="text-xs text-gray-400">Followers</p></div>
-              <div><p className="font-bold text-lg">{following.length}</p><p className="text-xs text-gray-400">Following</p></div>
-              <div><p className="font-bold text-lg">{streak}</p><p className="text-xs text-gray-400">Streak</p></div>
-            </div>
-            <div className="mt-4 space-y-2 text-sm">
-              <div className="flex justify-between bg-[#0a0a0f] p-2 rounded-lg"><span>🗳️ Votes Today</span><span className="font-bold">{user? votesToday[category] : 0}/{DAILY_VOTE_LIMIT}</span></div>
-            </div>
-            <div className="mt-3">
-              <p className="text-xs text-gray-400 mb-1">Badges:</p>
-              <div className="flex flex-wrap gap-1">
-                {badges.length === 0? <p className="text-xs">No badges yet</p> : badges.map(b => <span key={b} className="text-xs bg-[#a8ff00] text-black px-2 py-1 rounded-full">{b}</span>)}
-              </div>
-            </div>
-            <button onClick={() => {setEditName(user.displayName); setEditUsername(user.profile?.username || ""); setEditBio(user.profile?.bio || ""); setShowEditProfile(true)}} className="w-full bg-[#a8ff00] text-black py-2 rounded-xl font-bold mt-3">✏️ Edit Profile</button>
-            <button onClick={handleLogout} className="w-full bg-red-600 mt-2 py-2 rounded-xl font-bold">Logout</button>
-            <button onClick={() => setShowProfile(false)} className="w-full bg-[#23232b] py-2 rounded-xl font-bold mt-2">Close</button>
-          </div>
-        </div>
-      )}
-
-      {/* EDIT PROFILE MODAL */}
-      {showEditProfile && (
-        <div onClick={() => setShowEditProfile(false)} className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
-          <div onClick={e => e.stopPropagation()} className="bg-[#13131a] p-6 rounded-2xl w-full max-w-sm">
-            <h2 className="text-xl font-bold text-center mb-4">Edit Profile</h2>
-            <img src={user.photoURL} className="w-20 h-20 rounded-full mx-auto border-4 border-[#a8ff00] mb-3"/>
-            <input value={editName} onChange={e => setEditName(e.target.value)} placeholder="Full Name" className="w-full bg-[#0a0a0f] p-3 rounded-xl mb-3 text-white"/>
-            <div className="relative mb-3">
-              <span className="absolute left-3 top-3 text-gray-500">@</span>
-              <input value={editUsername} onChange={e => {setEditUsername(e.target.value); setUsernameError("")}} placeholder="username" className="w-full bg-[#0a0a0f] p-3 pl-8 rounded-xl text-white"/>
-            </div>
-            {usernameError && <p className="text-red-500 text-xs mb-2">{usernameError}</p>}
-            <textarea value={editBio} onChange={e => setEditBio(e.target.value)} placeholder="Write your bio..." maxLength={150} className="w-full bg-[#0a0a0f] p-3 rounded-xl mb-3 text-white h-20"/>
-            <p className="text-xs text-gray-500 text-right -mt-2 mb-2">{editBio.length}/150</p>
-            <button onClick={handleUpdateProfile} className="w-full bg-[#a8ff00] text-black py-2 rounded-xl font-bold">Save</button>
-            <button onClick={() => setShowEditProfile(false)} className="w-full bg-[#23232b] py-2 rounded-xl font-bold mt-2">Cancel</button>
-          </div>
-        </div>
-      )}
-
-      <div className="w-full max-w-2xl mx-auto flex-1 p-3">
-        <header className="flex justify-between items-center mb-4">
-          <div><h1 className="text-2xl font-bold">FanClash</h1><p className="text-xs text-gray-400">🏏 ⚽ 🎬</p></div>
-          <div>{user? <img src={user.photoURL} onClick={() => setShowProfile(!showProfile)} className="w-10 h-10 rounded-full border-2 border-[#a8ff00] cursor-pointer" /> : <button onClick={handleGoogleLogin} className="bg-[#a8ff00] text-black px-4 py-2 rounded-full font-bold text-sm">Login</button>}</div>
-        </header>
-
-        <div className="flex justify-center gap-2 mb-4 bg-[#13131a] p-1 rounded-2xl">
-          {Object.keys(ALL_DATA).map(cat => (<button key={cat} onClick={() => setCategory(cat)} className={`flex-1 py-2 rounded-xl font-bold text-sm ${category === cat? 'bg-[#a8ff00] text-black' : 'text-gray-400'}`}>{category === 'Cricket' && '🏏 '}{category === 'Football' && '⚽ '}{category === 'Movies' && '🎬 '}{cat}</button>))}
-        </div>
-
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-3 rounded-2xl mb-3">
-          <p className="text-sm font-bold text-center mb-2">👑 Yesterday's Winners</p>
-          <div className="grid grid-cols-3 gap-2">
-            {Object.entries(yesterdayWinners).map(([cat, winner]) => (
-              <div key={cat} className="bg-black/20 p-2 rounded-xl text-center">
-                <p className="text-xs">{cat === 'Cricket' && '🏏'}{cat === 'Football' && '⚽'}{cat === 'Movies' && '🎬'} {cat}</p>
-                {winner? (<><div className="w-10 h-10 rounded-full mx-auto my-1 bg-[#a8ff00] text-black flex items-center justify-center text-lg font-bold">{winner.name[0]}</div><p className="text-xs font-bold truncate">{winner.name}</p><p className="text-xs text-[#a8ff00]">{winner.votes} votes</p></>) : (<p className="text-xs text-gray-300">No data</p>)}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="bg-gradient-to-r from-purple-600 to-pink-600 p-3 rounded-2xl mb-3">
-          <p className="text-sm font-bold">🔥 {streak} Day Streak</p>
-          <p className="text-xs">Vote every 4 hours a day & expand your streak!</p>
-        </div>
-
-        <div className="bg-gradient-to-r from-orange-600 to-red-600 p-3 rounded-2xl mb-3 text-center">
-          <p className="text-sm font-bold">🔥 Daily Fan Battle</p>
-          <p className="text-lg font-bold">{category === 'Cricket' && 'Best Cricketer of All Time?'}{category === 'Football' && 'GOAT Football Debate'}{category === 'Movies' && 'King of Indian Cinema?'}</p>
-          <p className="text-xs">Votes Left: {user? DAILY_VOTE_LIMIT - votesToday[category] : DAILY_VOTE_LIMIT}/6</p>
-          {user && getTimeUntilNextVote(user?.[`${category}LastVoteTime`]) > 0 && (<p className="text-xs text-yellow-300">Next vote in: {Math.floor(getTimeUntilNextVote(user?.[`${category}LastVoteTime`])/1000/60/60)}h {Math.floor(getTimeUntilNextVote(user?.[`${category}LastVoteTime`])/1000/60%60)}m</p>)}
-        </div>
-
-        <div className="flex justify-around border-b border-gray-800 mb-4">
-          <button onClick={() => setTab('Battle')} className={`pb-2 font-bold ${tab === 'Battle'? 'text-[#a8ff00] border-b-2 border-[#a8ff00]' : 'text-gray-500'}`}>⚔️ Battle</button>
-          <button onClick={() => setTab('Rankings')} className={`pb-2 font-bold ${tab === 'Rankings'? 'text-[#a8ff00] border-b-2 border-[#a8ff00]' : 'text-gray-500'}`}>🏆 Rankings</button>
-          <button onClick={() => setTab('Fans')} className={`pb-2 font-bold ${tab === 'Fans'? 'text-[#a8ff00] border-b-2 border-[#a8ff00]' : 'text-gray-500'}`}>👑 Top</button>
-          <button onClick={() => setTab('History')} className={`pb-2 font-bold ${tab === 'History'? 'text-[#a8ff00] border-b-2 border-[#a8ff00]' : 'text-gray-500'}`}>📜 History</button>
-          <button onClick={() => setTab('Chat')} className={`pb-2 font-bold ${tab === 'Chat'? 'text-[#a8ff00] border-b-2 border-[#a8ff00]' : 'text-gray-500'}`}>💬 Chat</button>
-        </div>
-
-        {tab === 'Battle' && battle[0] && battle[1] && (
-          <div onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
-            <p className="text-xs text-center text-gray-500 mb-2">👈 Right Swipe for Friends Chat</p>
-            <h2 className="text-center text-4xl font-bold mb-4">Battle <span className="text-[#a8ff00]">{battleNo}</span></h2>
-
-            <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
-              {category === 'Cricket' && ['Any', 'BATTER', 'BOWLER', 'ALL-ROUNDER', 'KEEPER', 'CAPTAIN'].map(role => (<button key={role} onClick={() => {setFilter(role); generateBattle(players, role)}} className={`px-4 py-2 rounded-full font-bold whitespace-nowrap ${filter === role? 'bg-[#a8ff00] text-black' : 'bg-[#13131a]'}`}>{role}</button>))}
-              {category === 'Football' && ['Any', 'FORWARD', 'MIDFIELDER', 'DEFENDER', 'GOALKEEPER'].map(role => (<button key={role} onClick={() => {setFilter(role); generateBattle(players, role)}} className={`px-4 py-2 rounded-full font-bold whitespace-nowrap ${filter === role? 'bg-[#a8ff00] text-black' : 'bg-[#13131a]'}`}>{role}</button>))}
-              {category === 'Movies' && ['Any', 'HERO', 'VILLAIN'].map(role => (<button key={role} onClick={() => {setFilter(role); generateBattle(players, role)}} className={`px-4 py-2 rounded-full font-bold whitespace-nowrap ${filter === role? 'bg-[#a8ff00] text-black' : 'bg-[#13131a]'}`}>{role}</button>))}
-            </div>
-
-            <div className="flex gap-2">
-              {[battle[0], battle[1]].map(p => {
-                const total = battle[0].votes + battle[1].votes;
-                const percent = total > 0? ((p.votes / total) * 100).toFixed(0) : 50;
-                return (
-                  <div key={p.id} onClick={() => setSelectedPlayer(p)} className={`bg-[#13131a] p-4 rounded-2xl w-1/2 text-center ${voteAnim === p.id? 'vote-pop' : ''}`}>
-                    <div className="w-20 h-20 rounded-full mx-auto mb-2 bg-[#a8ff00] text-black flex items-center justify-center text-3xl font-bold">{p.name[0]}</div>
-                    <span className="px-3 py-1 rounded-full text-xs font-bold bg-gray-800">{p.role}</span>
-                    <h3 className="text-xl font-bold mt-3">{p.name}</h3>
-                    <div className="w-full bg-gray-700 rounded-full h-2 mt-2">
-                      <div className="bg-[#a8ff00] h-2 rounded-full transition-all duration-500" style={{width: `${percent}%`}}></div>
-                    </div>
-                    <p className="text-[#a8ff00] font-bold text-sm">{p.votes || 0} votes - {percent}%</p>
-                    <button
-                      onClick={(e) => {e.stopPropagation(); handleVote(p.id)}}
-                      disabled={isVoting || (user &&!canVoteNow())}
-                      className={`w-full py-3 rounded-xl font-bold mt-2 ${isVoting || (user &&!canVoteNow())? 'bg-gray-700' : 'bg-[#a8ff00] text-black'}`}
-                    >
-                      {isVoting? 'VOTING...' : user &&!canVoteNow()? `WAIT ${Math.floor(getTimeUntilNextVote(user?.[`${category}LastVoteTime`])/1000/60/60)}h` : 'VOTE'}
-                    </button>
-                  </div>
-                )
-              })}
-            </div>
-
-{/* DEBATE ZONE */}
-            <div className="bg-[#13131a] p-4 rounded-2xl mt-4">
-              <h3 className="font-bold mb-3">💬 Debate Zone</h3>
-              <div className="flex gap-2 mb-3"><input value={newComment} onChange={e => setNewComment(e.target.value)} placeholder="Who will win?" className="w-full bg-[#0a0a0f] p-2 rounded-lg" /><button onClick={handlePostComment} className="bg-[#a8ff00] text-black px-4 rounded-lg font-bold">Post</button></div>
-              <div className="space-y-3 max-h-60 overflow-y-auto">{comments.map((c) => (<CommentItem key={c.key} comment={c} commentKey={c.key} />))}</div>
-            </div>
-
-            {/* 5 BUTTONS */}
-            <div className="flex gap-2 mt-4"><button onClick={handleShareResult} className="flex-1 bg-[#23232b] py-3 rounded-xl font-bold">📤 Share</button><button onClick={() => setShowResultCard(true)} className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 py-3 rounded-xl font-bold">📸 Result</button><button onClick={() => user? handleSkip() : handleGoogleLogin()} className="flex-1 bg-[#23232b] py-3 rounded-xl font-bold">⏭️ Skip</button></div>
-            <div className="flex gap-2 mt-3"><button onClick={() => user? handleRefer() : handleGoogleLogin()} className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 py-3 rounded-xl font-bold">👥 Refer</button><button onClick={() => user? startTournament() : handleGoogleLogin()} className="flex-1 bg-gradient-to-r from-yellow-600 to-orange-600 py-3 rounded-xl font-bold">🏆 Tournament</button></div>
-          </div>
-        )}
-
-        {/* RANKINGS TAB */}
-        {tab === 'Rankings' && (
-          <div>
-            <h2 className="text-2xl font-bold text-[#a8ff00] mb-4 text-center">🏆 Top 10 {category} Players</h2>
-            {players.sort((a,b) => b.votes - a.votes).slice(0,10).map((p,i) => {
-                const percentage = totalVotes > 0? ((p.votes || 0) / totalVotes * 100).toFixed(1) : 0;
-                return (
-                  <div key={p.id} onClick={() => setSelectedPlayer(p)} className="bg-[#13131a] p-3 rounded-xl mb-3 flex items-center gap-3 cursor-pointer">
-                    <span className="text-xl font-bold text-[#a8ff00]">#{i+1}</span>
-                    <div className="w-12 h-12 rounded-full bg-[#a8ff00] text-black flex items-center justify-center text-lg font-bold">{p.name[0]}</div>
-                    <div className="flex-1">
-                      <div className="flex justify-between"><span className="font-bold">{p.name}</span><span className="text-[#a8ff00] font-bold text-sm">{percentage}%</span></div>
-                      <div className="flex justify-between text-xs text-gray-400 mb-1"><span>{p.votes||0} votes</span><span>{p.role}</span></div>
-                      <div className="w-full bg-gray-700 rounded-full h-2"><div className="bg-[#a8ff00] h-2 rounded-full" style={{width: `${percentage}%`}}></div></div>
-                    </div>
-                  </div>
-                )
-              })}
-          </div>
-        )}
-
-        {/* FANS TAB WITH SEARCH */}
-        {tab === 'Fans' && (
-          <div>
-            <h2 className="text-2xl font-bold text-[#a8ff00] mb-4 text-center">👑 Top Fans - {category}</h2>
-            <div className="bg-[#13131a] p-4 rounded-2xl mb-4">
-              <p className="font-bold mb-2">🔍 Search User by @username</p>
-              <div className="flex gap-2">
-                <div className="relative flex-1"><span className="absolute left-3 top-3 text-gray-500">@</span>
-                  <input value={searchUsername} onChange={e => setSearchUsername(e.target.value)} onKeyPress={e => e.key === 'Enter' && handleSearchUser()} placeholder="username" className="w-full bg-[#0a0a0f] p-3 pl-8 rounded-xl text-white" />
-                </div>
-                <button onClick={handleSearchUser} className="bg-[#a8ff00] text-black px-4 rounded-xl font-bold">Search</button>
-              </div>
-              {searchResult && <div className="mt-3 bg-[#0a0a0f] p-3 rounded-xl flex items-center gap-3"><img src={searchResult.photoURL} className="w-12 h-12 rounded-full"/><div className="flex-1"><p className="font-bold">{searchResult.displayName}</p><p className="text-xs text-gray-400">@{searchResult.username}</p></div><button onClick={() => openFriendChat(searchResult)} className="bg-blue-600 px-3 py-1 rounded-full text-xs font-bold">💬 Chat</button></div>}
-            </div>
-            {topFans.length === 0? <p className="text-center text-gray-500">No votes today</p> :
-              topFans.map((fan, i) => (
-                <div key={i} className="bg-[#13131a] p-3 rounded-xl mb-3 flex items-center gap-3">
-                  <span className="text-xl font-bold text-[#a8ff00]">#{i+1}</span>
-                  <img src={fan.photo} className="w-12 h-12 rounded-full"/>
-                  <div className="flex-1">
-                    <p className="font-bold">{fan.name}</p>
-                    <p className="text-xs text-gray-400">@{fan.username} • {fan.votes} votes today</p>
-                  </div>
-                  {user && fan.uid!== user.uid && (
-                    <div className="flex gap-2">
-                      {following.includes(fan.uid)?
-                        <button onClick={() => handleUnfollow(fan.uid)} className="bg-[#23232b] px-3 py-1 rounded-full text-xs">Following</button> :
-                        <button onClick={() => handleFollow(fan.uid)} className="bg-[#a8ff00] text-black px-3 py-1 rounded-full text-xs font-bold">Follow</button>
-                      }
-                      <button onClick={() => openFriendChat(fan)} className="bg-blue-600 px-3 py-1 rounded-full text-xs font-bold">💬</button>
-                    </div>
-                  )}
-                </div>
-              ))
-            }
-          </div>
-        )}
-
-        {/* HISTORY TAB */}
-        {tab === 'History' && (
-          <div className="space-y-3">
-            <div className="flex justify-between items-center mb-4"><h2 className="text-2xl font-bold text-[#a8ff00]">📜 Your {category} Battle History</h2>{user && battleHistory.length > 0 && <button onClick={handleDeleteHistory} className="bg-red-600 px-3 py-1 rounded-lg text-sm font-bold">🗑️ Clear</button>}</div>
-            {!user? <p className="text-gray-500 text-center">Login required to see history</p> : battleHistory.length === 0? <p className="text-gray-500 text-center">No battles yet</p> : battleHistory.map((h,i) => (<div key={i} className="bg-[#13131a] p-3 rounded-xl"><p className="text-sm text-gray-400">Battle {h.battleNo} • {h.date}</p><p className="font-bold">{h.players[0]} vs {h.players[1]}</p><p className="text-sm text-[#a8ff00]">You voted: {h.votedFor}</p></div>))}
-          </div>
-        )}
-
-        {/* GLOBAL CHAT TAB */}
-        {tab === 'Chat' && (
-          <div>
-            <h2 className="text-2xl font-bold text-[#a8ff00] mb-4 text-center">💬 Global Chat</h2>
-            <div className="bg-[#13131a] p-4 rounded-2xl h-[400px] flex-col flex">
-              <div className="flex-1 overflow-y-auto space-y-3 mb-3">
-                {globalChat.length === 0? <p className="text-center text-gray-500">Start the conversation!</p> :
-                  globalChat.map((msg) => (
-                    <div key={msg.time} className="flex gap-2">
-                      <img src={msg.photo} className="w-8 h-8 rounded-full"/>
-                      <div className="bg-[#0a0a0f] p-2 rounded-xl flex-1">
-                        <p className="text-xs font-bold text-[#a8ff00]">{msg.user} <span className="text-gray-500">@{msg.username}</span></p>
-                        <p className="text-sm">{msg.text}</p>
-                      </div>
-                    </div>
-                  ))
-                }
-              </div>
-              <div className="flex gap-2">
-                <input value={newGlobalMsg} onChange={e => setNewGlobalMsg(e.target.value)} onKeyPress={e => e.key === 'Enter' && handlePostGlobalChat()} placeholder="Message..." className="flex-1 bg-[#0a0a0f] p-3 rounded-xl" />
-                <button onClick={handlePostGlobalChat} className="bg-[#a8ff00] text-black px-4 rounded-xl font-bold">Send</button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
 
-      {/* RESULT CARD MODAL */}
-      {showResultCard && battle[0] && battle[1] && (
-        <div onClick={() => setShowResultCard(false)} className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
-          <div onClick={e => e.stopPropagation()} className="bg-gradient-to-br from-[#1e3a5f] to-[#0a0e1a] p-6 rounded-3xl w-full max-w-sm border-2 border-[#a8ff00]">
-        <h2 className="text-center text-2xl font-bold mb-1">FanClash {category}</h2><p className="text-center text-gray-400 text-sm mb-4">Battle #{battleNo-1} Result</p>
-            <div className="flex gap-3 items-center mb-4">{[battle[0], battle[1]].map(p => {const total = battle[0].votes + battle[1].votes; const percent = total > 0? ((p.votes / total) * 100).toFixed(0) : 50; return (<div key={p.id} className="flex-1 text-center p-3 rounded-2xl bg-[#13131a]"><div className="w-16 h-16 rounded-full mx-auto mb-2 bg-[#a8ff00] text-black flex items-center justify-center text-2xl font-bold">{p.name[0]}</div><p className="font-bold text-sm">{p.name}</p><p className="text-2xl font-bold text-[#a8ff00]">{percent}%</p></div>)})}</div>
-            <button onClick={() => alert("Take screenshot and share it! 📸")} className="w-full bg-gradient-to-r from-purple-600 to-pink-600 py-3 rounded-xl font-bold">📸 Screenshot</button>
-            <button onClick={() => setShowResultCard(false)} className="w-full bg-[#23232b] py-2 rounded-xl font-bold mt-2">Close</button>
-          </div>
-        </div>
-      )}
+      {showNotif && <div className="fixed top-14 right-4 w-[360px] bg-white rounded-2xl shadow-2xl border z-40"><div className="p-4 border-b flex justify-between"><p className="font-semibold">Notifications</p><button onClick={()=>setNotifications(notifications.map(n=>({...n, read:true})))} className="text-[11px] text-[#00A87D]">Mark all read</button></div>{notifications.map(n=> <div key={n.id} className={`p-4 border-b ${!n.read?'bg-green-50/50':''}`}><p className="text-[13px]">{n.text}</p><p className="text-[11px] text-black/40">{n.time}</p></div>)}</div>}
 
-      {/* TOURNAMENT MODAL */}
-      {tournament && (
-        <div onClick={() => setTournament(null)} className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
-          <div onClick={e => e.stopPropagation()} className="bg-[#13131a] p-6 rounded-2xl w-full max-w-md">
-            <h2 className="text-2xl font-bold text-center mb-4">🏆 Round {tournament.round}</h2>
-            <div className="space-y-2">{tournament.matches.map((match, i) => (<div key={i} className="bg-[#0a0a0f] p-3 rounded-xl flex justify-between items-center"><span>{match[0].name}</span> <span className="text-[#a8ff00]">VS</span> <span>{match[1].name}</span></div>))}</div>
-            <button onClick={() => setTournament(null)} className="w-full bg-[#23232b] py-2 rounded-xl mt-3 font-bold">Close</button>
-          </div>
-        </div>
-      )}
+      {showCityModal && <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4"><div className="bg-white rounded-3xl p-6 w-full max-w-[360px]"><h3 className="font-bold">📍 Select your area</h3><p className="text-[12px] text-black/50 mt-1">Same area users community lo untaru. Exact house hide.</p><div className="mt-4 grid grid-cols-2 gap-2">{['Tirupati','Renigunta','Tiruchanoor','Hyderabad','Bangalore'].map(c=> <button key={c} onClick={()=>{setCity(c); setShowCityModal(false)}} className={`h-11 rounded-full text-[13px] border ${city===c?'bg-[#00CC99] text-white':'bg-white'}`}>{c}</button>)}</div><button onClick={()=>setShowCityModal(false)} className="w-full mt-3 h-10 bg-black/5 rounded-full">Close</button></div></div>}
 
-      {/* INSTAGRAM FOOTER */}
-      <div className="fixed bottom-0 left-0 right-0 bg-[#13131a] border-t border-gray-800 z-40">
-        <div className="w-full max-w-2xl mx-auto flex justify-around items-center h-16">
-          <button onClick={() => {setTab('Battle'); setFooterTab('Home')}} className={footerTab === 'Home'? 'text-[#a8ff00]' : 'text-gray-500'}><Home size={24} /></button>
-          <button onClick={handleFooterSearch} className={footerTab === 'Search'? 'text-[#a8ff00]' : 'text-gray-500'}><Search size={24} /></button>
-          <button onClick={() => {setShowFriendsChatList(true); setFooterTab('Chat')}} className={footerTab === 'Chat'? 'text-[#a8ff00]' : 'text-gray-500'}><MessageCircle size={24} /></button>
-          <button onClick={() => {setTab('Rankings'); setFooterTab('Top')}} className={footerTab === 'Top'? 'text-[#a8ff00]' : 'text-gray-500'}><Trophy size={24} /></button>
-          <button onClick={() => {setShowProfile(true); setFooterTab('Profile')}} className={footerTab === 'Profile'? 'text-[#a8ff00]' : 'text-gray-500'}><User size={24} /></button>
+      <div className="max-w-[1200px] mx-auto flex gap-6 px-4 py-4 pb-24">
+        <div className="hidden md:block w-[220px]">
+          <div className="bg-white rounded-2xl border p-3 space-y-1">{[{id:'home',label:'Home Feed',icon:'🏠'},{id:'nearby',label:'Nearby Feed',icon:'📍'},{id:'groups',label:'Local Groups',icon:'👥'},{id:'market',label:'Buy & Sell',icon:'🛒'},{id:'help',label:'Community Help',icon:'🆘'},{id:'events',label:'Local Events',icon:'📅'},{id:'admin',label:'Admin',icon:'🛡️'}].map(t=> <button key={t.id} onClick={()=>setTab(t.id)} className={`w-full text-left px-3 py-2.5 rounded-xl text-[13px] ${tab===t.id?'bg-black text-white':'hover:bg-black/5'}`}>{t.icon} {t.label}</button>)}</div>
         </div>
-        <div className="h-4 bg-[#13131a]"></div>
+
+        <div className="flex-1 max-w-[600px] space-y-3">
+          {(tab==='home'||tab==='nearby') && <div className="flex gap-2 overflow-x-auto">{['All','Local update','Question','Recommendation','Alert','Announcement'].map(f=> <button key={f} onClick={()=>setFeedFilter(f)} className={`px-4 h-8 rounded-full text-[12px] border whitespace-nowrap ${feedFilter===f?'bg-black text-white':'bg-white'}`}>{f}</button>)}</div>}
+          <div className="bg-white rounded-2xl border p-3 flex gap-3"><button onClick={()=>setShowPostModal(true)} className="flex-1 text-left h-10 bg-[#F0F2F0] rounded-full px-4 text-[13px] text-black/50">What's happening in {city}?</button></div>
+          <p className="text-[10px] text-center text-black/40">Exact house/location publicly చూపించకూడదు</p>
+
+          {tab!=='groups' && tab!=='market' && tab!=='events' && tab!=='admin' && tab!=='help' && filteredPosts.map(p=> (
+            <div key={p.id} className="bg-white rounded-2xl border p-4">
+              <div className="flex justify-between"><div className="flex gap-2"><div className="w-9 h-9 bg-black/10 rounded-full"></div><div><p className="text-[13px] font-semibold">{p.author} • {p.area}</p><p className="text-[11px] text-black/50">{p.distance}km away • {p.time}</p></div></div><div className="group relative"><button className="w-7 h-7 bg-black/5 rounded-full">...</button><div className="hidden group-hover:block absolute right-0 top-8 w-44 bg-white shadow-xl rounded-xl border p-1 z-10"><button onClick={()=>setReported([...reported,p.id])} className="w-full text-left px-3 py-2 text-[12px] hover:bg-black/5">Report post</button><button onClick={()=>setBlocked([...blocked,p.author])} className="w-full text-left px-3 py-2 text-[12px] hover:bg-black/5">Block user</button></div></div></div>
+              <div className="mt-3"><span className={`text-[11px] px-2.5 py-1 rounded-full ${p.color}`}>{p.icon} {p.type}</span></div>
+              <p className="mt-3 text-[14px]">{p.text}</p>
+              <div className="mt-4 flex gap-2"><button onClick={()=>toggleLike(p.id,'likes')} className="px-3 h-8 bg-[#F0F2F0] rounded-full text-[12px]">❤️ {p.likes} Like</button><button onClick={()=>toggleLike(p.id,'useful')} className="px-3 h-8 bg-green-50 text-green-700 rounded-full text-[12px]">👍 {p.useful} Useful</button></div>
+              <div className="mt-3 space-y-2">{p.comments.map(c=> <div key={c.id} className="bg-[#F6F8F6] rounded-xl p-2.5"><p className="text-[12px] font-semibold">{c.author}</p><p className="text-[12px]">{c.text}</p></div>)}<input placeholder="Write comment..." className="w-full h-8 bg-[#F0F2F0] rounded-full px-3 text-[12px] outline-none" onKeyDown={e=>{if(e.key==='Enter'){const v=e.target.value; if(!v)return; setPosts(posts.map(pp=> pp.id===p.id?{...pp, comments:[...pp.comments,{id:Date.now(),author:'You',text:v}]}:pp)); e.target.value='';}}} /></div>
+            </div>
+          ))}
+
+          {tab==='help' && <div className="bg-[#FFF8E1] border border-[#FFE082] rounded-2xl p-4"><p className="font-bold">🆘 Community Help</p><p className="mt-2 bg-white rounded-xl p-3 text-[14px]">"నా bike start అవ్వడం లేదు. Nearby mechanic ఎవరికైనా తెలుసా?"</p><p className="mt-2 text-[12px]">Nearby users answer cheyagalaru</p></div>}
+
+          {tab==='groups' && <div className="grid gap-3">{groups.map(g=> <div key={g.id} className="bg-white rounded-2xl border p-4 flex justify-between"><p className="text-[13px]">{g.icon} {g.name} • {g.members}</p><button onClick={()=> setJoinedGroups(joinedGroups.includes(g.id)?joinedGroups.filter(x=>x!==g.id):[...joinedGroups,g.id])} className={`px-4 h-8 rounded-full text-[12px] ${joinedGroups.includes(g.id)?'bg-black text-white':'bg-[#00CC99] text-white'}`}>{joinedGroups.includes(g.id)?'Joined':'Join'}</button></div>)}</div>}
+
+          {tab==='market' && <div className="space-y-3"><div className="flex justify-between"><p className="font-semibold">🛒 Buy & Sell</p><button onClick={()=>setShowItemModal(true)} className="h-8 px-4 bg-[#00CC99] text-white rounded-full text-[12px]">+ Sell</button></div><div className="grid grid-cols-2 gap-3">{market.map(m=> <div key={m.id} className="bg-white rounded-2xl border p-3"><p className="text-[12px] font-semibold">{m.title}</p><p className="font-bold">₹{m.price}</p><p className="text-[10px] text-black/50">{m.cat} • {m.distance}km • {m.seller}</p></div>)}</div></div>}
+
+          {tab==='events' && <div className="space-y-3"><div className="flex justify-between"><p className="font-semibold">📅 Local Events</p><button onClick={()=>setShowEventModal(true)} className="h-8 px-4 bg-[#00CC99] text-white rounded-full text-[12px]">+ Create</button></div>{events.map(ev=> <div key={ev.id} className="bg-white rounded-2xl border p-4"><p className="font-semibold text-[13px]">{ev.title}</p><p className="text-[11px] text-black/50">{ev.date} • {ev.area}</p><p className="text-[12px] mt-2">{ev.desc}</p></div>)}</div>}
+
+          {tab==='admin' && <div className="bg-white rounded-2xl border p-4"><p className="font-bold">🛡️ Report + Block Admin</p><p className="text-[12px] text-black/50">Reported: {reported.length}, Blocked: {blocked.length}</p>{reported.map(id=>{const p=posts.find(x=>x.id===id); return p&& <div key={id} className="mt-2 border bg-red-50 rounded-xl p-3 flex justify-between"><p className="text-[12px]">{p.author}: {p.text.slice(0,40)}</p><button onClick={()=>{setPosts(posts.filter(x=>x.id!==id)); setReported(reported.filter(x=>x!==id))}} className="px-2 h-7 bg-red-500 text-white rounded-full text-[11px]">Remove</button></div>})}{blocked.map(b=> <div key={b} className="mt-2 bg-[#F6F8F6] rounded-xl p-2 flex justify-between"><p className="text-[12px]">{b}</p><button onClick={()=>setBlocked(blocked.filter(x=>x!==b))} className="text-[11px] text-green-600">Unblock</button></div>)}</div>}
+        </div>
       </div>
 
-      <footer className="text-center mt-10 pb-24 text-gray-500 text-sm border-t border-gray-800 pt-4"><p>© 2026 <span className="text-white font-bold">FanClash™</span> | A Production By <span className="text-white font-bold">ANESH</span></p></footer>
+      {showPostModal && <div className="fixed inset-0 bg-black/40 z-50 flex items-end md:items-center justify-center"><div className="bg-white w-full md:max-w-[520px] rounded-t-[24px] md:rounded-[24px] p-5"><div className="flex justify-between"><p className="font-bold">Create Post</p><button onClick={()=>setShowPostModal(false)}>✕</button></div><div className="mt-4 flex gap-2 overflow-x-auto">{[{l:'Local update',i:'📰'},{l:'Question',i:'❓'},{l:'Recommendation',i:'💡'},{l:'Alert',i:'🚨'},{l:'Announcement',i:'📢'}].map(o=> <button key={o.l} onClick={()=>setPostType(o.l)} className={`px-3 h-8 rounded-full text-[12px] border ${postType===o.l?'bg-black text-white':'bg-white'}`}>{o.i} {o.l}</button>)}</div><textarea value={postText} onChange={e=>setPostText(e.target.value)} placeholder="What's happening?" className="mt-4 w-full h-28 bg-[#F0F2F0] rounded-2xl p-4 text-[13px] outline-none"/><button onClick={addPost} className="mt-4 w-full h-11 bg-[#00CC99] text-white rounded-full font-semibold">Post to {city}</button></div></div>}
     </div>
   );
-                    }
+    }
