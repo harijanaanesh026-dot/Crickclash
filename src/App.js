@@ -1,139 +1,152 @@
 import { useState, useEffect } from 'react';
 
 export default function App(){
-  const [city,setCity]=useState('Detecting...');
-  const [block,setBlock]=useState('Your block');
-  const [loc,setLoc]=useState(null);
+  const [city,setCity]=useState('Locating...');
+  const [block,setBlock]=useState('');
   const [showLoc,setShowLoc]=useState(true);
   const [cat,setCat]=useState('All');
   const [showPost,setShowPost]=useState(false);
-  const [postCat,setPostCat]=useState('General');
   const [postText,setPostText]=useState('');
-
+  const [postCat,setPostCat]=useState('General');
+  
   const cats = [
-    {id:'All', label:'All', icon:'🏠'},
-    {id:'General', label:'General', icon:'💬'},
-    {id:'Safety', label:'Alerts', icon:'🚨'},
-    {id:'For Sale', label:'Buy/Sell', icon:'🛒'},
-    {id:'Help', label:'Help', icon:'🤝'},
-    {id:'Lost & Found', label:'Lost', icon:'🔎'},
+    {id:'All', label:'All'},
+    {id:'General', label:'General'},
+    {id:'Alerts', label:'Alerts'},
+    {id:'Help', label:'Help'},
+    {id:'Buy', label:'Buy/Sell'},
   ];
 
-  const [posts,setPosts]=useState([
-    {id:1, name:'Jennifer Akka', letter:'J', block:'12th Street, Madhapur', time:'27m', cat:'General', text:'Hi neighbors! Mana street lo evaru unnaru? New ga vachanu.', likes:3, liked:false, comments:[], city:'Madhapur', verified:true},
-    {id:2, name:'Ramesh Anna', letter:'R', block:'RTC Colony, Renigunta', time:'1h', cat:'Safety', text:'⚠️ Water supply ledu morning nundi. Tanker vachindi - 5 PM ki vastundi. Mana street lo water problem.', likes:12, liked:false, comments:[{name:'Suresh', text:'Thanks anna update ki'}], city:'Renigunta', urgent:true},
-    {id:3, name:'Anitha', letter:'A', block:'Tiruchanoor Road', time:'3h', cat:'Help', text:'Manaki manchi electrician telusa? Fan repair kavali today. Evaraina unte cheppandi.', likes:1, liked:false, comments:[{name:'Rahul', text:'Kumar Electricals - main road, Rs 200 ki chestadu, number: 98xxx'}], city:'Renigunta'},
-    {id:4, name:'Kiran', letter:'K', block:'Akkarampalle', time:'5h', cat:'For Sale', text:'Cycle ammutunna - Rs 3500, good condition. 2 years old. DM cheyyandi.', likes:2, liked:false, comments:[], city:'Renigunta', price:'₹3,500'},
-    {id:5, name:'Lakshmi', letter:'L', block:'Madhapur Hills', time:'6h', cat:'Safety', text:'Current ledu - EB work 8 PM varaku. Power cut announcement.', likes:8, liked:false, comments:[], city:'Madhapur', urgent:true},
-    {id:6, name:'Mohammed', letter:'M', block:'Main Road Bus Stop', time:'Yesterday', cat:'Lost & Found', text:'Bus stop daggara keys dorikayi. Evaridaina pothe cheppandi.', likes:1, liked:false, comments:[], city:'Renigunta'},
-  ]);
+  // REAL - EMPTY AT START, NO FAKE POSTS
+  const [posts,setPosts]=useState([]);
 
-  const getLocation = ()=>{
+  const getLoc = ()=>{
     if(!navigator.geolocation){ setCity('Madhapur'); setBlock('Madhapur Hills'); setShowLoc(false); return; }
-    navigator.geolocation.getCurrentPosition(async (pos)=>{
-      const {latitude, longitude} = pos.coords;
-      setLoc({lat:latitude, lng:longitude});
+    navigator.geolocation.getCurrentPosition(async (p)=>{
       try{
-        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
-        const data = await res.json();
-        const a = data.address;
-        const b = a.road || a.suburb || a.neighbourhood || a.village || 'Your Street';
-        const c = a.suburb || a.village || a.town || a.city || 'Madhapur';
-        setCity(c); setBlock(b);
+        const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${p.coords.latitude}&lon=${p.coords.longitude}`);
+        const d = await r.json();
+        setCity(d.address.suburb || d.address.village || d.address.town || 'Madhapur');
+        setBlock(d.address.road || d.address.neighbourhood || 'Main Street');
       }catch{ setCity('Renigunta'); setBlock('RTC Colony'); }
       setShowLoc(false);
-    }, ()=>{ setCity('Madhapur'); setBlock('Madhapur Hills'); setShowLoc(false); }, {enableHighAccuracy:true, timeout:10000});
+    }, ()=>{ setCity('Madhapur'); setBlock('Madhapur Hills'); setShowLoc(false); });
   };
-  useEffect(()=>{ getLocation(); }, []);
+  useEffect(()=>{ getLoc(); }, []);
 
-    const filtered = posts.filter(p=>{
-    if(cat!=='All' && p.cat!==cat) return false;
-    if(city.toLowerCase().includes('renigunta') || city.toLowerCase().includes('tirupati') || city.toLowerCase().includes('akkarampalle')) return p.city==='Renigunta';
-    if(city.toLowerCase().includes('madhapur') || city.toLowerCase().includes('hyderabad')) return p.city==='Madhapur';
-    return true;
-  });
+  const filtered = posts.filter(p=> cat==='All' || p.cat===cat);
 
-  const toggleLike = id=> setPosts(posts.map(p=> p.id===id? {...p, liked:!p.liked, likes:p.liked?p.likes-1:p.likes+1}:p));
-  const addComment = (id,txt)=>{ if(!txt.trim()) return; setPosts(posts.map(p=> p.id===id? {...p, comments:[...p.comments,{name:'You', text:txt}]}:p)); };
-  const createPost = ()=>{
+  const like = id=> setPosts(posts.map(p=> p.id===id? {...p, liked:!p.liked, likes:p.liked?p.likes-1:p.likes+1}:p));
+  
+  const postNow = ()=>{
     if(!postText.trim()) return;
-    const np = {id:Date.now(), name:'You', letter:'Y', block, time:'Just now', cat:postCat, text:postText, likes:0, liked:false, comments:[], city:city, verified:true};
-    setPosts([np,...posts]); setPostText(''); setShowPost(false);
+    const newPost = {
+      id:Date.now(),
+      name:'You',
+      initial:'Y',
+      block:block,
+      time:'now',
+      cat:postCat,
+      text:postText,
+      likes:0,
+      liked:false,
+      city:city,
+      real:true
+    };
+    setPosts([newPost, ...posts]);
+    setPostText('');
+    setShowPost(false);
+  };
+
+  const deletePost = id=> {
+    const ok = window.confirm('Delete this post?');
+    if(ok) setPosts(posts.filter(p=>p.id!==id));
   };
 
   return (
-    <div style={{minHeight:'100vh', background:'#F6F7F3', color:'#1A1A1A', paddingBottom:80, fontFamily:'system-ui'}}>
-      {showLoc && <div style={{position:'fixed', inset:0, background:'white', zIndex:100, display:'flex', flexDirection:'column', justifyContent:'center', padding:24}}>
-        <div style={{maxWidth:340, margin:'0 auto', width:'100%', textAlign:'center'}}>
-          <div style={{width:56, height:56, background:'#2E7D32', borderRadius:14, margin:'0 auto', display:'flex', alignItems:'center', justifyContent:'center', color:'white', fontWeight:900, fontSize:24}}>प</div>
-          <h2 style={{marginTop:14, fontSize:20, fontWeight:800}}>Padosi - Nextdoor for India</h2>
-          <p style={{fontSize:13, color:'#666', marginTop:6}}>USA Nextdoor laga, kani mana India problems ki taggattu.<br/>Water, Current, Plumber, Electrician - anni local.<br/><b>Exact address public kaadu - Approximate area matrame.</b></p>
-          {loc && <div style={{marginTop:12, background:'#F6F7F3', padding:10, borderRadius:10, fontSize:11}}>📍 {loc.lat.toFixed(4)}, {loc.lng.toFixed(4)}<br/>{city} - {block}</div>}
-          <button onClick={getLocation} style={{marginTop:18, width:'100%', background:'#2E7D32', color:'white', border:'none', padding:14, borderRadius:10, fontWeight:700}}>📍 Allow Location - Join {city}</button>
-          <button onClick={()=>{setCity('Madhapur'); setBlock('Madhapur Hills'); setShowLoc(false);}} style={{marginTop:10, width:'100%', background:'white', border:'1px solid #DDD', padding:12, borderRadius:10}}>Skip - Madhapur</button>
-          <div style={{marginTop:14, fontSize:11, color:'#999', textAlign:'left', background:'#FFF9C4', padding:10, borderRadius:10}}>
-            🇮🇳 India adaptation:<br/>• $ → ₹ Rupees • Zip → Pincode<br/>• Porch theft → Water/Current alerts<br/>• Nextdoor green → Padosi green
-          </div>
+    <div style={{minHeight:'100vh', background:'#FAFAF8', color:'#111', fontFamily:'Inter, system-ui', paddingBottom:90}}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700&display=swap'); *{font-family:Inter}`}</style>
+
+      {showLoc && <div style={{position:'fixed', inset:0, background:'#FAFAF8', zIndex:100, display:'flex', alignItems:'center', justifyContent:'center', padding:24}}>
+        <div style={{background:'white', borderRadius:24, padding:28, maxWidth:340, width:'100%', boxShadow:'0 20px 60px rgba(0,0,0,0.08)', textAlign:'center'}}>
+          <div style={{width:48, height:48, background:'#111', borderRadius:14, margin:'0 auto', display:'flex', alignItems:'center', justifyContent:'center', color:'white', fontWeight:800}}>प</div>
+          <h1 style={{marginTop:16, fontSize:18, fontWeight:700}}>Padosi</h1>
+          <p style={{fontSize:13, color:'#888', marginTop:6, lineHeight:1.5}}>Real neighbors, real posts.<br/>No fake data. Your block, your feed.</p>
+          <button onClick={getLoc} style={{marginTop:20, width:'100%', background:'#111', color:'white', border:'none', padding:14, borderRadius:14, fontWeight:600, fontSize:14}}>Allow location</button>
+          <button onClick={()=>{setCity('Madhapur'); setBlock('Madhapur Hills'); setShowLoc(false);}} style={{marginTop:10, width:'100%', background:'#F5F5F3', border:'none', padding:12, borderRadius:14, fontSize:13, color:'#666'}}>Skip</button>
         </div>
       </div>}
 
-      <div style={{position:'sticky', top:0, background:'white', borderBottom:'1px solid #E0E0E0', zIndex:30}}>
-        <div style={{maxWidth:520, margin:'0 auto', padding:'10px 14px', display:'flex', alignItems:'center', gap:10}}>
-          <div style={{width:34, height:34, background:'#2E7D32', borderRadius:8, display:'flex', alignItems:'center', justifyContent:'center', color:'white', fontWeight:900}}>प</div>
-          <div style={{flex:1}}><b style={{fontSize:14}}>Padosi</b><span style={{fontSize:11, color:'#2E7D32', background:'#E8F5E9', padding:'2px 6px', borderRadius:10, marginLeft:6}}>✔ {city}</span><div style={{fontSize:10, color:'#777'}}>{block} • Approx area only • Real neighbors</div></div>
-          <button onClick={getLocation} style={{background:'#F1F8E9', border:'none', borderRadius:20, padding:'6px 10px', fontSize:11}}>📍 Re-locate</button>
+      <div style={{position:'sticky', top:0, background:'rgba(250,250,248,0.9)', backdropFilter:'blur(12px)', zIndex:20, borderBottom:'1px solid #EEE'}}>
+        <div style={{maxWidth:520, margin:'0 auto', padding:'14px 20px', display:'flex', alignItems:'center', justifyContent:'space-between'}}>
+          <div style={{display:'flex', alignItems:'center', gap:10}}><div style={{width:32, height:32, background:'#111', borderRadius:10, display:'flex', alignItems:'center', justifyContent:'center', color:'white', fontWeight:700, fontSize:13}}>प</div><div><div style={{fontWeight:700, fontSize:14}}>Padosi</div><div style={{fontSize:11, color:'#888'}}>{block} • {city}</div></div></div>
+          <button onClick={getLoc} style={{width:32, height:32, background:'white', border:'1px solid #EEE', borderRadius:10, fontSize:14}}>📍</button>
         </div>
-        <div style={{maxWidth:520, margin:'0 auto', display:'flex', gap:6, overflowX:'auto', padding:'0 14px 10px'}}>
-          {cats.map(c=>{const a=cat===c.id; return <button key={c.id} onClick={()=>setCat(c.id)} style={{padding:'6px 12px', borderRadius:20, border:`1px solid ${a?'#2E7D32':'#DDD'}`, background:a?'#2E7D32':'white', color:a?'white':'#333', fontSize:12, fontWeight:600, whiteSpace:'nowrap'}}>{c.icon} {c.label}</button>})}
+        <div style={{maxWidth:520, margin:'0 auto', display:'flex', gap:8, padding:'0 20px 12px', overflowX:'auto'}}>
+          {cats.map(c=>{const a=cat===c.id; return <button key={c.id} onClick={()=>setCat(c.id)} style={{padding:'7px 16px', borderRadius:20, border:'none', background:a?'#111':'white', color:a?'white':'#666', fontSize:13, fontWeight:500, whiteSpace:'nowrap'}}>{c.label}</button>})}
         </div>
       </div>
 
-      <div style={{maxWidth:520, margin:'0 auto'}}>
-        <div style={{background:'#E8F5E9', margin:12, borderRadius:12, padding:12, display:'flex', gap:10, alignItems:'center'}}>
-          <div style={{width:36, height:36, background:'#2E7D32', borderRadius:50, display:'flex', alignItems:'center', justifyContent:'center', color:'white', fontWeight:700}}>{city[0]}</div>
-          <div style={{flex:1}}><b style={{fontSize:13}}>{city} Neighbors</b><div style={{fontSize:11, color:'#555'}}>{filtered.length} posts today • Real location verified • USA Nextdoor style but for India</div></div>
-          <div style={{fontSize:10, background:'#2E7D32', color:'white', padding:'4px 8px', borderRadius:10}}>INDIA</div>
-        </div>
+      <div style={{maxWidth:520, margin:'0 auto', padding:'16px 16px 0'}}>
 
-
-        <div style={{padding:'0 12px', display:'flex', flexDirection:'column', gap:10}}>
-          {filtered.map(p=>(
-            <div key={p.id} style={{background:'white', border:`1px solid ${p.urgent?'#FF3B30':'#E0E0E0'}`, borderRadius:12, padding:12}}>
-              {p.urgent && <div style={{background:'#FFEBEE', color:'#D32F2F', fontSize:10, fontWeight:700, padding:'4px 8px', borderRadius:6, display:'inline-block', marginBottom:8}}>🚨 ALERT • Mana area important - More visible</div>}
-              <div style={{display:'flex', gap:10}}>
-                <div style={{width:38, height:38, background:'#E8F5E9', borderRadius:50, display:'flex', alignItems:'center', justifyContent:'center', fontWeight:700, color:'#2E7D32'}}>{p.letter}</div>
-                <div><div style={{display:'flex', gap:6}}><b style={{fontSize:13}}>{p.name}</b>{p.verified && <span style={{fontSize:9, background:'#E8F5E9', color:'#2E7D32', padding:'2px 6px', borderRadius:10}}>✔ Neighbor</span>}</div><div style={{fontSize:11, color:'#666'}}>{p.block} • {p.time} • {p.price?` ${p.price}`:''}</div></div>
-              </div>
-              <p style={{margin:'8px 0 0', fontSize:14, lineHeight:1.4}}>{p.text}</p>
-              <div style={{display:'flex', gap:14, marginTop:10, borderTop:'1px solid #F0F0F0', paddingTop:8}}>
-                <button onClick={()=>toggleLike(p.id)} style={{background:'none', border:'none', color:p.liked?'#2E7D32':'#666', fontSize:12, fontWeight:600}}>{p.liked?'♥':'♡'} {p.likes} Helpful</button>
-                <button onClick={()=>{const el=document.getElementById('c'+p.id); el.style.display=el.style.display==='none'?'flex':'none'}} style={{background:'none', border:'none', color:'#666', fontSize:12}}>💬 {p.comments.length} Reply</button>
-                <button onClick={()=>window.alert('Shared to '+city)} style={{background:'none', border:'none', color:'#666', fontSize:12, marginLeft:'auto'}}>↗ Share</button>
-              </div>
-              <div id={'c'+p.id} style={{display:'none', marginTop:8, flexDirection:'column', gap:6, background:'#FAFAFA', borderRadius:10, padding:8}}>
-                {p.comments.map((c,i)=> <div key={i} style={{fontSize:12}}><b style={{fontSize:11}}>{c.name}:</b> {c.text}</div>)}
-                <div style={{display:'flex', gap:6}}><input id={'in'+p.id} placeholder="Mana local language lo reply ivvandi..." onKeyDown={e=>{if(e.key==='Enter'){addComment(p.id,e.target.value); e.target.value='';}}} style={{flex:1, background:'white', border:'1px solid #DDD', borderRadius:20, padding:'6px 12px', fontSize:11}} /><button onClick={()=>{const el=document.getElementById('in'+p.id); addComment(p.id,el.value); el.value='';}} style={{background:'#2E7D32', color:'white', border:'none', borderRadius:20, padding:'6px 12px', fontSize:11}}>Send</button></div>
+        {/* REAL EMPTY STATE - NO FAKE POSTS */}
+        {filtered.length===0 ? (
+          <div style={{marginTop:40, textAlign:'center', padding:20}}>
+            <div style={{width:64, height:64, background:'white', borderRadius:20, margin:'0 auto', display:'flex', alignItems:'center', justifyContent:'center', fontSize:24, boxShadow:'0 2px 10px rgba(0,0,0,0.04)', border:'1px solid #F0F0F0'}}>🏘️</div>
+            <h3 style={{marginTop:16, fontSize:16, fontWeight:700}}>No posts yet in {city}</h3>
+            <p style={{fontSize:13, color:'#888', marginTop:6, lineHeight:1.5}}>This is real - no fake posts.<br/>Be the first neighbor to post in {block}.<br/>Water, current, help, buy/sell - anything local.</p>
+            <button onClick={()=>setShowPost(true)} style={{marginTop:20, background:'#111', color:'white', border:'none', padding:'12px 20px', borderRadius:14, fontWeight:600, fontSize:13}}>＋ Create first post</button>
+            <div style={{marginTop:24, background:'white', borderRadius:16, padding:14, textAlign:'left', border:'1px solid #F0F0F0'}}>
+              <div style={{fontSize:12, fontWeight:600}}>How it works (Nextdoor India):</div>
+              <div style={{fontSize:11, color:'#888', marginTop:6, lineHeight:1.6}}>
+                1. Real GPS - {city} auto detected<br/>
+                2. You post → only {city} neighbors see it<br/>
+                3. No fake Suresh/Anitha posts - only real you<br/>
+                4. Exact address hidden - {block} approx only
               </div>
             </div>
-          ))}
-          {filtered.length===0 && <div style={{background:'white', borderRadius:12, padding:30, textAlign:'center', color:'#888', fontSize:12}}>No posts in {city} - First post nuvve pettu!</div>}
-        </div>
+          </div>
+        ) : (
+          <div style={{display:'flex', flexDirection:'column', gap:12}}>
+            {filtered.map(p=>(
+              <div key={p.id} style={{background:'white', borderRadius:20, padding:16, border:'1px solid #F2F2F2', boxShadow:'0 1px 2px rgba(0,0,0,0.03)'}}>
+                <div style={{display:'flex', gap:10, alignItems:'center'}}>
+                  <div style={{width:36, height:36, background:'#111', borderRadius:12, display:'flex', alignItems:'center', justifyContent:'center', fontWeight:600, fontSize:13, color:'white'}}>{p.initial}</div>
+                  <div style={{flex:1}}><div style={{fontWeight:600, fontSize:13, display:'flex', gap:6}}>{p.name} <span style={{fontSize:10, background:'#E8F5E9', color:'#2E7D32', padding:'2px 6px', borderRadius:10}}>Real</span></div><div style={{fontSize:11, color:'#999'}}>{p.block} • {p.time} • {p.cat}</div></div>
+                  <button onClick={()=>deletePost(p.id)} style={{background:'none', border:'none', color:'#CCC', fontSize:12}}>Delete</button>
+                </div>
+                <div style={{marginTop:12, fontSize:14, lineHeight:1.5, color:'#222'}}>{p.text}</div>
+                <div style={{display:'flex', gap:16, marginTop:14}}>
+                  <button onClick={()=>like(p.id)} style={{display:'flex', gap:6, alignItems:'center', background:'none', border:'none', fontSize:12, color:p.liked?'#111':'#999', fontWeight:500}}>{p.liked?'●':'○'} {p.likes} Helpful</button>
+                  <button style={{background:'none', border:'none', fontSize:12, color:'#999'}}>Share</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {filtered.length>0 && <div style={{marginTop:16, background:'white', borderRadius:20, padding:14, border:'1px solid #F0F0F0', display:'flex', gap:10, alignItems:'center'}}>
+          <div style={{width:32, height:32, background:'#111', borderRadius:10, display:'flex', alignItems:'center', justifyContent:'center', color:'white'}}>Y</div>
+          <button onClick={()=>setShowPost(true)} style={{flex:1, textAlign:'left', background:'#FAFAF8', border:'1px solid #F0F0F0', borderRadius:20, padding:'10px 14px', fontSize:13, color:'#888'}}>What's happening in {city}?</button>
+        </div>}
       </div>
 
-      {showPost && <div style={{position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', zIndex:90, display:'flex', alignItems:'flex-end', justifyContent:'center'}}><div style={{background:'white', borderRadius:'16px 16px 0 0', padding:14, width:'100%', maxWidth:520}}>
-        <div style={{display:'flex', justifyContent:'space-between'}}><b>Post to {city}</b><button onClick={()=>setShowPost(false)} style={{background:'#F0F0F0', border:'none', borderRadius:50, width:26, height:26}}>✕</button></div>
-        <div style={{display:'flex', gap:6, overflowX:'auto', marginTop:10}}>{cats.filter(c=>c.id!=='All').map(c=> <button key={c.id} onClick={()=>setPostCat(c.id)} style={{padding:'6px 10px', borderRadius:20, border:`1px solid ${postCat===c.id?'#2E7D32':'#DDD'}`, background:postCat===c.id?'#2E7D32':'white', color:postCat===c.id?'white':'#333', fontSize:11, whiteSpace:'nowrap'}}>{c.icon} {c.label}</button>)}</div>
-        <textarea value={postText} onChange={e=>setPostText(e.target.value)} placeholder="Mana street lo enti jarugutundi? Water, current, electrician kavala? Cheppandi..." style={{marginTop:10, width:'100%', height:80, background:'#FAFAFA', border:'1px solid #DDD', borderRadius:10, padding:10, fontSize:13}}/>
-        <button onClick={createPost} style={{marginTop:10, width:'100%', background:'#2E7D32', border:'none', padding:12, borderRadius:10, fontWeight:700, color:'white'}}>Post to {city} - Approx area only</button>
+      {showPost && <div style={{position:'fixed', inset:0, background:'rgba(0,0,0,0.3)', backdropFilter:'blur(8px)', zIndex:90, display:'flex', alignItems:'flex-end', justifyContent:'center'}}><div style={{background:'white', borderRadius:'24px 24px 0 0', padding:20, width:'100%', maxWidth:520}}>
+        <div style={{width:36, height:4, background:'#E5E5E5', borderRadius:10, margin:'0 auto 16px'}}></div>
+        <div style={{display:'flex', justifyContent:'space-between'}}><b style={{fontSize:15}}>Post to {city} neighbors</b><button onClick={()=>setShowPost(false)} style={{width:28, height:28, background:'#F5F5F3', border:'none', borderRadius:50}}>✕</button></div>
+        <div style={{display:'flex', gap:6, marginTop:14}}>{cats.filter(c=>c.id!=='All').map(c=> <button key={c.id} onClick={()=>setPostCat(c.id)} style={{padding:'6px 12px', borderRadius:20, border:'none', background:postCat===c.id?'#111':'#F5F5F3', color:postCat===c.id?'white':'#666', fontSize:12}}>{c.label}</button>)}</div>
+        <textarea value={postText} onChange={e=>setPostText(e.target.value)} placeholder={`Share with ${city} neighbors - water issue, help, anything real...`} autoFocus style={{marginTop:14, width:'100%', height:90, background:'#FAFAF8', border:'1px solid #EEE', borderRadius:16, padding:14, fontSize:14, outline:'none', resize:'none'}}/>
+        <button onClick={postNow} style={{marginTop:14, width:'100%', background:'#111', color:'white', border:'none', padding:14, borderRadius:16, fontWeight:600, fontSize:14}}>Post - Real to {city}</button>
+        <div style={{textAlign:'center', fontSize:10, color:'#AAA', marginTop:10}}>Real post • No fake data • {block} approx only</div>
       </div></div>}
 
-      <div style={{position:'fixed', bottom:0, left:0, right:0, background:'white', borderTop:'1px solid #E0E0E0', display:'flex', justifyContent:'space-around', padding:'8px 0 12px'}}>
-        <button onClick={()=>setCat('All')} style={{background:'none', border:'none', color:cat==='All'?'#2E7D32':'#888', fontSize:10}}><div style={{fontSize:18}}>🏠</div>Home</button>
-        <button onClick={()=>setCat('Help')} style={{background:'none', border:'none', color:cat==='Help'?'#2E7D32':'#888', fontSize:10}}><div style={{fontSize:18}}>🤝</div>Help</button>
-        <button onClick={()=>setShowPost(true)} style={{background:'#2E7D32', border:'none', width:48, height:48, borderRadius:14, color:'white', fontSize:22, marginTop:-14}}>＋</button>
-        <button onClick={()=>setCat('Safety')} style={{background:'none', border:'none', color:cat==='Safety'?'#D32F2F':'#888', fontSize:10}}><div style={{fontSize:18}}>🚨</div>Alerts</button>
-        <button onClick={()=>window.alert('Profile - '+city+' - Exact hidden')} style={{background:'none', border:'none', color:'#888', fontSize:10}}><div style={{fontSize:18}}>👤</div>You</button>
+      <div style={{position:'fixed', bottom:16, left:'50%', transform:'translateX(-50%)', background:'#111', borderRadius:20, padding:'8px 20px', display:'flex', gap:20, alignItems:'center', boxShadow:'0 10px 30px rgba(0,0,0,0.2)', zIndex:50}}>
+        <button onClick={()=>setCat('All')} style={{background:'none', border:'none', color:cat==='All'?'white':'#666', fontSize:11}}>Home</button>
+        <button onClick={()=>setCat('Alerts')} style={{background:'none', border:'none', color:cat==='Alerts'?'white':'#666', fontSize:11}}>Alerts</button>
+        <button onClick={()=>setShowPost(true)} style={{background:'white', border:'none', width:36, height:36, borderRadius:12, color:'#111', fontSize:18}}>+</button>
+        <button onClick={()=>setCat('Help')} style={{background:'none', border:'none', color:cat==='Help'?'white':'#666', fontSize:11}}>Help</button>
+        <button onClick={()=>setCat('Buy')} style={{background:'none', border:'none', color:cat==='Buy'?'white':'#666', fontSize:11}}>Buy</button>
       </div>
     </div>
   );
-        }
+                  }
