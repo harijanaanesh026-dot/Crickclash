@@ -1,117 +1,217 @@
-import { useState, useRef } from 'react';
+import React, { useState } from 'react';
+import './App.css';
 
-export default function App(){
-  const [tab,setTab]=useState('wall');
-  const [showAddWall,setShowAddWall]=useState(false);
-  const [addType,setAddType]=useState('message');
-  const [addText,setAddText]=useState('');
-  const photoFileRef = useRef(null);
+const initialUser = {
+  id: 'me', name: 'You', username: 'your_wall',
+  photo: 'https://i.pravatar.cc/150?img=68',
+  bio: 'My life on my Wall 🧱',
+  interests: ['Music', 'Trips', 'Memories']
+};
 
-  const [myProfile,setMyProfile]=useState({
-    name:'Anesh',
-    username:'anesh_renigunta',
-    photo:'A',
-    photoUrl:null,
-    bio:'Renigunta • Building Padosi',
-    interests:['Music','Cricket'],
-  });
-  const [editProfile,setEditProfile]=useState({...myProfile});
-  const [myWall,setMyWall]=useState([]);
+export default function App() {
+  // 👤 Profile
+  const [profile, setProfile] = useState(initialUser);
+  const [privacy, setPrivacy] = useState('friends');
 
-  const addToWall = ()=>{
-    if(!addText.trim()) return;
-    let text = addText;
-    if(addType==='song') text = `🎵 ${addText}`;
-    if(addType==='question') text = `❓ ${addText}`;
-    if(addType==='poll') text = `📊 ${addText}`;
-    const np = {id:Date.now(), from:'You', fromPhoto:myProfile.photo, fromPhotoUrl:myProfile.photoUrl, type:addType, text, time:'now', likes:0, liked:false, comments:[]};
-    setMyWall([np, ...myWall]);
-    setAddText(''); setShowAddWall(false);
+  // 🧱 My Wall
+  const [wallPosts, setWallPosts] = useState([]);
+  const [newPost, setNewPost] = useState({ type: 'text', content: '' });
+
+  // 🎁 Leave Something
+  const [wallAdditions, setWallAdditions] = useState([]);
+
+  // 👥 Friends
+  const [friends, setFriends] = useState([]);
+  const [requests, setRequests] = useState([
+    { id: 1, name: 'Aarav', username: 'aarav_23', photo: 'https://i.pravatar.cc/150?img=12' }
+  ]);
+  const [discoverUsers] = useState([
+    { id: 101, name: 'Sneha', username: 'sneha.wall', interests: ['Music'], photo: 'https://i.pravatar.cc/150?img=5' },
+    { id: 102, name: 'Vikram', username: 'vikram', interests: ['Trips'], photo: 'https://i.pravatar.cc/150?img=8' },
+  ]);
+
+  // 🔔 Notifications
+  const [notifications, setNotifications] = useState([
+    { id: 1, text: 'Aarav sent you a friend request', type: 'request' }
+  ]);
+
+  // 👥 Shared Wall
+  const [sharedWalls, setSharedWalls] = useState([
+    { id: 'sw1', title: 'Goa Trip 2025', members: ['You', 'Aarav'], posts: [] }
+  ]);
+
+  // 🎨 Customization
+  const [customization, setCustomization] = useState({ background: '#fffbe6', theme: 'light', layout: 'grid' });
+  const [comments, setComments] = useState({});
+  const [blockedUsers, setBlockedUsers] = useState([]);
+
+  const myWallLink = `https://padosi.app/wall/${profile.username}`;
+
+  const addToMyWall = () => {
+    if (!newPost.content.trim()) return;
+    const post = { id: Date.now(), ...newPost, author: 'me', date: new Date().toISOString(), pinned: false, reactions: [] };
+    setWallPosts([post, ...wallPosts]);
+    setNewPost({ type: 'text', content: '' });
+    setNotifications([{ id: Date.now(), text: 'You added new content to your Wall' }, ...notifications]);
   };
 
-  const handlePhotoChange = (e)=>{
-    const file = e.target.files[0];
-    if(!file) return;
-    const url = URL.createObjectURL(file);
-    setEditProfile({...editProfile, photo:file.name[0].toUpperCase(), photoUrl:url});
+  const acceptRequest = (id) => {
+    const req = requests.find(r => r.id === id);
+    setFriends([...friends, req]);
+    setRequests(requests.filter(r => r.id !== id));
   };
 
-  const saveProfile = ()=>{
-    if(!editProfile.name.trim() || !editProfile.username.trim()){ alert('Name required'); return; }
-    setMyProfile({...editProfile});
-    setTab('wall');
+  const addComment = (postId, text) => {
+    const c = { ...comments }; if (!c[postId]) c[postId] = [];
+    c[postId].push({ id: Date.now(), text, user: 'You' }); setComments(c);
   };
 
+  const addReaction = (postId, emoji) => {
+    setWallPosts(wallPosts.map(p => p.id === postId ? { ...p, reactions: [...(p.reactions||[]), emoji] } : p));
+  };
+
+  const togglePin = (id) => setWallPosts(wallPosts.map(p => p.id === id ? { ...p, pinned: !p.pinned } : p));
+  const blockUser = (userId) => { setBlockedUsers([...blockedUsers, userId]); setFriends(friends.filter(f => f.id !== userId)); };
+  const reportContent = (postId) => alert(`Post ${postId} reported. Safety team will review.`);
+
+   // Continued from Part 1...
   return (
-    <div style={{minHeight:'100vh', background:'black', color:'white', fontFamily:'Inter, system-ui', paddingBottom:90}}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@500;700&display=swap'); *{font-family:Inter} ::-webkit-scrollbar{display:none}`}</style>
-
-      {/* HEADER - NO PROFILE HERE - PAINA VADDU */}
-      <div style={{position:'sticky', top:0, background:'rgba(0,0,0,0.9)', backdropFilter:'blur(20px)', borderBottom:'1px solid #1A1A1A', zIndex:20}}>
-        <div style={{maxWidth:500, margin:'0 auto', padding:'12px 16px'}}>
-          <div style={{fontSize:20, fontWeight:800, fontStyle:'italic', textAlign:'center'}}>Padosi • Real Only</div>
+    <div style={{ background: customization.background, minHeight: '100vh' }}>
+      <header style={{ display: 'flex', justifyContent: 'space-between', padding: 16, background: '#fff', borderBottom: '1px solid #eee' }}>
+        <h2>🧱 Padosi Wall</h2>
+        <div>
+          <button onClick={() => navigator.clipboard.writeText(myWallLink)}>🔗 Share My Wall: {myWallLink}</button>
+          <span style={{ marginLeft: 8 }}>🔔 {notifications.length}</span>
         </div>
-      </div>
+      </header>
 
-      <div style={{maxWidth:500, margin:'0 auto', padding:16}}>
-        {tab==='wall' && (
-          <div>
-            <div style={{background:'#121212', borderRadius:20, padding:16, border:'1px solid #1E1E1E'}}>
-              <div style={{display:'flex', gap:14, alignItems:'center'}}>
-                {myProfile.photoUrl ? <img src={myProfile.photoUrl} style={{width:56, height:56, borderRadius:16, objectFit:'cover'}} /> : <div style={{width:56, height:56, borderRadius:16, background:'white', color:'black', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:800, fontSize:20}}>{myProfile.photo}</div>}
-                <div><div style={{fontWeight:700}}>{myProfile.name}</div><div style={{fontSize:12, color:'#888'}}>@{myProfile.username}</div><div style={{fontSize:12, color:'#CCC', marginTop:4}}>{myProfile.bio}</div></div>
-              </div>
-              <div style={{display:'flex', gap:6, marginTop:8, flexWrap:'wrap'}}>{myProfile.interests.map(i=> <span key={i} style={{fontSize:10, background:'#1A1A1A', padding:'3px 8px', borderRadius:10, border:'1px solid #222'}}>{i}</span>)}</div>
-            </div>
-
-            <div style={{marginTop:16, display:'flex', justifyContent:'space-between'}}><b>🧱 My Wall - Real</b><button onClick={()=>setShowAddWall(true)} style={{background:'white', color:'black', border:'none', padding:'8px 14px', borderRadius:20, fontSize:12, fontWeight:700}}>＋ Add</button></div>
-            {myWall.length===0 ? <div style={{marginTop:12, background:'#121212', borderRadius:20, padding:24, textAlign:'center', border:'1px dashed #333'}}><div style={{fontSize:12, color:'#888'}}>Empty wall - Real - Add first</div></div> :
-            <div style={{marginTop:12, display:'flex', flexDirection:'column', gap:10}}>{myWall.map(p=>(
-              <div key={p.id} style={{background:'#121212', borderRadius:16, padding:12, border:'1px solid #1E1E1E'}}>
-                <div style={{fontSize:13}}>{p.text}</div>
-                <div style={{display:'flex', gap:10, marginTop:8}}><span style={{fontSize:11, color:'#888'}}>{p.type} • {p.time}</span><button onClick={()=>setMyWall(myWall.filter(x=>x.id!==p.id))} style={{background:'none', border:'none', color:'#555', fontSize:11, marginLeft:'auto'}}>Delete</button></div>
-              </div>
-            ))}</div>}
+      <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr 300px', gap: 16, padding: 16 }}>
+        <aside>
+          <div className="card">
+            <img src={profile.photo} width={80} style={{ borderRadius: '50%' }} alt="profile" />
+            <h3>{profile.name}</h3><p>@{profile.username}</p><p>{profile.bio}</p>
+            <p><b>Interests:</b> {profile.interests.join(', ')}</p>
+            <select value={privacy} onChange={e => setPrivacy(e.target.value)}>
+              <option value="public">🌍 Public</option>
+              <option value="friends">👥 Friends Only</option>
+              <option value="selected">🔒 Selected People</option>
+            </select>
           </div>
-        )}
 
-        {tab==='friends' && <div style={{textAlign:'center', padding:30, background:'#121212', borderRadius:20, border:'1px dashed #333'}}><div>🤝 Friends - Real - No fake</div></div>}
-        {tab==='discover' && <div style={{textAlign:'center', padding:30, background:'#121212', borderRadius:20, border:'1px dashed #333'}}><div>🔎 Discover - Real - No fake</div></div>}
-
-        {tab==='profile' && <div>
-          <div style={{background:'#121212', borderRadius:20, padding:16, border:'1px solid #1E1E1E'}}>
-            <div style={{display:'flex', justifyContent:'space-between'}}><b>👤 Edit Profile</b><button onClick={()=>setTab('wall')} style={{background:'#1A1A1A', border:'none', borderRadius:50, width:28, height:28, color:'white'}}>✕</button></div>
-            <div style={{marginTop:16, display:'flex', flexDirection:'column', gap:12, alignItems:'center'}}>
-              {editProfile.photoUrl ? <img src={editProfile.photoUrl} style={{width:80, height:80, borderRadius:20, objectFit:'cover', border:'2px solid white'}} /> : <div style={{width:80, height:80, borderRadius:20, background:'white', color:'black', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:800, fontSize:28}}>{editProfile.photo}</div>}
-              <input type="file" ref={photoFileRef} onChange={handlePhotoChange} accept="image/*" style={{display:'none'}} />
-              <button onClick={()=>photoFileRef.current.click()} style={{background:'#1A1A1A', color:'white', border:'1px solid #222', padding:'8px 14px', borderRadius:20, fontSize:12}}>📸 Change Photo</button>
-            </div>
-            <div style={{marginTop:16, display:'flex', flexDirection:'column', gap:10}}>
-              <input value={editProfile.name} onChange={e=>setEditProfile({...editProfile, name:e.target.value})} placeholder="Name" style={{width:'100%', background:'black', border:'1px solid #222', borderRadius:12, padding:12, color:'white'}} />
-              <input value={editProfile.username} onChange={e=>setEditProfile({...editProfile, username:e.target.value.toLowerCase().replace(/\s/g,'_')})} placeholder="Username" style={{width:'100%', background:'black', border:'1px solid #222', borderRadius:12, padding:12, color:'white'}} />
-              <textarea value={editProfile.bio} onChange={e=>setEditProfile({...editProfile, bio:e.target.value})} placeholder="Bio" style={{width:'100%', background:'black', border:'1px solid #222', borderRadius:12, padding:12, color:'white', height:70, resize:'none'}} />
-              <input value={editProfile.interests.join(', ')} onChange={e=>setEditProfile({...editProfile, interests:e.target.value.split(',').map(s=>s.trim()).filter(Boolean)})} placeholder="Interests - Music, Cricket" style={{width:'100%', background:'black', border:'1px solid #222', borderRadius:12, padding:12, color:'white'}} />
-              <button onClick={saveProfile} style={{background:'white', color:'black', border:'none', padding:14, borderRadius:12, fontWeight:800, marginTop:6}}>💾 Save</button>
-            </div>
+          <div className="card">
+            <h4>🎨 Wall Customization</h4>
+            <select value={customization.theme} onChange={e => setCustomization({...customization, theme: e.target.value})}>
+              <option value="light">Light</option><option value="dark">Dark</option><option value="retro">Retro</option>
+            </select>
+            <select value={customization.layout} onChange={e => setCustomization({...customization, layout: e.target.value})}>
+              <option value="grid">Grid</option><option value="list">List</option><option value="masonry">Masonry</option>
+            </select>
           </div>
-        </div>}
-      </div>
 
-      {showAddWall && <div style={{position:'fixed', inset:0, background:'rgba(0,0,0,0.85)', zIndex:100, display:'flex', alignItems:'center', justifyContent:'center', padding:20}}><div style={{background:'#121212', borderRadius:20, padding:16, width:'100%', maxWidth:400, border:'1px solid #222'}}>
-        <div style={{display:'flex', justifyContent:'space-between'}}><b>Add to Wall - Real</b><button onClick={()=>setShowAddWall(false)} style={{background:'#222', border:'none', borderRadius:50, width:28, height:28, color:'white'}}>✕</button></div>
-        <div style={{display:'flex', gap:6, marginTop:12}}>{['message','photo','song','question','poll'].map(t=> <button key={t} onClick={()=>setAddType(t)} style={{padding:'6px 12px', borderRadius:20, border:'none', background:addType===t?'white':'#1A1A1A', color:addType===t?'black':'#888', fontSize:11}}>{t}</button>)}</div>
-        <textarea value={addText} onChange={e=>setAddText(e.target.value)} placeholder="Real post..." autoFocus style={{marginTop:12, width:'100%', height:80, background:'black', border:'1px solid #222', borderRadius:12, padding:12, color:'white', outline:'none'}}/>
-        <button onClick={addToWall} style={{marginTop:12, width:'100%', background:'white', color:'black', border:'none', padding:12, borderRadius:12, fontWeight:700}}>Post Real</button>
-      </div></div>}
+          <div className="card">
+            <h4>👥 Friends ({friends.length})</h4>
+            {friends.map(f => <div key={f.id}>{f.name} <button onClick={() => blockUser(f.id)}>Block</button></div>)}
+            <h5>Requests</h5>
+            {requests.map(r => <div key={r.id}>{r.name} <button onClick={() => acceptRequest(r.id)}>Accept</button></div>)}
+          </div>
+        </aside>
 
-      {/* BOTTOM ONLY - PROFILE KINDHA OKATE - PAINA VADDU */}
-      <div style={{position:'fixed', bottom:16, left:'50%', transform:'translateX(-50%)', background:'#1A1A1A', borderRadius:20, padding:'8px 14px', display:'flex', gap:10, border:'1px solid #222', zIndex:50}}>
-        <button onClick={()=>setTab('wall')} style={{background:tab==='wall'?'white':'none', border:'none', color:tab==='wall'?'black':'#888', padding:'6px 12px', borderRadius:14, fontSize:11, fontWeight:600}}>🧱 Wall</button>
-        <button onClick={()=>setTab('friends')} style={{background:tab==='friends'?'white':'none', border:'none', color:tab==='friends'?'black':'#888', padding:'6px 12px', borderRadius:14, fontSize:11}}>🤝 Friends</button>
-        <button onClick={()=>setShowAddWall(true)} style={{background:'white', border:'none', width:32, height:32, borderRadius:10, color:'black', fontSize:18}}>+</button>
-        <button onClick={()=>setTab('discover')} style={{background:tab==='discover'?'white':'none', border:'none', color:tab==='discover'?'black':'#888', padding:'6px 12px', borderRadius:14, fontSize:11}}>🔎 Discover</button>
-        <button onClick={()=>{setEditProfile({...myProfile}); setTab('profile');}} style={{background:tab==='profile'?'white':'none', border:'none', color:tab==='profile'?'black':'#888', padding:'6px 12px', borderRadius:14, fontSize:11, fontWeight:600}}>👤 Profile</button>
+        <main>
+          <div className="card">
+            <h3>🧱 My Wall + ✨ Daily Drop</h3>
+            <select value={newPost.type} onChange={e => setNewPost({...newPost, type: e.target.value})}>
+              <option value="text">Text</option><option value="photo">Photo</option><option value="video">Video</option>
+              <option value="music">Song</option><option value="question">Question</option><option value="poll">Poll</option>
+            </select>
+            <textarea placeholder={`What's on your Wall? (${newPost.type})`} value={newPost.content} onChange={e => setNewPost({...newPost, content: e.target.value})} style={{ width: '100%', height: 80 }} />
+            <button onClick={addToMyWall}>Add to Wall</button>
+          </div>
+
+          <div className="card" style={{ border: '2px dashed #ff6b6b' }}>
+            <h3>🎁 Leave Something on Wall (Main Unique Feature)</h3>
+            <p>Friends can leave:</p>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <button onClick={() => setWallAdditions([{id: Date.now(), from: 'Aarav', type: 'message', content: 'Bro amazing wall! 🔥', anonymous: false}, ...wallAdditions])}>Test Message</button>
+              <button onClick={() => setWallAdditions([{id: Date.now(), from: 'Anonymous', type: 'message', content: 'Your vibe is great!', anonymous: true}, ...wallAdditions])}>Test Anonymous Drop</button>
+            </div>
+            {wallAdditions.map(a => (
+              <div key={a.id} style={{ padding: 8, borderBottom: '1px solid #eee' }}>
+                <small>{a.anonymous ? 'Anonymous' : a.from} left {a.type}: </small><p>{a.content}</p>
+                <button onClick={() => reportContent(a.id)}>Report</button>
+              </div>
+            ))}
+          </div>
+
+          <div className={customization.layout}>
+            {wallPosts.length === 0 ? <p>Your Wall is empty. Start posting!</p> : wallPosts.map(post => (
+              <div key={post.id} className="card" style={{ border: post.pinned ? '2px solid gold' : '1px solid #eee' }}>
+                <small>{post.type} • {new Date(post.date).toLocaleDateString()} {post.pinned && '📌 Pinned'}</small>
+                <p>{post.content}</p>
+                <div>
+                  <button onClick={() => addReaction(post.id, '❤️')}>❤️ {post.reactions?.length || 0}</button>
+                  <button onClick={() => togglePin(post.id)}>{post.pinned ? 'Unpin' : '📌 Pin'}</button>
+                  <button onClick={() => reportContent(post.id)}>🛡️ Report</button>
+                </div>
+                <div>{(comments[post.id] || []).map(c => <div key={c.id}><b>{c.user}:</b> {c.text}</div>)}
+                  <input placeholder="Add comment..." onKeyDown={e => { if(e.key === 'Enter') { addComment(post.id, e.target.value); e.target.value=''; } }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </main> 
+
+                      <aside>
+          <div className="card">
+            <h4>🔎 Discover</h4>
+            <input placeholder="Search Walls, interests..." style={{ width: '100%' }} />
+            {discoverUsers.map(u => (
+              <div key={u.id} style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8 }}>
+                <span>{u.name} @{u.username}</span><button onClick={() => setRequests([...requests, u])}>Connect</button>
+              </div>
+            ))}
+            <h5 style={{ marginTop: 12 }}>🏆 Weekly Highlights</h5>
+            <p style={{ fontSize: 12 }}>No appearance-based ranking. Only interesting Walls & best memories.</p>
+          </div>
+
+          <div className="card">
+            <h4>👥 Shared Wall - Multiple people → one Wall</h4>
+            {sharedWalls.map(sw => (
+              <div key={sw.id} style={{ padding: 6, background: '#f5f5f5', marginBottom: 6 }}>
+                <b>{sw.title}</b><br/><small>{sw.members.join(', ')}</small><p>{sw.posts.length} memories</p>
+              </div>
+            ))}
+            <button onClick={() => { const t = prompt('Shared Wall name? Ex: Birthday, Trip, Event'); if(t) setSharedWalls([...sharedWalls, { id: Date.now().toString(), title: t, members: ['You'], posts: [] }]); }}>+ Create Shared Wall</button>
+          </div>
+
+          <div className="card">
+            <h4>🔗 Share My Wall</h4>
+            <p style={{ fontSize: 12, wordBreak: 'break-all' }}>{myWallLink}</p>
+            <button onClick={() => alert('Shared to WhatsApp! ' + myWallLink)}>WhatsApp</button>
+            <button onClick={() => alert('Shared to Instagram! ' + myWallLink)} style={{ marginLeft: 4 }}>Instagram</button>
+          </div>
+
+          <div className="card">
+            <h4>🎁 Anonymous Drop + 🛡️ Safety</h4>
+            <label><input type="checkbox" defaultChecked /> Allow Anonymous Drops</label>
+            <p style={{ fontSize: 11 }}>Recipient doesn't initially see who sent it. Report/block controls available.</p>
+            <h4>🔒 Privacy</h4>
+            <ul style={{ fontSize: 12 }}><li>Public Wall</li><li>Friends only</li><li>Selected people</li><li>Block user</li><li>Report user</li></ul>
+            <h4>🛡️ Safety</h4>
+            <ul style={{ fontSize: 12 }}><li>Report content</li><li>Block users</li><li>Content moderation</li><li>Spam protection</li><li>Abuse prevention</li></ul>
+          </div>
+
+          <div className="card">
+            <h4>🔔 Live Activity / Notifications</h4>
+            {notifications.map(n => <div key={n.id} style={{ fontSize: 12, padding: 4, borderBottom: '1px solid #eee' }}>{n.text}</div>)}
+          </div>
+
+          <div className="card">
+            <h4>📸 Memories / Wall History</h4>
+            <p style={{ fontSize: 12 }}>Old posts, past memories, previous Wall activity, "On this day"</p>
+            <button>View Wall History</button>
+          </div>
+        </aside>
       </div>
     </div>
   );
-        }
+              }
